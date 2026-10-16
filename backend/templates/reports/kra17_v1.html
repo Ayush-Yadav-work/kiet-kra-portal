@@ -1,0 +1,13 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 17: the source's two-page split of one wide table is repaired onto one A4-landscape table (D-027, D-041).{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<h1 class="title">Training centres / labs established in collaboration with Industries</h1>
+{% include "reports/_records_table.html" with spec=fields.centres rows=a.centres_rows %}
+{% empty %}
+<h1 class="title">Training centres / labs established in collaboration with Industries</h1>
+<p class="empty">No training centre or lab records have been added yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

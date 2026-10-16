@@ -1,0 +1,96 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 18 Functional MoU activity report (D-040). One section per MoU; every activity under it prints the full
+source report (sections 1–6) with the MoU's basic details repeated, so each activity is tied to its MoU.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+{% for r in a.mou_activities_records %}
+<section class="k11 mou {% if not forloop.parentloop.first or not forloop.first %}event-break{% endif %}">
+<p class="event-tag">MoU {{ forloop.parentloop.counter }} of {{ activities|length }} ({{ a.mou_ref }}) — Activity {{ forloop.counter }} of {{ a.mou_activities_records|length }}</p>
+<h1 class="title fdp-title">REPORT ON Signed Functional MoU with Industry / Research Organization</h1>
+<p class="center bold fdp-sub">KIET Deemed to be University, Ghaziabad</p>
+
+<p class="bold k11-label">1. Basic Details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Name of Institution</td><td>Krishna Institute of Engineering &amp; Technology (KIET), Ghaziabad, Delhi-NCR, Uttar Pradesh</td></tr>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Name of Industry/Research Organization</td><td>{{ a.org_name }}</td></tr>
+  <tr><td>Type of Organization</td><td>{{ a.org_type }}</td></tr>
+  <tr><td>MoU Reference No.</td><td>{{ a.mou_ref }}</td></tr>
+  <tr><td>Date of Signing</td><td>{{ a.signing_date_display }}</td></tr>
+  <tr><td>MoU Validity</td><td>{{ a.validity }}</td></tr>
+  <tr><td>Date of Activity</td><td>{{ r.activity_date }}</td></tr>
+  <tr><td>Title of Activity</td><td>{{ r.title }}</td></tr>
+  <tr><td>Type of Activity</td><td>{% if r.activity_type == "Other" %}Other: {{ r.activity_type_other }}{% else %}{{ r.activity_type }}{% endif %}</td></tr>
+  <tr><td>Venue/Mode</td><td>{{ r.venue }}{% if r.venue and r.mode %} / {% endif %}{{ r.mode }}</td></tr>
+  <tr><td>Coordinator from Institution</td><td>{{ a.coord_institution }}</td></tr>
+  <tr><td>Coordinator from Organization</td><td>{{ a.coord_organization }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Objective of the MoU Activity</p>
+{% if r.objective %}<p>{{ r.objective|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+
+<p class="bold k11-label">3. Details of Activity</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Activity Title</td><td>{{ r.title }}</td></tr>
+  <tr><td>Date &amp; Duration</td><td>{{ r.activity_date }}{% if r.activity_date and r.duration %}, {% endif %}{{ r.duration }}</td></tr>
+  <tr><td>Target Participants</td><td>{{ r.target_participants }}</td></tr>
+  <tr><td>Programme/Branch</td><td>{{ r.programme_branch }}</td></tr>
+  <tr><td>Number of Participants</td><td>{{ r.participants }}</td></tr>
+  <tr><td>Resource Person/Industry Expert</td><td>{{ r.resource_person }}</td></tr>
+  <tr><td>Designation &amp; Organization</td><td>{{ r.rp_designation }}</td></tr>
+  <tr><td>Key Topics Covered</td><td>{{ r.key_topics|linebreaksbr }}</td></tr>
+  <tr><td>Mode</td><td>{{ r.mode }}</td></tr>
+</table>
+
+<p class="bold k11-label">4. Brief Description of the Activity</p>
+{% if r.description %}<p>{{ r.description|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<div class="keep">
+<p class="bold k11-label">5. Outcome of the Activity</p>
+{% if r.outcomes %}<p>The activity resulted in the following outcomes:</p>
+<ul>{% for line in r.outcomes.splitlines %}{% if line.strip %}<li>{{ line.strip }}</li>{% endif %}{% endfor %}</ul>
+{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+
+<div class="keep">
+<p class="bold k11-label">6. Evidence Maintained</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:12%">Sl. No.</th><th>Evidence</th><th style="width:20%">Available</th></tr></thead>
+  <tr><td class="center">1</td><td>Signed MoU</td><td class="center">{{ r.ev_signed_mou|default:"—" }}</td></tr>
+  <tr><td class="center">2</td><td>Activity Notice/Circular</td><td class="center">{{ r.ev_notice|default:"—" }}</td></tr>
+  <tr><td class="center">3</td><td>Programme Schedule</td><td class="center">{{ r.ev_schedule|default:"—" }}</td></tr>
+  <tr><td class="center">4</td><td>Participant Attendance</td><td class="center">{{ r.ev_attendance|default:"—" }}</td></tr>
+  <tr><td class="center">5</td><td>Photographs</td><td class="center">{{ r.ev_photographs|default:"—" }}</td></tr>
+  <tr><td class="center">6</td><td>Activity Report</td><td class="center">{{ r.ev_report|default:"—" }}</td></tr>
+  <tr><td class="center">7</td><td>Expert Profile</td><td class="center">{{ r.ev_expert_profile|default:"—" }}</td></tr>
+  <tr><td class="center">8</td><td>Feedback</td><td class="center">{{ r.ev_feedback|default:"—" }}</td></tr>
+  <tr><td class="center">9</td><td>Certificates</td><td class="center">{{ r.ev_certificates|default:"—" }}</td></tr>
+  <tr><td class="center">10</td><td>Website/News Link</td><td class="center">{{ r.ev_web_link|default:"—" }}</td></tr>
+  <tr><td class="center">11</td><td>Outcome/Impact Evidence</td><td class="center">{{ r.ev_outcome|default:"—" }}</td></tr>
+</table>
+<p class="table-note">Yes/No as entered by the department; files are kept in the portal's Evidence tab, not in this PDF.</p>
+</div>
+</section>
+{% empty %}
+<section class="k11 mou {% if not forloop.parentloop.first %}event-break{% endif %}">
+<p class="event-tag">MoU {{ forloop.parentloop.counter }} of {{ activities|length }}</p>
+<h1 class="title fdp-title">REPORT ON Signed Functional MoU with Industry / Research Organization</h1>
+<p class="center bold fdp-sub">KIET Deemed to be University, Ghaziabad</p>
+<table class="k11-grid mou-kv">
+  <tr><td style="width:38%">Name of Industry/Research Organization</td><td>{{ a.org_name }}</td></tr>
+  <tr><td>MoU Reference No.</td><td>{{ a.mou_ref }}</td></tr>
+</table>
+<p class="empty">No activities have been added under this MoU yet.</p>
+</section>
+{% endfor %}
+{% empty %}
+<h1 class="title fdp-title">REPORT ON Signed Functional MoU with Industry / Research Organization</h1>
+<p class="empty">No MoUs have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

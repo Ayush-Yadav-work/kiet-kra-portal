@@ -1,0 +1,42 @@
+{
+  "key": "kra17",
+  "version": 1,
+  "title": "Training centres / labs established in collaboration with Industries",
+  "source": "reference/templates/KRA 17 Training centers_labs established in collaboration with Industries.xlsx - Training centres and Labs.pdf",
+  "source_checksum": "c3aca41c63992706204d6deef11b0f97231d17a419ad205311dcc078cf56b704",
+  "page": {"format": "A4", "landscape": true, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "Training centres and labs",
+      "intro": "One record per training centre or lab established with an industry partner. Academic Year and Department are filled from this report. The source's sample values (\"Joint Lab/Training Centre/CoE\", \"Active\") are only examples.",
+      "fields": [
+        {"id": "centres", "label": "Training centre / lab records", "type": "table", "required": true, "min_rows": 1, "max_rows": 50, "editor": "cards",
+         "columns": [
+           {"id": "academic_year", "label": "Academic Year", "type": "auto", "source": "year", "width": "4.5%"},
+           {"id": "centre_name", "label": "Name of Training Centre/Lab", "type": "text", "required": true, "max_length": 200, "width": "8%"},
+           {"id": "department", "label": "Department", "type": "auto", "source": "department", "width": "4.5%"},
+           {"id": "industry_partner", "label": "Industry Partner", "type": "text", "required": true, "max_length": 200, "width": "7.5%"},
+           {"id": "nature", "label": "Nature of Collaboration", "type": "select", "required": true,
+            "options": ["Joint Lab", "Training Centre", "Centre of Excellence (CoE)"], "width": "6.5%"},
+           {"id": "date_established", "label": "Date Established", "type": "date", "required": true, "width": "5.5%"},
+           {"id": "mou_date", "label": "MoU Date", "type": "date", "required": false, "width": "5.5%",
+            "help": "Leave blank if there is no MoU (whether an MoU is mandatory is pending college review)."},
+           {"id": "mou_validity", "label": "MoU Validity", "type": "text", "required": false, "max_length": 80, "width": "5.5%",
+            "placeholder": "e.g. 5 years / up to Jun 2030"},
+           {"id": "location", "label": "Location", "type": "text", "required": true, "max_length": 150, "width": "6%", "placeholder": "e.g. Block A, Room 204"},
+           {"id": "facilities", "label": "Facilities/Equipment", "type": "longtext", "required": true, "max_length": 1000, "width": "15%"},
+           {"id": "purpose", "label": "Purpose/Training Area", "type": "longtext", "required": true, "max_length": 600, "width": "11%"},
+           {"id": "faculty_coordinator", "label": "Faculty Coordinator", "type": "text", "required": true, "max_length": 150, "width": "6.5%"},
+           {"id": "industry_coordinator", "label": "Industry Coordinator", "type": "text", "required": true, "max_length": 150, "width": "6.5%"},
+           {"id": "status", "label": "Current Status", "type": "text", "required": true, "max_length": 60, "width": "4.5%", "placeholder": "e.g. Active"}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["MoU/Agreement", "Inauguration/Establishment Notice", "Photographs of Centre/Lab", "Facilities/Equipment List", "Other"],
+    "required": [],
+    "note": "The source spreadsheet lists no evidence; no minimum set has been agreed (docs/decisions.md D-041)."
+  }
+}
