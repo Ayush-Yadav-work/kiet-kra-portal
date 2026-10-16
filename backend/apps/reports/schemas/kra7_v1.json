@@ -1,0 +1,78 @@
+{
+  "key": "kra7",
+  "version": 1,
+  "title": "Curriculum Feedback Survey Form (for Faculty Members) — consolidated",
+  "source": "reference/templates/KRA 7 Curriculum Feedback (Faculty).docx (1).pdf",
+  "source_checksum": "7384f293cf1c6f485bfe680e1a7ba30fee813d620c284dc49ac91b77995c4b0f",
+  "page": {"format": "Letter", "landscape": false, "style": "survey"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "rules": [{"type": "lte", "a": "respondents", "b": "eligible", "message": "Respondents cannot exceed the number of faculty members surveyed."}],
+  "sections": [
+    {
+      "id": "details", "title": "Details of Faculty Member (consolidated)",
+      "intro": "This is one consolidated report of college-prepared results, not an individual response. Personal fields of the source form (name, email, mobile) are shown as consolidated / not applicable.",
+      "fields": [
+        {"id": "semester", "label": "Semester", "type": "text", "required": true, "max_length": 60, "placeholder": "e.g. Odd semester"},
+        {"id": "subjects", "label": "Subject(s) covered by the feedback", "type": "longtext", "required": true, "max_length": 1500},
+        {"id": "collection_period", "label": "Feedback collection period", "type": "text", "required": true, "max_length": 120, "placeholder": "e.g. 1–15 October 2026"},
+        {"id": "eligible", "label": "Number of faculty members surveyed", "type": "integer", "required": true, "min": 0, "max": 10000},
+        {"id": "respondents", "label": "Number of faculty members who responded", "type": "integer", "required": true, "min": 0, "max": 10000,
+         "help": "Entered as counted; the portal does not calculate percentages."},
+        {"id": "consolidated_by", "label": "Consolidated by (name & designation)", "type": "text", "required": true, "max_length": 150}
+      ]
+    },
+    {
+      "id": "survey", "title": "Feedback Survey Form for Faculty member",
+      "fields": [
+        {"id": "ratings", "label": "Consolidated average per statement", "type": "ratings", "required": true,
+         "scale": [1, 2, 3, 4, 5], "scale_labels": ["Poor (1)", "Satisfactory (2)", "Good (3)", "Very Good (4)", "Excellent (5)"], "decimal_places": 2,
+         "items": ["Curriculum is designed as per current industry need and OBE practices.",
+                   "Curriculum has good balance between theory and practical courses.",
+                   "The Curriculum enhanced employability",
+                   "The course content fulfils the need of students",
+                   "Syllabus has made me interested in the subject area",
+                   "The books prescribed/listed as reference materials are relevant, updated and appropriate.",
+                   "Freedom to propose, modify, suggest and incorporate new topics in the syllabus.",
+                   "The course content of the subjects increased my knowledge and perspective",
+                   "The laboratory experiments enhance understanding of theory concepts and enabled the students to relate with the real life problems.",
+                   "Institute provides adequate funding, resources and support to faculty members for upgrading their skills and qualifications."]}
+      ]
+    },
+    {
+      "id": "overall", "title": "Overall satisfaction",
+      "fields": [
+        {"id": "overall_satisfaction", "label": "On a scale of 1 to 10 how do you rate your overall satisfaction with the prescribed syllabus and the curriculum? (consolidated average)",
+         "type": "decimal", "required": true, "min": 1, "max": 10, "decimal_places": 2, "placeholder": "1–10"}
+      ]
+    },
+    {
+      "id": "suggestions", "title": "Suggestions if Any",
+      "fields": [
+        {"id": "suggestions", "label": "Consolidated suggestions received", "type": "longtext", "required": false, "max_length": 6000}
+      ]
+    },
+    {
+      "id": "analysis", "title": "Feedback analysis (workbook instruction 8)",
+      "intro": "Record what has actually happened. If an item is not yet done, write \"Pending\" (with the expected date) or \"Not applicable\" and why.",
+      "fields": [
+        {"id": "action_taken", "label": "a) Action Taken", "type": "longtext", "required": true, "max_length": 6000,
+         "guidance": "Workbook: mention the actions/initiatives taken based on the survey feedback."},
+        {"id": "impact_analysis", "label": "b) Impact Analysis", "type": "longtext", "required": true, "max_length": 6000,
+         "guidance": "Workbook: analyse the impact/effectiveness of the actions taken based on the survey feedback."},
+        {"id": "bos_discussion", "label": "c) Discussion in BoS", "type": "longtext", "required": true, "max_length": 6000,
+         "guidance": "Workbook: key points discussed/reviewed in the Board of Studies (BoS) and the recommendations/decisions taken."}
+      ]
+    },
+    {
+      "id": "signoff", "title": "Sign-off",
+      "fields": [
+        {"id": "report_date", "label": "Date", "type": "date", "required": false}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Consolidated Feedback Analysis", "Collected Feedback Forms/Responses", "Action Taken Report", "Impact Analysis", "BoS Minutes", "Other"],
+    "required": ["Consolidated Feedback Analysis"],
+    "note": "Proposed minimum set (docs/decisions.md D-030), pending college review. Upload BoS minutes once available. Nil submissions need no evidence."
+  }
+}

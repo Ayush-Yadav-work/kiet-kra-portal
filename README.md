@@ -2,7 +2,7 @@
 
 College-hosted portal for bimonthly KRA reporting: one Vice Chancellor, one Dean per department.
 Plan: [`docs/implementation-plan.md`](docs/implementation-plan.md) (v2.0). Status: **Phase 2 pilot (KRA 33) — local only, awaiting acceptance.**
-Not production-ready: see [`docs/progress.md`](docs/progress.md) for scope and open items.
+Phase 3 (KRAs 20, 7, 32) implemented and awaiting review. Not production-ready: see [`docs/progress.md`](docs/progress.md).
 
 | Part | Stack |
 |---|---|
@@ -66,12 +66,17 @@ Open http://localhost:5173 → Dean login (`/dean/login`) or VC login (`/vc/logi
 ```bash
 npm --prefix frontend run build
 ```
-Visual check of KRA 33 output against the source PDF (needs the renderer):
+Browser regression tests (need the three servers below running and `seed_demo` done; they edit ECE demo drafts only):
+```bash
+.venv/Scripts/python e2e/test_browser.py
+```
+Synthetic sample PDFs for KRAs 33, 20, 7 and 32 (`normal`, `long`, `empty`, `nil`) → `.work/renders/kra<N>/` (needs the renderer):
 ```bash
 .venv/Scripts/python backend/manage.py render_sample
 ```
+Side-by-side with the source (example for KRA 7):
 ```bash
-.venv/Scripts/python scripts/compare_pdf.py "reference/templates/KRA 33 Alumni Events organized.docx.pdf" .work/renders/kra33_single.pdf .work/renders/cmp
+.venv/Scripts/python scripts/compare_pdf.py "reference/templates/KRA 7 Curriculum Feedback (Faculty).docx (1).pdf" .work/renders/kra7/normal.pdf .work/renders/kra7/cmp
 ```
 
 ## Pilot review checklist (Phase 2 acceptance)
@@ -86,3 +91,12 @@ Use two browsers/profiles (one browser profile holds one session at a time).
 7. Confirm Dean ECE cannot see CSE data and that the VC portal refuses Dean credentials.
 
 Please record template-fidelity/usability feedback and decisions on the **college** items in `docs/decisions.md` (D-003, D-012, D-013) before Phase 3.
+
+## Phase 3 review checklist (KRAs 20, 7, 32)
+
+After `git pull`/checkout, re-run `manage.py migrate` (no new migrations in Phase 3) and `manage.py seed_catalogue` so KRAs 20, 7 and 32 get their templates; restart Django and the renderer.
+1. **KRA 20 (Dean):** open KRA 20 → add records with the card editor; enter an end date before the start date and confirm the draft still saves but *Submit* lists the error; preview/PDF show one landscape table with repeating headers.
+2. **KRA 7 (Dean):** enter averages such as `3.80` and `4.255` — the draft keeps exactly what you typed; *Submit* rejects more than 2 decimals ("not rounded") and values outside 1–5 / 1–10; respondents cannot exceed faculty surveyed. Check the consolidated wording (D-030).
+3. **KRA 32 (Dean):** switch a record between *Financial Contribution* and *Equipment/Asset* — payment fields become NA and clear; item details are required for non-financial records; no totals anywhere.
+4. For each: Evidence tab minimum (D-029–D-031), Achievement tab, Nil, then as VC reject after the period closes with "Grant 72 hours", Dean resubmits, VC approves and the PDF reads "Verified by VC - …".
+5. Compare `.work/renders/kra20|kra7|kra32/*.pdf` with the source PDFs and record decisions on D-029–D-031 in `docs/decisions.md`.

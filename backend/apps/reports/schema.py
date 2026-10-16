@@ -1,15 +1,23 @@
 """Schema-driven payload validation (plan 8.1–8.4). The backend is authoritative.
 
 Payload shape: {"activities": [{<field_id>: value, ...}, ...]}.
-Structural checks (types, lengths, row caps, unknown keys) run on every save/preview;
-required-field checks run only when `strict` (submission/validate).
+Structural checks (types, lengths, row caps, unknown keys) run on every save/preview; required fields,
+numeric ranges/decimal places and cross-field rules run only when `strict` (submission/validate), so a
+draft with an out-of-range or over-precise number still saves exactly as typed (plan 3.1).
+
+Field types: text, longtext, integer, decimal (kept as the entered string, never rounded), date, select,
+multiselect, checklist (item -> Yes/No), ratings (list aligned with items: decimal strings), table (rows of
+scalar columns). Table columns may be `auto` (filled by the renderer, never entered) or conditional via
+`when: {"field": <column>, "in": [...]}` — required only when applicable, must be blank otherwise.
 """
 import datetime
+import re
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 
 YES_NO = ("Yes", "No")
+DECIMAL_RE = re.compile(r"^-?\d+(\.\d+)?$")
 
 
 def fields_of(schema):
@@ -17,21 +25,45 @@ def fields_of(schema):
         yield from section["fields"]
 
 
+def default_for(f):
+    return [] if f["type"] in ("table", "multiselect", "ratings") else {} if f["type"] == "checklist" else ""
+
+
 def empty_activity(schema):
-    out = {}
-    for f in fields_of(schema):
-        out[f["id"]] = [] if f["type"] in ("table", "multiselect") else {} if f["type"] == "checklist" else ""
-    return out
+    return {f["id"]: default_for(f) for f in fields_of(schema)}
 
 
 def _blank(v):
     return v is None or v == "" or v == [] or v == {}
 
 
-def _check_scalar(f, v, path, errors):
-    """Validate one non-container value; returns nothing, appends errors."""
+def applicable(col, row):
+    cond = col.get("when")
+    return not cond or row.get(cond["field"]) in cond["in"]
+
+
+def check_decimal(f, v, strict=True):
+    """Return an error message or None. Accepts the entered string (or a JSON number) without rounding.
+    Drafts only need a well-formed number; precision and range are enforced at submission."""
+    s = str(v).strip()
+    if isinstance(v, bool) or not DECIMAL_RE.match(s):
+        return "Must be a number."
+    if not strict:
+        return None
+    places = len(s.split(".")[1]) if "." in s else 0
+    if places > f.get("decimal_places", 2):
+        return f"Use at most {f.get('decimal_places', 2)} decimal places (values are not rounded)."
+    d = Decimal(s)
+    lo, hi = Decimal(str(f.get("min", -10**12))), Decimal(str(f.get("max", 10**12)))
+    if not lo <= d <= hi:
+        return f"Must be between {f.get('min')} and {f.get('max')}."
+    return None
+
+
+def _check_scalar(f, v, path, errors, strict=True):
+    """Validate one non-container value; appends errors."""
     t = f["type"]
-    if _blank(v):
+    if _blank(v) or t == "auto":
         return
     if t in ("text", "longtext"):
         if not isinstance(v, str):
@@ -41,16 +73,12 @@ def _check_scalar(f, v, path, errors):
     elif t == "integer":
         if isinstance(v, bool) or not isinstance(v, int):
             errors[path] = ["Must be a whole number."]
-        elif not f.get("min", -10**12) <= v <= f.get("max", 10**12):
+        elif strict and not f.get("min", -10**12) <= v <= f.get("max", 10**12):
             errors[path] = [f"Must be between {f.get('min')} and {f.get('max')}."]
     elif t == "decimal":
-        try:
-            d = Decimal(str(v))
-        except InvalidOperation:
-            errors[path] = ["Must be a number."]
-            return
-        if not Decimal(str(f.get("min", -10**12))) <= d <= Decimal(str(f.get("max", 10**12))):
-            errors[path] = [f"Must be between {f.get('min')} and {f.get('max')}."]
+        msg = check_decimal(f, v, strict)
+        if msg:
+            errors[path] = [msg]
     elif t == "date":
         try:
             datetime.date.fromisoformat(v)
@@ -61,6 +89,18 @@ def _check_scalar(f, v, path, errors):
             errors[path] = ["Choose one of the listed options."]
     else:
         errors[path] = [f"Unsupported field type {t}."]
+
+
+def _check_rules(rules, obj, path, errors):
+    """Cross-field rules on an activity or a table row. Only checked when both values are present and valid."""
+    for rule in rules or []:
+        a, b = obj.get(rule["a"]), obj.get(rule["b"])
+        if _blank(a) or _blank(b) or f"{path}{rule['a']}" in errors or f"{path}{rule['b']}" in errors:
+            continue
+        if rule["type"] == "date_order" and datetime.date.fromisoformat(b) < datetime.date.fromisoformat(a):
+            errors[f"{path}{rule['b']}"] = [rule["message"]]
+        elif rule["type"] == "lte" and Decimal(str(a)) > Decimal(str(b)):
+            errors[f"{path}{rule['a']}"] = [rule["message"]]
 
 
 def _check_field(f, v, path, strict, errors):
@@ -75,6 +115,20 @@ def _check_field(f, v, path, strict, errors):
             errors[path] = ["Answer Yes or No for listed items only."]
         elif strict and f.get("required") and any(v.get(i) not in YES_NO for i in f["items"]):
             errors[path] = ["Answer Yes or No for every item."]
+    elif t == "ratings":
+        if not isinstance(v, list) or len(v) > len(f["items"]):
+            errors[path] = ["Invalid ratings."]
+            return
+        scale = {"min": f["scale"][0], "max": f["scale"][-1], "decimal_places": f.get("decimal_places", 2)}
+        for n in range(len(f["items"])):
+            x = v[n] if n < len(v) else ""
+            if _blank(x):
+                if strict and f.get("required"):
+                    errors[f"{path}.{n}"] = ["Enter the consolidated average."]
+                continue
+            msg = check_decimal(scale, x, strict)
+            if msg:
+                errors[f"{path}.{n}"] = [msg]
     elif t == "table":
         max_rows = min(f.get("max_rows", settings.MAX_TABLE_ROWS), settings.MAX_TABLE_ROWS)
         if not isinstance(v, list) or any(not isinstance(r, dict) for r in v):
@@ -85,18 +139,24 @@ def _check_field(f, v, path, strict, errors):
             return
         if strict and f.get("required") and len(v) < f.get("min_rows", 1):
             errors[path] = [f"Add at least {f.get('min_rows', 1)} row(s)."]
-        cols = {c["id"]: c for c in f["columns"]}
+        cols = {c["id"]: c for c in f["columns"] if c["type"] != "auto"}
         for i, row in enumerate(v):
             for k in row:
                 if k not in cols:
                     errors[f"{path}.{i}.{k}"] = ["Unknown column."]
-            for c in f["columns"]:
+            for c in cols.values():
                 cv, cp = row.get(c["id"], ""), f"{path}.{i}.{c['id']}"
-                _check_scalar(c, cv, cp, errors)
+                if not applicable(c, row):
+                    if not _blank(cv) and strict:
+                        errors[cp] = [f"Not applicable for this {cols[c['when']['field']]['label'].lower()}; leave blank."]
+                    continue
+                _check_scalar(c, cv, cp, errors, strict)
                 if strict and c.get("required") and _blank(cv) and cp not in errors:
                     errors[cp] = ["Required."]
+            if strict:  # cross-field rules never block saving a draft (plan 3.1)
+                _check_rules(f.get("row_rules"), row, f"{path}.{i}.", errors)
     else:
-        _check_scalar(f, v, path, errors)
+        _check_scalar(f, v, path, errors, strict)
         if strict and f.get("required") and _blank(v) and path not in errors:
             errors[path] = ["Required."]
 
@@ -111,7 +171,7 @@ def validate_payload(schema, payload, strict=False):
     if not isinstance(activities, list) or any(not isinstance(a, dict) for a in activities):
         return {"activities": ["Invalid activity list."]}
     if len(activities) > max_acts:
-        return {"activities": [f"At most {max_acts} {spec['label'].lower()}s per report."]}
+        return {"activities": [f"At most {max_acts} {spec['label'].lower()}(s) per report."]}
     if strict and len(activities) < spec.get("min", 1):
         errors["activities"] = [f"Add at least {spec.get('min', 1)} {spec['label'].lower()}."]
     fields = {f["id"]: f for f in fields_of(schema)}
@@ -120,6 +180,7 @@ def validate_payload(schema, payload, strict=False):
             if k not in fields:
                 errors[f"activities.{i}.{k}"] = ["Unknown field."]
         for fid, f in fields.items():
-            default = [] if f["type"] in ("table", "multiselect") else {} if f["type"] == "checklist" else ""
-            _check_field(f, act.get(fid, default), f"activities.{i}.{fid}", strict, errors)
+            _check_field(f, act.get(fid, default_for(f)), f"activities.{i}.{fid}", strict, errors)
+        if strict:
+            _check_rules(schema.get("rules"), act, f"activities.{i}.", errors)
     return errors

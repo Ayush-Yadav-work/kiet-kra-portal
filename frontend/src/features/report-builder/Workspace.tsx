@@ -82,7 +82,8 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
   const [nil, setNil] = useState({ is_nil: d.is_nil, nil_reason: d.nil_reason })
   const [tab, setTab] = useState<Tab>('report')
   const [view, setView] = useState<'form' | 'preview'>('form')
-  const [errors, setErrors] = useState<Record<string, string[]>>({})
+  // Submit/validate errors persist until the next check; save errors always reflect the latest save attempt.
+  const [submitErrors, setErrors] = useState<Record<string, string[]>>({})
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const editable = d.editable
@@ -96,7 +97,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
     return () => sub.unsubscribe()
   }, [form, q, editable])
 
-  useEffect(() => { setErrors((e) => ({ ...e, ...q.fieldErrors })) }, [qState, q])
+  const errors = { ...submitErrors, ...q.fieldErrors }
 
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (q.hasPending) { e.preventDefault() } }
@@ -153,7 +154,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
     } finally { setBusy(false) }
   }
 
-  const ctx = { control: form.control, register: form.register, setValue: form.setValue, disabled: !editable, errors }
+  const ctx = { control: form.control, register: form.register, setValue: form.setValue, getValues: form.getValues, disabled: !editable, errors }
   return (
     <div>
       {/* C11: first successful save turns "Not submitted" into Draft without a reload */}

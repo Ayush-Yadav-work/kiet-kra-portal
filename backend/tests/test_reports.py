@@ -117,7 +117,8 @@ class PdfExportTests(PortalTestCase):
             sid = self.open_draft(a, self.asg_a, self.p2)
             doc = pymupdf.open(stream=self.export(a, sid), filetype="pdf")
         self.assertTrue(doc[0].get_images())
-        self.assertTrue(all("Tinos" in f[3] for f in doc.get_page_fonts(0)))
+        fonts = {f[3] for i in range(doc.page_count) for f in doc.get_page_fonts(i)}
+        self.assertTrue(fonts and all("Tinos" in f for f in fonts), fonts)
 
     def test_c4_concurrent_exports_never_exceed_pool(self):
         html = "<html><body>" + "<p>synthetic concurrency</p>" * 400 + "</body></html>"

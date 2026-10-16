@@ -36,7 +36,7 @@
 
 <h2>5. Alumni Engagement in University Activities</h2>
 <table>
-  <thead><tr><th style="width:9%">Sl. No.</th>{% for c in engagement_columns %}<th style="width:{{ c.width }}">{{ c.label }}</th>{% endfor %}</tr></thead>
+  <thead><tr><th style="width:9%">Sl. No.</th>{% for c in fields.engagements.columns %}<th style="width:{{ c.width }}">{{ c.label }}</th>{% endfor %}</tr></thead>
   {% for r in a.engagements %}
   <tr><td class="center">{{ forloop.counter }}</td><td>{{ r.alumni_name|default:"" }}</td><td>{{ r.batch_programme|default:"" }}</td><td>{{ r.organization|default:"" }}</td><td>{{ r.nature|default:"" }}</td><td>{{ r.date_activity|default:"" }}</td><td>{{ r.students_benefited|default_if_none:"" }}</td></tr>
   {% empty %}

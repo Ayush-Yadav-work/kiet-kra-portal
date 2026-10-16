@@ -1,0 +1,40 @@
+{
+  "key": "kra20",
+  "version": 1,
+  "title": "Number of Faculty to be trained in industry",
+  "source": "reference/templates/KRA 20  Number of Faculty to be trained in industry.xlsx - Sheet1.pdf",
+  "source_checksum": "e07824bf4397dfe31080a5f0930ce8ad80dc00487dd48a6346333104dc64fc58",
+  "page": {"format": "A4", "landscape": true, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "Faculty trained in industry",
+      "intro": "One record per faculty training. KRA 20 counts training in industry for more than a week; enter actual dates and duration — the portal does not calculate durations or reject records.",
+      "fields": [
+        {"id": "trainings", "label": "Training records", "type": "table", "required": true, "min_rows": 1, "max_rows": 100, "editor": "cards",
+         "columns": [
+           {"id": "academic_year", "label": "Academic Year", "type": "auto", "source": "year", "width": "5.5%"},
+           {"id": "faculty_name", "label": "Faculty Name", "type": "text", "required": true, "max_length": 150, "width": "8%"},
+           {"id": "employee_id", "label": "Employee ID", "type": "text", "required": true, "max_length": 40, "width": "6%"},
+           {"id": "department", "label": "Department", "type": "auto", "source": "department", "width": "7%"},
+           {"id": "designation", "label": "Designation", "type": "text", "required": true, "max_length": 100, "width": "7%"},
+           {"id": "organization", "label": "Industry/Organization", "type": "text", "required": true, "max_length": 200, "width": "8.5%"},
+           {"id": "training_title", "label": "Training Title", "type": "text", "required": true, "max_length": 250, "width": "9%"},
+           {"id": "start_date", "label": "Start Date", "type": "date", "required": true, "width": "6%"},
+           {"id": "end_date", "label": "End Date", "type": "date", "required": true, "width": "6%"},
+           {"id": "duration", "label": "Duration (Days/Weeks)", "type": "text", "required": true, "max_length": 40, "width": "6%", "placeholder": "e.g. 10 days"},
+           {"id": "mode", "label": "Mode", "type": "select", "required": true, "options": ["Offline", "Online"], "width": "5%"},
+           {"id": "certificate_no", "label": "Certificate No.", "type": "text", "required": false, "max_length": 80, "width": "6.5%", "help": "Leave blank if no certificate was issued."},
+           {"id": "mentor", "label": "Industry Mentor/Trainer", "type": "text", "required": false, "max_length": 150, "width": "7.5%"},
+           {"id": "outcome", "label": "Outcome", "type": "longtext", "required": true, "max_length": 1000, "width": "12%"}
+         ],
+         "row_rules": [{"type": "date_order", "a": "start_date", "b": "end_date", "message": "End date cannot be before the start date."}]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Training Certificate", "Deputation/Relieving Order", "Training Completion Letter from Industry", "Training Report", "Photographs", "Other"],
+    "required": ["Training Certificate"],
+    "note": "Proposed minimum set (docs/decisions.md D-029), pending college review. Nil submissions need no evidence."
+  }
+}

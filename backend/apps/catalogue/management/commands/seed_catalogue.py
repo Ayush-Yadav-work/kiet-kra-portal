@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.catalogue.models import KRA, AcademicYear, AnnualAssignment, Department, ReportingPeriod, TemplateVersion
+from apps.submissions.models import Submission
 
 IST = ZoneInfo("Asia/Kolkata")
 SEED = Path(settings.PROJECT_ROOT) / "seed" / "catalogue_2026-27.json"
@@ -22,7 +23,7 @@ YEARS = ("2026-27", "2027-28", "2028-29")
 PERIODS = ((7, 9, "July – August"), (9, 11, "September – October"), (11, 1, "November – December"),
            (1, 3, "January – February"), (3, 5, "March – April"), (5, 7, "May – June"))
 # KRA number -> (template key, version) available in this release.
-TEMPLATE_FOR_KRA = {33: ("kra33", 1)}
+TEMPLATE_FOR_KRA = {33: ("kra33", 1), 20: ("kra20", 1), 7: ("kra7", 1), 32: ("kra32", 1)}
 
 
 def period_bounds(start_year, index):
@@ -62,8 +63,12 @@ class Command(BaseCommand):
                 "title": schema["title"], "schema": schema, "renderer_template": f"reports/{key}_v{version}.html",
                 "source_checksum": schema.get("source_checksum", "")})
             if not created and tv.schema != schema:
-                self.stderr.write(f"Template {key} v{version} differs from file; versions are immutable — "
-                                  f"add a new version instead. Kept the stored one.")
+                if Submission.objects.filter(assignment__template_version=tv).exists():
+                    self.stderr.write(f"Template {key} v{version} differs from file but is in use; versions are "
+                                      f"immutable once used (plan 7) — add a new version instead. Kept the stored one.")
+                else:  # not yet used by any submission: safe to refresh
+                    tv.schema, tv.title = schema, schema["title"]
+                    tv.save(update_fields=["schema", "title"])
             templates[number] = tv
         year = AcademicYear.objects.get(label=data["academic_year"])
         made = kept = conflicts = 0

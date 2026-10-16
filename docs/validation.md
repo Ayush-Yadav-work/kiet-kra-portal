@@ -53,3 +53,43 @@ Method: `render_sample` + `scripts/compare_pdf.py` side-by-side PNGs, plus PyMuP
 - Long data: 3 events × 40 rows + long text → 21 pages, table headers repeat, no clipped cells, headings kept with their content (fixed an orphaned "9. Documentary Evidence" heading).
 - Empty draft and Nil report render with clear placeholders and "Pending approval".
 - Not verified: Devanagari/non-Latin scripts (fall back to system fonts on the server — install Noto fonts in deployment).
+
+---
+
+# Phase 3 validation (2026-10-17)
+
+Same machine/stack as above. All results below were actually run.
+
+## Automated
+- `python backend/manage.py test tests` (renderer running) → **Ran 72 tests, OK** (45 Phase 0–2 + 27 Phase 3).
+- `python e2e/test_browser.py` (Vite + Django + renderer running, `seed_demo` accounts) → **Ran 6 tests, OK**.
+- `npm --prefix frontend run build` → OK.
+
+| Area | Test | Result |
+|---|---|---|
+| Pilot check C7 | 50-row KRA 33 table: preview scrolled to 1500 px, row edited → preview re-rendered, scroll within 5 px | Pass (browser) |
+| Pilot check C3 | evidence upload while autosave pending → no conflict, later save succeeds with typed value | Pass (browser) |
+| Portals | VC page rejects Dean; typed VC URL redirects Dean | Pass (browser) |
+| Shared workflow ×3 (KRA 20, 7, 32) | template assigned/schema served; draft save + exact reload; preview content; strict validation lists fields, achievement, evidence; submit → reject after close with grant (exactly one grant) → edit inside grant → resubmit rev 2 → approve; rev 1 payload unchanged; achievement appears in period entries; Nil needs reason only; PDF export Tinos-only on every page, "Pending approval" | Pass |
+| KRA 20 | end-before-start rejected at submit but draft saves; auto Department column cannot be entered; required vs optional columns; mode options; 101 rows rejected; landscape page | Pass |
+| KRA 7 | "4.255" saved as typed in draft, rejected at submit with "not rounded" message; >5 / <1 / >10 rejected; non-numeric blocks save; all 10 statements required; respondents ≤ surveyed; 11 ratings rejected; "3.80"/"4.10" preserved exactly in HTML and PDF | Pass |
+| KRA 32 | financial rows require amount/mode/receipt/transaction; non-financial rows require item details and reject stale payment values; amount precision and minimum; NA cells rendered; no totals | Pass |
+| KRA 32 UI | switching type to Equipment/Asset shows payment fields as NA and clears a typed amount; item details saved and previewed | Pass (browser) |
+| KRA 7 UI | "3.80" and "7.50" survive autosave + reload; preview shows "7.50 / 10" | Pass (browser) |
+| KRA 20 UI | card editor adds two records; bad date order still saves draft; Validate reports it | Pass (browser) |
+| Seed | template in use is never rewritten by `seed_catalogue` (reports conflict) | Pass |
+| Regression | all Phase 0–2 tests incl. C1/C2/C4/C9/C11/C12 and isolation | Pass |
+
+## Visual review of synthetic sample PDFs
+Generated with `python backend/manage.py render_sample` into `.work/renders/kra{33,20,7,32}/` (`normal`, `long`, `empty`, `nil` + `.html` previews). Compared with the sources using `scripts/compare_pdf.py` / `scripts/pdf_overview.py` and PyMuPDF measurements.
+
+| KRA | Pages (normal / long / empty / Nil) | Findings |
+|---|---|---|
+| 20 | 1 / 51 (100 records, long text) / 1 / 1 | Source split over 3 portrait pages → one landscape table with all 15 source columns in order; header row repeats on every page; headers wrap at "/" not mid-word; no clipped cells; Unicode names render. |
+| 7 | 3 / 4 / 3 / 1 | Survey header matches source (logo 212.2/36.8 pt vs 212.2/36.9; caption and 3 pt maroon rule); details table, 10 statements with Poor…Excellent columns, 1–10 row and Suggestions box follow the source; added average column and analysis sections per D-030. |
+| 32 | 1 / 51 / 1 / 1 | Source split over 2 portrait pages → one landscape table; NA cells for non-applicable fields; ₹ heading renders in Tinos after the Latin-Ext fix; no totals. |
+| 33 (regression) | 3 / 21 / 3 / 1 | Header geometry unchanged (logo 8.2 pt vs 8.6; rule 93.8 vs 94.1; footer 718.9 vs 719.4 pt vertically, ~8 pt right of source horizontally). |
+
+Font audit across all 16 sample PDFs (every page): only Tinos embedded.
+
+Not covered: real college data volumes, Devanagari names, printing on physical paper, institutional sign-off of the D-029–D-031 adaptations.

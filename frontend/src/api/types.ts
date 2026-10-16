@@ -29,14 +29,17 @@ export interface SubmissionDetail {
   grant_option_available: boolean; period_entries: PeriodEntry[]
 }
 
-export type FieldType = 'text' | 'longtext' | 'integer' | 'decimal' | 'date' | 'select' | 'multiselect' | 'checklist' | 'table'
+export type FieldType = 'text' | 'longtext' | 'integer' | 'decimal' | 'date' | 'select' | 'multiselect' | 'checklist' | 'ratings' | 'table' | 'auto'
 export interface Field {
   id: string; label: string; type: FieldType; required?: boolean; max_length?: number; min?: number; max?: number
   options?: string[]; items?: string[]; columns?: Field[]; min_rows?: number; max_rows?: number
   guidance?: string; help?: string; placeholder?: string; suggestions?: string[]; width?: string
+  decimal_places?: number; scale?: number[]; scale_labels?: string[]; source?: 'year' | 'department'
+  when?: { field: string; in: string[] }; editor?: 'grid' | 'cards'
 }
 export interface Section { id: string; title: string; intro?: string; fields: Field[] }
 export interface Schema {
   key: string; version: number; title: string; activity: { label: string; min: number; max: number }
+  page: { format: string; landscape?: boolean; style?: string }
   sections: Section[]; evidence: { categories: string[]; required: string[]; note?: string }
 }
