@@ -5,6 +5,7 @@
 They change only demo data (ECE draft rows in the open period). SYNTHETIC values only.
 """
 import json
+import time
 import re
 import sys
 import unittest
@@ -149,6 +150,7 @@ class BrowserTests(unittest.TestCase):
         login(p, "dean", "demo.dean.ece")
         p.wait_for_url("**/dean/dashboard")
         sid = open_ece_kra(p, 7)
+        p.locator("[id='activities.0.consolidated_by']").fill(f"Test run {int(time.time())}")  # forces a real save
         p.locator("[id='activities.0.ratings.0']").fill("3.80")
         p.locator("[id='activities.0.overall_satisfaction']").fill("7.50")
         p.get_by_role("button", name="Save draft").click()
@@ -178,6 +180,32 @@ class BrowserTests(unittest.TestCase):
         self.assertEqual(len(d["payload"]["activities"][0]["trainings"]), 2)
         _, v = api(p, "POST", f"/submissions/{sid}/validate/")
         self.assertIn("activities.0.trainings.1.end_date", v["field_errors"])
+
+    def test_kra1_2_3_save_reload_preview_export(self):
+        """Course family: each KRA keeps its own draft; save, reload, preview and export work for all three."""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sids = {}
+        for n in (1, 2, 3):
+            sid = sids[n] = open_ece_kra(p, n)
+            name = f"activities.0.course_name"
+            label = f"Synthetic browser course KRA {n} {int(time.time())}"  # unique per run so a save is always needed
+            p.locator(f"input[name='{name}']").fill(label)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator(f"input[name='{name}']")).to_have_value(label)
+            frame = p.frame_locator("iframe[title='Report preview']")
+            expect(frame.get_by_text(label)).to_be_visible(timeout=10000)
+            term = {1: "Detail of New Courses", 2: "Detail of Value Added Courses", 3: "Detail of Online Courses (MOOCs)"}[n]
+            expect(frame.get_by_text(term)).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
+        self.assertEqual(len(set(sids.values())), 3)
+        for n in (1, 2, 3):  # no value leaked between KRAs
+            _, d = api(p, "GET", f"/submissions/{sids[n]}/")
+            self.assertTrue(d["payload"]["activities"][0]["course_name"].startswith(f"Synthetic browser course KRA {n} "))
 
 
 if __name__ == "__main__":

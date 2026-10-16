@@ -157,3 +157,33 @@ def kra23_programme(i=1, programs=2, modules=4, long_text=False):
 
 def kra23_payload(programmes=1, programs=2, modules=4, long_text=False):
     return {"activities": [kra23_programme(i + 1, programs, modules, long_text) for i in range(programmes)]}
+
+
+def kra13_course(kra, i=1, modules=4, long_text=False):
+    extra = " with synthetic lab exercises and reading" * (4 if long_text else 0)
+    c = {
+        "year_semester": "2nd Year / Even Semester", "faculty_coordinators": f"Test Coordinator {i}, Zoë Łukasz",
+        "hod": "Test Head of Department",
+        "objectives": ["To supplement the knowledge acquired through the regular curriculum."],
+        "other_objectives": "Synthetic extra objective" if i == 1 else "",
+        "course_name": f"Synthetic KRA{kra} Course {i}", "duration_hours": "30", "mode": ["Offline", "Online", "Hybrid"][i % 3],
+        "resource_agency": "Test Resource Agency", "students_enrolled": 80, "students_completed": 72,
+        "modules": [{"topic": f"Synthetic topic {m + 1}{extra}", "hours": "7.5"} for m in range(modules)],
+        "learning_outcomes": "Synthetic outcome one\nSynthetic outcome two" + ("\nSynthetic long outcome" * 10 if long_text else ""),
+        "assessment_method": "Synthetic quiz", "min_attendance": "75%", "passing_criteria": "40% aggregate",
+        "certificate_authority": "Test Department", "certificates_issued": 70,
+        "impact_indicators": ["Industry certification obtained"], "impact_details": "Synthetic impact note." * (30 if long_text else 1),
+        "feedback_score": "4.1", "suggestions": "Synthetic suggestion A",
+        "prepared_name": "Test Coordinator", "prepared_designation": "Assistant Professor", "prepared_date": "2026-10-09",
+        "approved_name": "", "approved_designation": "", "approved_date": "",
+        "supporting_documents": {d: ("Yes" if n % 3 else "No") for n, d in enumerate(KRA11_DOCS)},  # same 18 items as KRA 1-3 source
+    }
+    if kra == 1:
+        c.update(course_code=f"TST{100 + i}", approval_ref="Synthetic BoS item 4.2")
+    if kra == 3:
+        c.update(platform="SWAYAM")
+    return c
+
+
+def kra13_payload(kra, courses=1, modules=4, long_text=False):
+    return {"activities": [kra13_course(kra, i + 1, modules, long_text) for i in range(courses)]}

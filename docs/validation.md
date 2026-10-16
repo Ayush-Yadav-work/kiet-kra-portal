@@ -114,3 +114,12 @@ Not covered: real college data volumes, Devanagari names, printing on physical p
 - Full regression: `python backend/manage.py test tests` → **Ran 92 tests, OK**.
 - Frontend unchanged → no rebuild. Browser check (ECE demo): programme title + one record entered via the card editor, *Save draft* → "Saved", reload kept title/name/mode, live preview showed the record and "Pending approval", `/export/?inline=1` returned `application/pdf` (238 KB).
 - Samples `.work/renders/kra23/`: normal (1 programme, 2 rows, 4 modules) 4 pages; long (3 programmes × 30 rows × 30 modules, long text) 66 pages; empty 3; Nil 1. Visual review: title/header rows and font sizes match the source page 1; program and syllabus table headers repeat across pages; no clipped cells; only Tinos embedded; approval label in summary, footer and closing box. Note: in the normal sample the Prepared/Approved box moves to its own page because it is kept unsplit (source fits it on page 2).
+
+---
+
+# KRAs 1–3 validation (2026-10-17)
+
+- `python backend/manage.py test tests` → **Ran 117 tests, OK** (25 new in `tests/test_kra1_3.py`: mappings + stored schema = family definition, idempotent re-seed, three separate submissions with independent payload/achievement/evidence/status, KRA-specific fields (KRA 3 field rejected on KRA 2; KRA 1 enrolment optional; completed ≤ enrolled), objectives only when ticked, shared workflow per KRA incl. reject-after-close grant, Nil, PDF Tinos-only). KRA 11 sample HTML bodies identical before/after.
+- `python e2e/test_browser.py` → **Ran 7 tests, OK** (new: KRAs 1, 2, 3 save → reload → preview heading → PDF export, values not shared). Browser tests were made rerunnable (unique values per run).
+- Samples `.work/renders/kra1|kra2|kra3/`: normal 7 pages each (2 courses); KRA 2 long (6 courses × 40 modules) 48 pages; empty 4; Nil 1. Visual: KRA 2 page 1 matches the source; KRA 1/3 detail rows show Course Code / Platform columns; fixed mid-word header wrap in the detail table; syllabus header repeats; approval labels present; only Tinos embedded.
+- Frontend unchanged → no rebuild.
