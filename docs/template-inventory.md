@@ -86,7 +86,7 @@ All files opened and rendered successfully; none were unreadable. No duplicate s
 | 32 | #23 | S | S.No, year, association, reg. no., donor, alumni ID, date, type (Financial/Equipment-Asset), purpose, amount, payment mode, receipt, transaction ref., utilisation, evidence | — | 2-page split; conditional payment fields (Phase 3) |
 | 33 | #24 | S | See `backend/apps/reports/schemas/kra33_v1.json` (sections 1–9 + sign-off, 13-item checklist) | 13-item Yes/No list | Page 4 holds only Date/Signature (overflow) — merged onto signature block |
 | 34, 35 | — | P | Plan 5.3 | — | Wholly missing; record payments for Rs. 5,000 condition without auto-rejecting |
-| 36, 37 | #25 | S | FDP/STP particulars, intro, objectives, participation table, syllabus, outcomes, assessment, programme content, Prepared/Approved | 11 items | One template for both; title selects FDP vs STP; keep "min 30 hours" for 37 |
+| 36, 37 | #25 | S — **implemented** (`kra36_v1` STP, `kra37_v1` FDP via `fdp_stp_v1.html`) | Title, duration (hours), organizer, mode, target group, participants, coordinator, resource persons; introduction; objectives; participation table (name, dept, designation, attendance, certificate); syllabus; learning outcomes; assessment/certification; "programme included" formats; Prepared/Approved | 10-item documentary-evidence list | KRA 36 uses STP/staff labels (workbook wins); copied "students will be able to" outcome heading corrected; source claims are tick-only; KRA 37 min 30 hours at submission (D-037) |
 | 38 | #26 | A | Faculty name, programme type, duration (days), start/end, organising institution | — | Last column split to page 2 |
 | 39 | #27 | A | Source = research funding (PI, project, agency, duration, year, amount) | — | **Mismatch**: workbook KRA 39 = infrastructure grants. Adapt; do not use research-funding metric |
 | 40–42 | — | P | Plan 5.3 | — | Instructions sheet cell for KRA 40 names "KRA 43 - Templates.xlsx" (wrong); treated as missing |
@@ -108,4 +108,5 @@ Supplied summary templates referenced by the workbook Instructions sheet but **n
 | 11 | `kra11_v1` (report style, repeatable courses) | Implemented, pending review | 4 (bounded) |
 | 23 | `kra23_v1` (report style, repeatable programmes + program rows) | Implemented, pending review | 4 (bounded) |
 | 1, 2, 3 | `kra1_v1`, `kra2_v1`, `kra3_v1` built by `apps/reports/families.py`, rendered by `course_family_v1.html` | Implemented, pending review | 4 (bounded) |
-| All other 36 | — | Template pending | 4 |
+| 36, 37 | `kra36_v1`, `kra37_v1` built by `apps/reports/families.py`, rendered by `fdp_stp_v1.html` | Implemented, pending review | 4 (bounded) |
+| All other 34 | — | Template pending | 4 |

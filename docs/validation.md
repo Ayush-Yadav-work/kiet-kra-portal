@@ -123,3 +123,14 @@ Not covered: real college data volumes, Devanagari names, printing on physical p
 - `python e2e/test_browser.py` → **Ran 7 tests, OK** (new: KRAs 1, 2, 3 save → reload → preview heading → PDF export, values not shared). Browser tests were made rerunnable (unique values per run).
 - Samples `.work/renders/kra1|kra2|kra3/`: normal 7 pages each (2 courses); KRA 2 long (6 courses × 40 modules) 48 pages; empty 4; Nil 1. Visual: KRA 2 page 1 matches the source; KRA 1/3 detail rows show Course Code / Platform columns; fixed mid-word header wrap in the detail table; syllabus header repeats; approval labels present; only Tinos embedded.
 - Frontend unchanged → no rebuild.
+
+---
+
+# KRAs 36–37 validation (2026-10-17)
+
+- Pre-check: KRAs 1–3 committed by the project owner (73765ac); their recorded results (117 backend, 7 browser) re-confirmed below by the full runs.
+- `python backend/manage.py test tests.test_kra36_37` → **Ran 21 tests, OK**: both mappings + stored schema = family definition, idempotent re-seed (26 assignments, targets unchanged), separate submissions/achievements/evidence, KRA 37-only field rejected on KRA 36; KRA 37 hours 29.9 rejected at submit with the workbook message, 30 / 30.0 / 45.5 accepted, 12 saved as draft exactly but submit refused, Nil submit accepted with 5 hours in the draft; KRA 36 accepts 2 and 29.5 hours and has no focus area/faculty labels; incomplete drafts save; required vs optional fields; claims not printed unless ticked; shared workflow per KRA (submit → reject after close with 72 h grant → resubmit → approve; Nil; PDF Tinos-only).
+- Full regression: `python backend/manage.py test tests` → **Ran 138 tests, OK**. Shared sign-off partial: 18 KRA 11/23/1–3 sample HTML bodies identical before/after.
+- `python e2e/test_browser.py` → **Ran 8 tests, OK**, run twice (rerunnable). New: KRAs 36 and 37 save → reload → preview (Staff/Faculty Participation) → PDF export; KRA 37 submitted with the UI button, approved by the VC on the review page, exported PDF shows "Verified by VC - Demo Vice-Chancellor".
+- Frontend unchanged → no rebuild.
+- Samples `.work/renders/kra36/` and `kra37/`: normal (2 programmes × 4 participants × 4 modules) 7 pages each; KRA 37 long (3 programmes × 60 participants × 30 modules, long text) 34 pages; empty 3; Nil 1. Visual review against the source: same title block, particulars rows, introduction/objectives cells, participation and syllabus tables, outcomes, assessment table, "The programme included", sign-off box and documentary-evidence page; participant table header repeats; no split/clipped rows; only Tinos; "Pending approval" in summary, footer and closing box.

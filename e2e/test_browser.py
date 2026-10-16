@@ -13,6 +13,8 @@ from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))  # synthetic fixtures
+
 ROOT = Path(__file__).resolve().parent.parent
 BASE = "http://localhost:5173"
 CREDS = dict(re.findall(r"^(?:VC|DEAN)\s+(\S+)\s+(\S+)$", (ROOT / ".work" / "demo-credentials.txt").read_text(), re.M))
@@ -206,6 +208,71 @@ class BrowserTests(unittest.TestCase):
         for n in (1, 2, 3):  # no value leaked between KRAs
             _, d = api(p, "GET", f"/submissions/{sids[n]}/")
             self.assertTrue(d["payload"]["activities"][0]["course_name"].startswith(f"Synthetic browser course KRA {n} "))
+
+    def test_kra36_37_save_reload_preview_export_and_vc_review(self):
+        """FDP/STP family: Dean save/reload/preview/export for KRAs 36 and 37; KRA 37 submitted from the UI and approved
+        by the VC on the real review page; the exported PDF then carries the VC verification label."""
+        import pymupdf
+        from tests.fixtures import kra3637_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sids = {}
+        for n in (36, 37):
+            sid = sids[n] = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            if d["status"] in ("SUBMITTED", "APPROVED"):  # left by a previous run: VC returns it so the run can repeat
+                vc = self.browser.new_context()
+                vp = vc.new_page()
+                login(vp, "vc", "demo.vc")
+                vp.wait_for_url("**/vc/dashboard")
+                decision = "APPROVE" if d["status"] == "SUBMITTED" else "RETURN"
+                api(vp, "POST", f"/submissions/{sid}/review/", {"revision": d["current_revision"]["id"], "decision": decision,
+                                                                "reason": "Synthetic e2e reset"})
+                if decision == "APPROVE":
+                    api(vp, "POST", f"/submissions/{sid}/review/", {"revision": d["current_revision"]["id"],
+                                                                    "decision": "RETURN", "reason": "Synthetic e2e reset"})
+                vc.close()
+                p.reload()
+            title = f"Synthetic browser programme KRA {n} {int(time.time())}"
+            p.locator("input[name='activities.0.programme_title']").fill(title)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator("input[name='activities.0.programme_title']")).to_have_value(title)
+            frame = p.frame_locator("iframe[title='Report preview']")
+            expect(frame.get_by_text(title)).to_be_visible(timeout=10000)
+            expect(frame.get_by_text({36: "Staff Participation", 37: "Faculty Participation"}[n])).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
+        self.assertNotEqual(sids[36], sids[37])
+
+        # Complete KRA 37 through the API, then submit with the UI button.
+        sid = sids[37]
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        payload = kra3637_payload(37)
+        payload["activities"][0]["programme_title"] = title
+        status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                         "achievement_text": "1 (synthetic)"})
+        self.assertEqual(status, 200, body)
+        p.reload()
+        p.once("dialog", lambda dlg: dlg.accept())
+        p.get_by_role("button", name=re.compile("^(Submit|Resubmit)$")).click()
+        expect(p.get_by_text("Read-only: submitted and awaiting VC review.")).to_be_visible(timeout=10000)
+
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        vp = vc.new_page()
+        login(vp, "vc", "demo.vc")
+        vp.wait_for_url("**/vc/dashboard")
+        vp.goto(f"{BASE}/vc/review/{sid}")
+        vp.get_by_role("button", name="Approve").click()
+        expect(vp.get_by_text("Approved", exact=True).first).to_be_visible(timeout=10000)
+        vc.close()
+
+        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+        text = "".join(pg.get_text() for pg in pymupdf.open(stream=r.body(), filetype="pdf"))
+        self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
 
 
 if __name__ == "__main__":

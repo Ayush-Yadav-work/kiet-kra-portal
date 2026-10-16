@@ -27,16 +27,5 @@ Identical in the KRA 11 and KRA 23 sources (page 2); field ids are shared by bot
 {% else %}<p class="lines">1. __________________________________________<br>2. __________________________________________<br>3. __________________________________________</p>{% endif %}
 </div>
 
-<table class="k11-sign">
-  <tr>
-    <td><b>Prepared By:</b><br>Name: {% if a.prepared_name %}{{ a.prepared_name }}{% else %}______________________________{% endif %}<br>
-      Designation: {% if a.prepared_designation %}{{ a.prepared_designation }}{% else %}________________________{% endif %}<br>
-      Signature: ___________________________<br>
-      Date: {% if a.prepared_date_display %}{{ a.prepared_date_display }}{% else %}_______________________________{% endif %}</td>
-    <td><b>Approved By:</b><br>Name: {% if a.approved_name %}{{ a.approved_name }}{% else %}______________________________{% endif %}<br>
-      Designation: {% if a.approved_designation %}{{ a.approved_designation }}{% else %}________________________{% endif %}<br>
-      Signature: ___________________________<br>
-      Date: {% if a.approved_date_display %}{{ a.approved_date_display }}{% else %}_______________________________{% endif %}</td>
-  </tr>
-</table>
+{% include "reports/_signoff_box.html" %}
 
