@@ -189,3 +189,11 @@ Not covered: real college data volumes, Devanagari names, printing on physical p
 - Full regression: `python backend/manage.py test tests` → **Ran 312 tests, OK**. Shared change: CSS only (`.awd-*`); frontend unchanged → no rebuild.
 - `python e2e/test_browser.py` → **14/14 OK**, incl. the new awards test (KRA 12 award title edited in its card; KRAs 25/26 a team award's member list replaced with two names — saved, reloaded, preview shows the member and still exactly 2 table rows, export PDF 200).
 - Samples (`.work/renders/kraN/`): KRA 12 normal (3 awards) 2 p, long (12 awards, long text) 13 p, empty 1, Nil 1; KRAs 25/26 normal (6 awards) 1 p, long (60 awards, 11-member teams) 16 p, empty 1, Nil 1. Tinos-only; "Pending approval" on every page; headers repeat on every table page. Visual fixes: award headings bold/left; sign-off lines shortened to fit four columns.
+
+# KRAs 27–30 validation (2026-10-17)
+
+- Pre-check: KRAs 12, 25, 26 committed (11a519c), working tree clean.
+- Focused: `test_kra27_30` **42 OK** (per KRA: 16 common + KRA-specific required fields, 7 optional; date order and negative counts only at submission; category outside the workbook pair rejected; another KRA's specific field rejected as unknown; 3 events in one submission round-trip; empty event prints "Not entered" with no prefilled claims; mapping with the family template; shared workflow; KRA 30 target text shown as assigned; separation of the four submissions, achievements and targets).
+- Full regression: `python backend/manage.py test tests` → **Ran 354 tests, OK**. Shared change: CSS selector extended (`.evt .k11-label`); frontend unchanged → no rebuild.
+- `python e2e/test_browser.py` → **15/15 OK**, incl. the new events test (for each KRA: two events stored, the second event's KRA-specific field edited in the Event 2 tab → Save → reload → preview shows the value and "Event 2 of 2" → export PDF 200).
+- Samples (`.work/renders/kraN/`, each KRA): normal 2 p, multi (3 events) 6 p, long (4 events, long text) 9 p, empty 2 p, Nil 1 p. Tinos-only; "Pending approval" on every page; no page ends on a numbered heading; each event starts a new page with "Event k of n"; "Portal report format" line under each title.

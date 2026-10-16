@@ -657,3 +657,90 @@ def award_sheet_schema(kra):
 
 
 BUILDERS.update({f"kra{k}": (lambda k=k: award_sheet_schema(k)) for k in AWARD_VARIANTS})
+
+
+# KRAs 27–30: portal event-organizing report format (no supplied template — "KRA 25 to 30 Template" is awards-only; plan 5.2, D-052).
+EVENT_VARIANTS = {
+    27: {"title": "Sports Competition / Event Report", "categories": ["Sports competition", "Sports event"],
+         "fields": [{"id": "sport", "label": "Sport(s) / game(s)", "type": "text", "required": True, "max_length": 200,
+                     "placeholder": "e.g. Football, Athletics"},
+                    {"id": "competition_format", "label": "Competition format (where applicable)", "type": "text", "required": False,
+                     "max_length": 150, "placeholder": "e.g. knockout, league"},
+                    {"id": "teams", "label": "Number of teams (where applicable)", "type": "integer", "required": False, "min": 0, "max": 10000}]},
+    28: {"title": "Cultural Competition / Event Report", "categories": ["Cultural competition", "Cultural event"],
+         "fields": [{"id": "cultural_activity", "label": "Cultural activity / art form(s)", "type": "text", "required": True,
+                     "max_length": 200, "placeholder": "e.g. music, dance, drama"}]},
+    29: {"title": "Technical / Academic Fest Report", "categories": ["Technical fest", "Academic fest"],
+         "fields": [{"id": "theme", "label": "Technical / academic theme", "type": "text", "required": True, "max_length": 250},
+                    {"id": "sub_events", "label": "Sub-events / tracks (one per line, where applicable)", "type": "longtext",
+                     "required": False, "max_length": 1500}]},
+    30: {"title": "Club / Forum Activity Report", "categories": ["Club activity", "Forum activity"],
+         "fields": [{"id": "club_name", "label": "Name of the club / forum", "type": "text", "required": True, "max_length": 200},
+                    {"id": "semester", "label": "Semester", "type": "select", "required": True, "options": ["Odd", "Even"],
+                     "help": "KRA 30's target is per club per semester; the portal does not convert or count it."}]},
+}
+EVENT_DOCS = ["Event Approval", "Notice/Circular/Brochure", "Registration/Participant List", "Attendance Sheet", "Photographs",
+              "Results/Winners List", "Feedback", "Event Report", "News/Website Coverage"]
+
+
+def event_schema(kra):
+    v = EVENT_VARIANTS[kra]
+    count = lambda fid, label: {"id": fid, "label": label, "type": "integer", "required": True, "min": 0, "max": 100000}
+    return copy.deepcopy({
+        "key": f"kra{kra}", "version": 1, "title": v["title"],
+        "family": {"name": "events", "kra": kra, "title": v["title"]},
+        "renderer": "reports/event_family_v1.html",
+        "source": "none — portal event-organizing format (the supplied KRA 25 to 30 Template is an awards table)", "source_checksum": "",
+        "page": {"format": "A4", "landscape": False, "style": "report"},
+        "activity": {"label": "Event", "min": 1, "max": 20},
+        "rules": [{"type": "date_order", "a": "start_date", "b": "end_date", "message": "End date cannot be before the start date."}],
+        "sections": [
+            {"id": "basic", "title": "1. Event details",
+             "intro": "Department, academic year and reporting period are filled from this report. This is a portal format: "
+                      "no event template was supplied for this KRA.",
+             "fields": [
+                 {"id": "event_title", "label": "Title of the event", "type": "text", "required": True, "max_length": 250},
+                 {"id": "category", "label": "Category", "type": "select", "required": True, "options": v["categories"]},
+                 *v["fields"],
+                 {"id": "start_date", "label": "Start date", "type": "date", "required": True},
+                 {"id": "end_date", "label": "End date", "type": "date", "required": True},
+                 {"id": "venue", "label": "Venue", "type": "text", "required": True, "max_length": 200},
+                 {"id": "mode", "label": "Mode", "type": "select", "required": True, "options": ["Offline", "Online", "Hybrid"]},
+                 {"id": "organizer", "label": "Organized by", "type": "text", "required": True, "max_length": 200},
+                 {"id": "coordinators", "label": "Faculty coordinator(s)", "type": "text", "required": True, "max_length": 300},
+                 {"id": "student_coordinators", "label": "Student coordinator(s) (where applicable)", "type": "text", "required": False, "max_length": 300},
+                 {"id": "collaborators", "label": "Collaborating organization(s) (where applicable)", "type": "text", "required": False, "max_length": 300},
+                 {"id": "resource_persons", "label": "Resource persons / judges / guests (where applicable, one per line)", "type": "longtext",
+                  "required": False, "max_length": 1500},
+             ]},
+            {"id": "participation", "title": "2. Participation",
+             "intro": "Counts as recorded; the portal calculates no totals.",
+             "fields": [
+                 {"id": "target_audience", "label": "Target audience", "type": "text", "required": True, "max_length": 200},
+                 count("participants_students", "Number of student participants"),
+                 count("participants_faculty", "Number of faculty participants"),
+                 count("participants_external", "Number of external participants"),
+                 {"id": "institutions", "label": "Number of participating institutions (where applicable)", "type": "integer",
+                  "required": False, "min": 0, "max": 10000},
+             ]},
+            {"id": "objectives", "title": "3. Objectives", "fields": [
+                {"id": "objectives", "label": "Objectives (one per line)", "type": "longtext", "required": True, "max_length": 2000}]},
+            {"id": "description", "title": "4. Description of the activity", "fields": [
+                {"id": "description", "label": "Description", "type": "longtext", "required": True, "max_length": 5000}]},
+            {"id": "outcomes", "title": "5. Outcomes", "fields": [
+                {"id": "outcomes", "label": "Outcomes actually observed (one per line)", "type": "longtext", "required": True, "max_length": 3000}]},
+            {"id": "feedback", "title": "6. Feedback", "fields": [
+                {"id": "feedback", "label": "Feedback summary", "type": "longtext", "required": True, "max_length": 2000,
+                 "help": "Write \"Not collected\" if no feedback was taken."}]},
+            {"id": "documents", "title": "7. Documentary evidence", "intro": "Yes/No as maintained; upload files in the Evidence tab.",
+             "fields": [{"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": False, "items": EVENT_DOCS}]},
+            {"id": "signoff", "title": "Sign-off", "fields": [
+                {"id": "reported_by", "label": "Report prepared by (name, optional)", "type": "text", "required": False, "max_length": 150},
+                {"id": "report_date", "label": "Report date (optional)", "type": "date", "required": False}]},
+        ],
+        "evidence": {"categories": EVENT_DOCS + ["Other"], "required": [],
+                     "note": "No minimum set has been agreed for KRAs 27–30 (docs/decisions.md D-052); the KRA 33 set (D-013) is not applied here."},
+    })
+
+
+BUILDERS.update({f"kra{k}": (lambda k=k: event_schema(k)) for k in EVENT_VARIANTS})

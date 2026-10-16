@@ -485,3 +485,28 @@ def award_record(kra, i=1, long_text=False):
 
 def award_payload(kra, rows=4, long_text=False):
     return {"activities": [{"records": [award_record(kra, i + 1, long_text) for i in range(rows)]}]}
+
+
+EVENT_EXTRA = {27: {"sport": "Synthetic Football", "competition_format": "Knockout", "teams": 12},
+               28: {"cultural_activity": "Synthetic music and dance"},
+               29: {"theme": "Synthetic embedded systems", "sub_events": "Synthetic hackathon\nSynthetic paper presentation"},
+               30: {"club_name": "Synthetic Robotics Club", "semester": "Odd"}}
+EVENT_CATEGORIES = {27: "Sports competition", 28: "Cultural event", 29: "Technical fest", 30: "Club activity"}
+
+
+def event_record(kra, i=1, long_text=False):
+    para = " Synthetic narrative sentence for layout testing." * (25 if long_text else 2)
+    return {"event_title": f"Synthetic KRA {kra} event {i}", "category": EVENT_CATEGORIES[kra], **EVENT_EXTRA[kra],
+            "start_date": f"2026-09-{10 + i % 15:02d}", "end_date": f"2026-09-{11 + i % 15:02d}", "venue": "Main Auditorium (synthetic)",
+            "mode": "Offline", "organizer": "ECE Department (synthetic)", "coordinators": "Test Faculty A, Test Faculty B",
+            "student_coordinators": "" if i % 2 else "Test Student Zoë", "collaborators": "", "resource_persons": "Test Judge 1\nTest Judge 2",
+            "target_audience": "B.Tech students", "participants_students": 120 + i, "participants_faculty": 6, "participants_external": i % 3,
+            "institutions": "" if i % 2 else 4, "objectives": "Synthetic objective one\nSynthetic objective two",
+            "description": "Synthetic description." + para, "outcomes": "Synthetic outcome one\nSynthetic outcome two" + ("\nSynthetic outcome more" * 6 if long_text else ""),
+            "feedback": "Not collected" if i % 3 == 0 else "Synthetic consolidated feedback.",
+            "doc_checklist": {"Event Approval": "Yes", "Attendance Sheet": "Yes", "Feedback": "No"},
+            "reported_by": "", "report_date": ""}
+
+
+def event_payload(kra, events=2, long_text=False):
+    return {"activities": [event_record(kra, i + 1, long_text) for i in range(events)]}
