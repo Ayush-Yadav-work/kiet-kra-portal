@@ -75,11 +75,16 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] One survey family (D-038), three configurations; mappings idempotent (39 assignments, targets unchanged); KRA 7 untouched
 - [x] Exact source questions/order/scale; consolidated mapping of every personal field; KRA 9 with 9a, 9b or both in one submission
 - [x] Shared engine: field/rule `when` (contains), family preparer hook — KRA 7/11/23/1–3 output verified identical
-- Open: D-038 assumptions for college review; deselected KRA 9 fields stay visible in the form. Uncommitted.
+- Open: D-038 assumptions for college review; deselected KRA 9 fields stay visible in the form. Committed (331a234).
+
+## Phase 4 (bounded) — KRA 19 Industrial Visits ✅ (pending review)
+- [x] `kra19_v1` schema + template: full 19a per visit, multiple visits in one submission, LO→PO/PSO matrix, consolidated 19b (D-039)
+- [x] Mapping idempotent (targets unchanged, incl. "NIL"); no mandatory evidence; existing review workflow
+- Open: D-012 PSO1 duplicate still unresolved (labels kept); D-039 assumptions for college review. Uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 31 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 30 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).

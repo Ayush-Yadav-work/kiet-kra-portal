@@ -1,0 +1,184 @@
+{
+  "key": "kra19",
+  "version": 1,
+  "title": "Industrial Visit Report",
+  "source": "reference/templates/KRA 19a - Industrial Visit Report Format.docx.pdf",
+  "source_checksum": "a3003dee2d4ccd5919fe8a387ab5a464b64eb5f57ac492f8a881563ae65ec1cb",
+  "source_supplementary": {"file": "reference/templates/KRA 19b Industrial Visit Feedback Form.docx.pdf",
+                           "checksum": "7dc5e8f21077074a9956195ff8837505f85ad2e9f50ed6f9b843038c4736a3f2",
+                           "treatment": "Completed forms uploaded as evidence; consolidated summary in the report (plan 5.4 assumption, D-039)"},
+  "page": {"format": "Letter", "landscape": false, "style": "report"},
+  "activity": {"label": "Visit", "min": 1, "max": 20},
+  "rules": [{"type": "lte", "a": "students_participated", "b": "students_eligible",
+             "message": "Students who participated cannot exceed the students eligible."},
+            {"type": "lte", "a": "feedback_responses", "b": "students_participated",
+             "message": "Feedback responses cannot exceed the students who participated."}],
+  "sections": [
+    {
+      "id": "visit", "title": "Visit details",
+      "intro": "Department and academic year are filled from this report; the reporting period appears in the report summary.",
+      "fields": [
+        {"id": "visit_date", "label": "Date of Visit", "type": "date", "required": true},
+        {"id": "year_semester", "label": "Academic Session / Year/ Semester (year of study and semester)", "type": "text", "required": true,
+         "max_length": 80, "placeholder": "e.g. 3rd Year / Odd Semester"},
+        {"id": "faculty_coordinators", "label": "Faculty Coordinator(s)", "type": "text", "required": true, "max_length": 300},
+        {"id": "hod", "label": "Head of the Department", "type": "text", "required": true, "max_length": 150},
+        {"id": "industry_name", "label": "Name of Industry Visited", "type": "text", "required": true, "max_length": 250},
+        {"id": "students_participated", "label": "Number of students who participated", "type": "integer", "required": true, "min": 0, "max": 10000,
+         "help": "As counted from the attendance record. KRA 19's target is a share of students per year; the portal does not calculate it."},
+        {"id": "students_eligible", "label": "Number of students in the class/batch (optional)", "type": "integer", "required": false, "min": 0, "max": 10000}
+      ]
+    },
+    {
+      "id": "industry", "title": "Profile of the Industry Visited (Brief Introduction)",
+      "fields": [
+        {"id": "industry_profile", "label": "Profile of the Industry Visited", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source prompts: Products/Services; Core Business Areas; Major Engineering Activities; Vision and Mission (if available); Organizational Structure."},
+        {"id": "experts", "label": "Detail of the Industry Experts (Interacted with)", "type": "table", "required": false, "min_rows": 0, "max_rows": 30,
+         "columns": [
+           {"id": "name", "label": "Name", "type": "text", "required": true, "max_length": 150, "width": "28%"},
+           {"id": "designation", "label": "Designation", "type": "text", "required": true, "max_length": 150, "width": "28%"},
+           {"id": "topics", "label": "Topics Discussed", "type": "text", "required": true, "max_length": 400, "width": "44%",
+            "placeholder": "e.g. Industrial automation, Career opportunities"}
+         ]}
+      ]
+    },
+    {
+      "id": "objectives", "title": "Objectives of the Industry Visited",
+      "fields": [
+        {"id": "objectives", "label": "Objectives of the industrial visit (one per line)", "type": "longtext", "required": true, "max_length": 3000,
+         "guidance": "Source: \"Clearly state the objectives of the industrial visit.\" Typical objectives listed there: to expose students to real industrial environments; to understand practical engineering applications; to bridge the gap between theoretical concepts and industrial practices; to understand manufacturing, design, testing, maintenance, or operational processes; to observe industrial automation and digital technologies; to understand quality management and safety practices; to appreciate industrial professionalism and work culture."}
+      ]
+    },
+    {
+      "id": "technical", "title": "Technical Overview",
+      "fields": [
+        {"id": "technical_overview", "label": "Technical Overview", "type": "longtext", "required": true, "max_length": 5000,
+         "guidance": "Source: \"Provide a concise description of the major engineering activities carried out in the organization.\" Include: core technologies, engineering processes, automation systems, digital technologies, production philosophy, operational workflow."}
+      ]
+    },
+    {
+      "id": "departments", "title": "Departments and Facilities Visited",
+      "fields": [
+        {"id": "departments_visited", "label": "Departments and facilities visited (one record per department)", "type": "table", "required": true,
+         "min_rows": 1, "max_rows": 30, "editor": "cards",
+         "columns": [
+           {"id": "department", "label": "Department / Facility", "type": "text", "required": true, "max_length": 150},
+           {"id": "purpose", "label": "Purpose of the department", "type": "longtext", "required": true, "max_length": 800},
+           {"id": "activities", "label": "Major activities", "type": "longtext", "required": true, "max_length": 800},
+           {"id": "machinery", "label": "Machinery or equipment observed", "type": "longtext", "required": false, "max_length": 800},
+           {"id": "principles", "label": "Engineering principles involved", "type": "longtext", "required": false, "max_length": 800},
+           {"id": "observations", "label": "Key observations", "type": "longtext", "required": true, "max_length": 800}
+         ]}
+      ]
+    },
+    {
+      "id": "practices", "title": "Equipment, Quality/Safety and Environmental Practices",
+      "intro": "Describe only what was actually observed; write \"Not observed\" where a topic did not apply.",
+      "fields": [
+        {"id": "equipment", "label": "Equipment and Technologies Observed", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source examples: CNC Machines, Robotics, PLC-based Automation, SCADA Systems, Industrial IoT, Artificial Intelligence Applications, Machine Vision Systems, CAD/CAM Software, Testing Equipment, Quality Inspection Systems."},
+        {"id": "quality_safety", "label": "Quality Assurance and Safety Practices", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source prompts: quality inspection procedures, process monitoring, preventive maintenance, PPE, fire safety systems, emergency preparedness, occupational health practices, hazard identification, workplace safety culture."},
+        {"id": "environmental", "label": "Environmental and Sustainability Practices", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source prompts: waste management, water conservation, energy efficiency, pollution control measures, renewable energy utilization, green manufacturing practices, resource optimization."}
+      ]
+    },
+    {
+      "id": "learning", "title": "Key Learning Outcomes",
+      "fields": [
+        {"id": "learning_outcomes", "label": "Key Learning Outcomes (one per line)", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source: \"Summarize the important learning gained through the visit.\" The report should reflect: practical understanding of engineering concepts, exposure to industrial technologies, appreciation of quality systems, understanding of professional ethics, awareness of industrial safety, teamwork and communication skills, knowledge of industrial best practices."}
+      ]
+    },
+    {
+      "id": "courses", "title": "Subject/Course mapped",
+      "fields": [
+        {"id": "courses", "label": "Courses mapped", "type": "table", "required": true, "min_rows": 1, "max_rows": 20,
+         "columns": [
+           {"id": "course_name", "label": "Name of the Course", "type": "text", "required": true, "max_length": 200, "width": "50%"},
+           {"id": "course_code", "label": "Course Code", "type": "text", "required": true, "max_length": 40, "width": "22%"},
+           {"id": "year_semester", "label": "Year/Semester", "type": "text", "required": true, "max_length": 60, "width": "28%"}
+         ]}
+      ]
+    },
+    {
+      "id": "matrix", "title": "Learning Outcome to PO/PSO mapping",
+      "intro": "One row per learning outcome. Cells are short text as used by the department (no scale is defined in the source; D-039). The source prints the last two columns as \"PSO1\" and \"PSO1\"; they are kept as printed pending the college's correction (D-012).",
+      "fields": [
+        {"id": "lo_matrix", "label": "Learning Outcome × Program Outcomes (POs) / PSOs", "type": "table", "required": false, "min_rows": 0, "max_rows": 20,
+         "editor": "cards",
+         "columns": [
+           {"id": "outcome", "label": "Learning Outcome", "type": "text", "required": true, "max_length": 300, "width": "23%"},
+           {"id": "po1", "label": "PO 1", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po2", "label": "PO 2", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po3", "label": "PO 3", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po4", "label": "PO 4", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po5", "label": "PO 5", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po6", "label": "PO 6", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po7", "label": "PO 7", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po8", "label": "PO 8", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po9", "label": "PO 9", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po10", "label": "PO 10", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po11", "label": "PO 11", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "po12", "label": "PO 12", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "pso1_a", "label": "PSO1 (first column as printed)", "type": "text", "required": false, "max_length": 6, "width": "5.5%"},
+           {"id": "pso1_b", "label": "PSO1 (second column as printed)", "type": "text", "required": false, "max_length": 6, "width": "5.5%"}
+         ]}
+      ]
+    },
+    {
+      "id": "gaps", "title": "Gap Fulfilment in Academics",
+      "intro": "Industrial visits can be used to bridge several academic gaps. Source examples: Theory-Practice Gap, Lack of AI Exposure, Sustainability Awareness, Innovation.",
+      "fields": [
+        {"id": "gaps", "label": "Academic gaps and industrial-visit solutions", "type": "table", "required": true, "min_rows": 1, "max_rows": 20,
+         "columns": [
+           {"id": "gap", "label": "Academic Gap", "type": "text", "required": true, "max_length": 400, "width": "45%"},
+           {"id": "solution", "label": "Industrial Visit Solution", "type": "text", "required": true, "max_length": 600, "width": "55%"}
+         ]}
+      ]
+    },
+    {
+      "id": "closing", "title": "Suggestions, Conclusion and Remarks",
+      "fields": [
+        {"id": "suggestions", "label": "Suggestions", "type": "longtext", "required": false, "max_length": 3000,
+         "guidance": "Source: constructive suggestions regarding future industrial visits, industry–academia collaboration, internship opportunities, laboratory improvements, skill development initiatives, emerging technology exposure."},
+        {"id": "conclusion", "label": "Conclusion", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source: summarize the overall experience, highlighting the educational value of the visit, the enhancement of technical knowledge, exposure to industrial practices, and the role of such visits in preparing students for professional engineering careers."},
+        {"id": "coordinator_remarks", "label": "Faculty Coordinator Remarks", "type": "longtext", "required": false, "max_length": 2000},
+        {"id": "coordinator_name", "label": "Faculty Coordinator Name (signature line stays blank)", "type": "text", "required": false, "max_length": 150}
+      ]
+    },
+    {
+      "id": "feedback", "title": "Industrial Visit Feedback (KRA 19b) — consolidated summary",
+      "intro": "Upload the completed student feedback forms in the Evidence tab (category \"Student's Feedback\"). Enter here only a consolidated summary; averages are optional and are never calculated by the portal (D-039).",
+      "fields": [
+        {"id": "feedback_responses", "label": "Number of completed feedback forms", "type": "integer", "required": false, "min": 0, "max": 10000},
+        {"id": "feedback_ratings", "label": "Consolidated average per feedback item (optional)", "type": "ratings", "required": false,
+         "scale": [1, 2, 3, 4, 5], "decimal_places": 2,
+         "scale_labels": ["Poor (1)", "Satisfactory (2)", "Good (3)", "Very Good (4)", "Excellent (5)"],
+         "items": ["Organization & Planning of Visit", "Relevance to Academic Curriculum",
+                   "Industrial visit aligned with the course objectives and content.", "Knowledge Gained", "Industry Interaction Quality",
+                   "Exposure to Practical Applications", "Clarity of Explanation by Industry Experts", "Improvement in Technical Understanding",
+                   "Usefulness for Career", "Overall Learning Experience"]},
+        {"id": "feedback_summary", "label": "Consolidated feedback summary", "type": "longtext", "required": true, "max_length": 3000,
+         "help": "Write \"Not collected\" if no feedback forms were collected for this visit."}
+      ]
+    },
+    {
+      "id": "annexures", "title": "Annexures",
+      "intro": "The following supporting documents may be attached. Mark whether each is maintained; upload files in the Evidence tab.",
+      "fields": [
+        {"id": "annexures", "label": "Supporting documents maintained", "type": "checklist", "required": false,
+         "items": ["Industrial Visit Approval", "Visit Schedule", "Attendance Record", "Group Photograph (Geo-Tag)", "Student’s Feedback",
+                   "Any Certificates Issued"]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Industrial Visit Approval", "Visit Schedule", "Attendance Record", "Group Photograph (Geo-Tag)", "Student's Feedback",
+                   "Any Certificates Issued", "Other"],
+    "required": [],
+    "note": "No minimum evidence set has been agreed for KRA 19 (docs/decisions.md D-039). Completed 19b feedback forms belong under \"Student's Feedback\"."
+  }
+}

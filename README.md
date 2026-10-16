@@ -120,3 +120,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean open KRA 36 (staff tra
 ## KRAs 8–10 review (consolidated surveys)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: KRA 8 / KRA 10 — enter counts, organisations, tick relationships, enter averages (try `4.255` or `5.01`: the draft keeps it, *Submit* explains the error). KRA 9 — tick 9a, 9b or both; untick one to see its data kept but left out of the preview/PDF. Samples: `.work/renders/kra8/normal.pdf`, `kra8/long.pdf`, `kra10/normal.pdf`, `kra9/only9a.pdf`, `kra9/only9b.pdf`, `kra9/normal.pdf` (both), `kra9/long.pdf`, `*/nil.pdf` (regenerate with `manage.py render_sample --kra 8 --kra 9 --kra 10`). Decisions: D-038.
+
+## KRA 19 review (Industrial Visits)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean open KRA 19: add visits with *+ Add visit* (one report for the period), fill the 19a sections, add matrix rows (cells accept short text such as `3` or `H`; no scale is enforced), and enter the 19b consolidated summary; upload individual feedback forms in the Evidence tab. Check: both matrix columns read "PSO1" (D-012 unresolved), counts rule (forms ≤ participated ≤ class size) only at *Submit*. Samples: `.work/renders/kra19/normal.pdf`, `multi.pdf`, `long.pdf`, `empty.pdf`, `nil.pdf` (regenerate with `manage.py render_sample --kra 19`). Decisions: D-039, D-012.

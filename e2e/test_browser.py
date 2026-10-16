@@ -327,5 +327,63 @@ class BrowserTests(unittest.TestCase):
         self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
 
 
+    def test_kra19_save_reload_preview_export_and_vc_review(self):
+        """KRA 19: two visits in one submission; Dean save/reload/preview/export; UI submit; VC approves on the review page."""
+        import pymupdf
+        from tests.fixtures import kra19_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 19)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        if d["status"] in ("SUBMITTED", "APPROVED"):  # left by a previous run: VC returns it so the run can repeat
+            vc = self.browser.new_context()
+            vp = vc.new_page()
+            login(vp, "vc", "demo.vc")
+            vp.wait_for_url("**/vc/dashboard")
+            for decision in (["APPROVE"] if d["status"] == "SUBMITTED" else []) + ["RETURN"]:
+                api(vp, "POST", f"/submissions/{sid}/review/", {"revision": d["current_revision"]["id"], "decision": decision,
+                                                                "reason": "Synthetic e2e reset"})
+            vc.close()
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+        status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": kra19_payload(2),
+                                                                         "achievement_text": "Synthetic: 116 student participations"})
+        self.assertEqual(status, 200, body)
+        p.reload()
+        p.wait_for_load_state("networkidle")
+        name = f"Synthetic browser plant {int(time.time())}"
+        p.locator("input[name='activities.0.industry_name']").fill(name)
+        expect(p.locator("input[name='activities.0.industry_name']")).to_have_value(name)
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        p.reload()
+        expect(p.locator("input[name='activities.0.industry_name']")).to_have_value(name)
+        frame = p.frame_locator("iframe[title='Report preview']")
+        expect(frame.get_by_text(name).first).to_be_visible(timeout=10000)
+        expect(frame.get_by_text("Visit 2 of 2")).to_be_visible()
+        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+        self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
+
+        p.once("dialog", lambda dlg: dlg.accept())
+        p.get_by_role("button", name=re.compile("^(Submit|Resubmit)$")).click()
+        expect(p.get_by_text("Read-only: submitted and awaiting VC review.")).to_be_visible(timeout=10000)
+
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        vp = vc.new_page()
+        login(vp, "vc", "demo.vc")
+        vp.wait_for_url("**/vc/dashboard")
+        vp.goto(f"{BASE}/vc/review/{sid}")
+        vp.get_by_role("button", name="Approve").click()
+        expect(vp.get_by_text("Approved", exact=True).first).to_be_visible(timeout=10000)
+        vc.close()
+
+        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+        text = "".join(pg.get_text() for pg in pymupdf.open(stream=r.body(), filetype="pdf"))
+        self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
+        self.assertIn(name, text)
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)
