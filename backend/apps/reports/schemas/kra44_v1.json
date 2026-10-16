@@ -1,0 +1,380 @@
+{
+ "key": "kra44",
+ "version": 1,
+ "title": "EVENT REPORT- BOOT Camp & Peer Learning Activity",
+ "source": "reference/templates/KRA 44 Report of BOOT Camps & Peer Learning Activities.docx.pdf",
+ "source_checksum": "0db7fd18a98f5034acd191c33ca6484839554a58c97acfadb7a3b43219fec953",
+ "page": {
+  "format": "Letter",
+  "landscape": false,
+  "style": "report"
+ },
+ "activity": {
+  "label": "Activity",
+  "min": 1,
+  "max": 20
+ },
+ "rules": [
+  {
+   "type": "date_order",
+   "a": "start_date",
+   "b": "end_date",
+   "message": "End date cannot be before the start date."
+  },
+  {
+   "type": "lte",
+   "a": "participated",
+   "b": "registered",
+   "message": "Students participated cannot exceed students registered."
+  }
+ ],
+ "sections": [
+  {
+   "id": "general",
+   "title": "1. General Information",
+   "intro": "Name of Institution prints as in the source; Academic Year is filled from this report.",
+   "fields": [
+    {
+     "id": "activity_name",
+     "label": "Name of Activity",
+     "type": "text",
+     "required": true,
+     "max_length": 250
+    },
+    {
+     "id": "activity_id",
+     "label": "Activity ID",
+     "type": "text",
+     "required": false,
+     "max_length": 60,
+     "help": "Institution/department reference, if one is used."
+    },
+    {
+     "id": "activity_type",
+     "label": "Type of Activity",
+     "type": "select",
+     "required": true,
+     "options": [
+      "BOOT Camp",
+      "Peer Learning",
+      "Combined"
+     ]
+    },
+    {
+     "id": "theme",
+     "label": "Theme/Title",
+     "type": "text",
+     "required": true,
+     "max_length": 250
+    },
+    {
+     "id": "start_date",
+     "label": "Date(s): from",
+     "type": "date",
+     "required": true
+    },
+    {
+     "id": "end_date",
+     "label": "Date(s): to",
+     "type": "date",
+     "required": true
+    },
+    {
+     "id": "duration",
+     "label": "Duration",
+     "type": "text",
+     "required": true,
+     "max_length": 80,
+     "placeholder": "e.g. 3 days / 18 hours"
+    },
+    {
+     "id": "venue",
+     "label": "Venue",
+     "type": "text",
+     "required": true,
+     "max_length": 200
+    },
+    {
+     "id": "mode",
+     "label": "Mode",
+     "type": "select",
+     "required": true,
+     "options": [
+      "Offline",
+      "Online",
+      "Hybrid"
+     ]
+    },
+    {
+     "id": "organizer",
+     "label": "Organizing Department/Cell",
+     "type": "text",
+     "required": true,
+     "max_length": 200
+    },
+    {
+     "id": "faculty_coordinator",
+     "label": "Faculty Coordinator",
+     "type": "text",
+     "required": true,
+     "max_length": 200
+    },
+    {
+     "id": "student_coordinators",
+     "label": "Student Coordinator(s)",
+     "type": "text",
+     "required": false,
+     "max_length": 300
+    },
+    {
+     "id": "mentors",
+     "label": "Resource Person/Mentor",
+     "type": "text",
+     "required": false,
+     "max_length": 300
+    }
+   ]
+  },
+  {
+   "id": "introduction",
+   "title": "2. Introduction",
+   "fields": [
+    {
+     "id": "introduction",
+     "label": "Introduction",
+     "type": "longtext",
+     "required": true,
+     "max_length": 3000,
+     "guidance": "Source text: The BOOT Camp/Peer Learning Activity was organized to provide students with an experiential, collaborative and skill-oriented learning environment. The activity encouraged students to learn through hands-on practice, peer interaction, teamwork, mentoring and problem-solving. The programme was designed to complement classroom learning by providing opportunities for students to apply theoretical concepts to practical situations and to learn from the knowledge and experience of their peers."
+    }
+   ]
+  },
+  {
+   "id": "objectives",
+   "title": "3. Objectives",
+   "intro": "Printed as \"The major objectives of the activity were:\". Only the objectives you tick (and any you add) are printed.",
+   "fields": [
+    {
+     "id": "objectives",
+     "label": "Objectives (from the source template)",
+     "type": "multiselect",
+     "required": false,
+     "options": [
+      "To promote experiential and hands-on learning.",
+      "To strengthen students' technical and professional skills.",
+      "To encourage peer-to-peer knowledge sharing.",
+      "To develop teamwork, communication and leadership abilities.",
+      "To promote collaborative problem-solving."
+     ]
+    },
+    {
+     "id": "other_objectives",
+     "label": "Other objectives (optional, one per line)",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500
+    }
+   ]
+  },
+  {
+   "id": "details",
+   "title": "4. Activity Details",
+   "fields": [
+    {
+     "id": "time",
+     "label": "Time",
+     "type": "text",
+     "required": false,
+     "max_length": 60,
+     "placeholder": "e.g. 10:00 AM – 4:00 PM"
+    },
+    {
+     "id": "target_group",
+     "label": "Target Group",
+     "type": "text",
+     "required": true,
+     "max_length": 200
+    },
+    {
+     "id": "programme",
+     "label": "Programme/Branch",
+     "type": "text",
+     "required": true,
+     "max_length": 150
+    },
+    {
+     "id": "semester",
+     "label": "Semester/Year",
+     "type": "text",
+     "required": true,
+     "max_length": 60
+    },
+    {
+     "id": "registered",
+     "label": "No. of Students Registered",
+     "type": "integer",
+     "required": true,
+     "min": 0,
+     "max": 100000
+    },
+    {
+     "id": "participated",
+     "label": "No. of Students Participated",
+     "type": "integer",
+     "required": true,
+     "min": 0,
+     "max": 100000
+    },
+    {
+     "id": "student_mentors",
+     "label": "No. of Student Mentors",
+     "type": "integer",
+     "required": true,
+     "min": 0,
+     "max": 100000
+    },
+    {
+     "id": "faculty_mentors",
+     "label": "No. of Faculty Mentors",
+     "type": "integer",
+     "required": true,
+     "min": 0,
+     "max": 100000
+    },
+    {
+     "id": "sessions",
+     "label": "No. of Sessions",
+     "type": "integer",
+     "required": true,
+     "min": 1,
+     "max": 100000
+    }
+   ]
+  },
+  {
+   "id": "structure",
+   "title": "5. BOOT Camp / Peer Learning Structure",
+   "intro": "Describe what actually happened in each phase. The source's phase descriptions are guidance only; a phase left blank prints \"Not described\".",
+   "fields": [
+    {
+     "id": "phase_1",
+     "label": "Phase I – Orientation",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500,
+     "guidance": "Source text: Students were introduced to the objectives, expected learning outcomes, activities and evaluation methodology."
+    },
+    {
+     "id": "phase_2",
+     "label": "Phase II – Team Formation",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500,
+     "guidance": "Source text: Students were organized into groups based on their interests, skills or learning requirements. Senior/experienced students were assigned the role of peer mentors wherever applicable."
+    },
+    {
+     "id": "phase_3",
+     "label": "Phase III – Learning & Hands-on Activities",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500,
+     "guidance": "Source text: Students participated in practical exercises, demonstrations, problem-solving activities, projects, coding exercises, case studies, simulations or other domain-specific activities."
+    },
+    {
+     "id": "phase_4",
+     "label": "Phase IV – Peer Interaction",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500,
+     "guidance": "Source text: Student mentors and peer groups facilitated knowledge sharing, doubt resolution and collaborative learning."
+    },
+    {
+     "id": "phase_5",
+     "label": "Phase V – Evaluation/Demonstration",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500,
+     "guidance": "Source text: Students demonstrated their learning through presentations, project demonstrations, quizzes, practical tasks, assessments or problem-solving exercises."
+    },
+    {
+     "id": "phase_6",
+     "label": "Phase VI – Feedback & Reflection",
+     "type": "longtext",
+     "required": false,
+     "max_length": 1500,
+     "guidance": "Source text: Feedback was collected from participants to assess learning effectiveness and identify areas for improvement."
+    }
+   ]
+  },
+  {
+   "id": "documents",
+   "title": "6. Documentary Evidence",
+   "intro": "The source pre-prints \"Available\"; here each item is answered Yes/No. Upload files in the Evidence tab (not added to the PDF).",
+   "fields": [
+    {
+     "id": "doc_checklist",
+     "label": "Evidence status",
+     "type": "checklist",
+     "required": false,
+     "items": [
+      "Activity Approval",
+      "Activity Notice",
+      "Programme Schedule",
+      "Participant Registration",
+      "Student Mentor List",
+      "Attendance Sheet",
+      "Learning Material",
+      "Photographs/Videos",
+      "Assessment Records",
+      "Student Projects/Outputs",
+      "Feedback",
+      "Activity Report",
+      "Outcome/Impact Evidence",
+      "Certificates, if issued"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "signoff",
+   "title": "Sign-off",
+   "fields": [
+    {
+     "id": "coordinator_designation",
+     "label": "Faculty Coordinator designation (optional)",
+     "type": "text",
+     "required": false,
+     "max_length": 100
+    },
+    {
+     "id": "hod_name",
+     "label": "Head of Department/Dean name (optional)",
+     "type": "text",
+     "required": false,
+     "max_length": 150
+    }
+   ]
+  }
+ ],
+ "evidence": {
+  "categories": [
+   "Activity Approval",
+   "Activity Notice",
+   "Programme Schedule",
+   "Participant Registration",
+   "Student Mentor List",
+   "Attendance Sheet",
+   "Learning Material",
+   "Photographs/Videos",
+   "Assessment Records",
+   "Student Projects/Outputs",
+   "Feedback",
+   "Activity Report",
+   "Outcome/Impact Evidence",
+   "Certificates, if issued",
+   "Other"
+  ],
+  "required": [],
+  "note": "Categories follow the source evidence list. No minimum set has been agreed (docs/decisions.md D-054)."
+ }
+}

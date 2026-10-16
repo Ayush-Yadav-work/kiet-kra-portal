@@ -1,0 +1,352 @@
+{
+ "key": "kra45",
+ "version": 1,
+ "title": "Report for (National &International Flagship Event) organized / participated",
+ "source": "reference/templates/KRA 45 National &International Flagship Event.docx.pdf",
+ "source_checksum": "455d6f1e82ecf025ec6f6b914a6054c5353624ea0d3dbacffc8de0174987d9a4",
+ "page": {
+  "format": "A4",
+  "landscape": false,
+  "style": "report"
+ },
+ "activity": {
+  "label": "Event",
+  "min": 1,
+  "max": 20
+ },
+ "rules": [
+  {
+   "type": "date_order",
+   "a": "start_date",
+   "b": "end_date",
+   "message": "End date cannot be before the start date."
+  }
+ ],
+ "sections": [
+  {
+   "id": "event",
+   "title": "Event details",
+   "intro": "School & Department is filled from this report. Photographs, brochure, certificates, attendance and feedback are uploaded in the Evidence tab and listed in the checklist below — they are not pasted into the report PDF.",
+   "fields": [
+    {
+     "id": "role",
+     "label": "Organized / participated",
+     "type": "select",
+     "required": true,
+     "options": [
+      "Organized",
+      "Participated"
+     ],
+     "help": "The source covers both; whether participation counts towards KRA 45 is pending college review."
+    },
+    {
+     "id": "faculty_name",
+     "label": "Name of the Faculty",
+     "type": "text",
+     "required": true,
+     "max_length": 150
+    },
+    {
+     "id": "designation",
+     "label": "Designation",
+     "type": "text",
+     "required": true,
+     "max_length": 100
+    },
+    {
+     "id": "mode",
+     "label": "Mode of Event",
+     "type": "select",
+     "required": true,
+     "options": [
+      "Online",
+      "Offline",
+      "Hybrid"
+     ]
+    },
+    {
+     "id": "event_name",
+     "label": "Name of the Event",
+     "type": "text",
+     "required": true,
+     "max_length": 300
+    },
+    {
+     "id": "level",
+     "label": "Level",
+     "type": "select",
+     "required": true,
+     "options": [
+      "International",
+      "National",
+      "State",
+      "Regional",
+      "Industry",
+      "University"
+     ],
+     "help": "Source options kept. KRA 45 is a National & International Flagship Event; other levels are recorded but their eligibility is for the college to decide."
+    },
+    {
+     "id": "sdgs",
+     "label": "UN SDGs Mapped with Event Team",
+     "type": "multiselect",
+     "required": true,
+     "options": [
+      "No poverty (SDG 1)",
+      "Zero hunger (SDG 2)",
+      "Good health and well-being (SDG 3)",
+      "Quality education (SDG 4)",
+      "Gender equality (SDG 5)",
+      "Clean water and sanitation (SDG 6)",
+      "Affordable and clean energy (SDG 7)",
+      "Decent work and economic growth (SDG 8)",
+      "Industry, innovation and infrastructure (SDG 9)",
+      "Reduced inequalities (SDG 10)",
+      "Sustainable cities and communities (SDG 11)",
+      "Responsible consumption and production (SDG 12)",
+      "Climate action (SDG 13)",
+      "Life below water (SDG 14)",
+      "Life on land (SDG 15)",
+      "Peace, justice, and strong institutions (SDG 16)",
+      "Partnerships for the goals (SDG 17)"
+     ]
+    },
+    {
+     "id": "venue",
+     "label": "Venue",
+     "type": "text",
+     "required": true,
+     "max_length": 200
+    },
+    {
+     "id": "days",
+     "label": "No. of Days",
+     "type": "integer",
+     "required": true,
+     "min": 1,
+     "max": 365
+    },
+    {
+     "id": "start_date",
+     "label": "Dates: from",
+     "type": "date",
+     "required": true
+    },
+    {
+     "id": "end_date",
+     "label": "Dates: to",
+     "type": "date",
+     "required": true
+    },
+    {
+     "id": "funded_by",
+     "label": "Funded by",
+     "type": "text",
+     "required": true,
+     "max_length": 200,
+     "suggestions": [
+      "UGC",
+      "CSIR",
+      "DST",
+      "DSIR",
+      "ICSSR",
+      "NCERT",
+      "INSA",
+      "Management"
+     ]
+    },
+    {
+     "id": "collaboration",
+     "label": "Details of Collaboration if any",
+     "type": "text",
+     "required": false,
+     "max_length": 400
+    },
+    {
+     "id": "participants",
+     "label": "No. of Participants",
+     "type": "integer",
+     "required": true,
+     "min": 0,
+     "max": 1000000
+    },
+    {
+     "id": "registration_charges",
+     "label": "Registration charges (if any)",
+     "type": "text",
+     "required": false,
+     "max_length": 120
+    }
+   ]
+  },
+  {
+   "id": "resource",
+   "title": "Resource Person(s) Details",
+   "fields": [
+    {
+     "id": "resource_persons",
+     "label": "Resource persons",
+     "type": "table",
+     "required": false,
+     "max_rows": 30,
+     "editor": "cards",
+     "columns": [
+      {
+       "id": "name",
+       "label": "Name",
+       "type": "text",
+       "required": true,
+       "max_length": 150,
+       "width": "15%"
+      },
+      {
+       "id": "designation",
+       "label": "Designation",
+       "type": "text",
+       "required": false,
+       "max_length": 100,
+       "width": "15%"
+      },
+      {
+       "id": "department",
+       "label": "Department",
+       "type": "text",
+       "required": false,
+       "max_length": 120,
+       "width": "15%"
+      },
+      {
+       "id": "institution",
+       "label": "Institution/ industry",
+       "type": "text",
+       "required": true,
+       "max_length": 200,
+       "width": "18%"
+      },
+      {
+       "id": "city",
+       "label": "City",
+       "type": "text",
+       "required": false,
+       "max_length": 80,
+       "width": "11%"
+      },
+      {
+       "id": "state",
+       "label": "State",
+       "type": "text",
+       "required": false,
+       "max_length": 80,
+       "width": "11%"
+      },
+      {
+       "id": "country",
+       "label": "Country",
+       "type": "text",
+       "required": false,
+       "max_length": 80,
+       "width": "10%"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "report",
+   "title": "Brief Report and Outcome",
+   "fields": [
+    {
+     "id": "brief_report",
+     "label": "Brief Report",
+     "type": "longtext",
+     "required": true,
+     "max_length": 6000
+    },
+    {
+     "id": "focus",
+     "label": "Outcome — Focusing & Choices",
+     "type": "multiselect",
+     "required": true,
+     "options": [
+      "Academic Related",
+      "Research Related",
+      "Extension Related",
+      "SDG"
+     ]
+    },
+    {
+     "id": "outcome",
+     "label": "Outcome",
+     "type": "longtext",
+     "required": true,
+     "max_length": 3000
+    }
+   ]
+  },
+  {
+   "id": "sdg",
+   "title": "SDG alignment, feedback and follow-up",
+   "fields": [
+    {
+     "id": "sdg_alignment",
+     "label": "Brief how this event / activity is in line with Sustainable Development Goals (SDGs) attributed",
+     "type": "longtext",
+     "required": true,
+     "max_length": 3000
+    },
+    {
+     "id": "feedback",
+     "label": "Remarks and Feedback on the Event (Summary of the Feedback - As per IQAC format)",
+     "type": "longtext",
+     "required": true,
+     "max_length": 3000,
+     "help": "Upload the feedback forms in the Evidence tab."
+    },
+    {
+     "id": "follow_up_plan",
+     "label": "Implementation/follow-up plan (if any)",
+     "type": "longtext",
+     "required": false,
+     "max_length": 2000,
+     "help": "Source label: \"Plan of Implementing in MBU (if any)\" — \"MBU\" is not defined in the sources; a neutral label is used (D-055)."
+    }
+   ]
+  },
+  {
+   "id": "checklist",
+   "title": "Submission Check List and enclosures",
+   "intro": "Yes/No as maintained; the files themselves are uploaded in the Evidence tab and downloaded separately.",
+   "fields": [
+    {
+     "id": "checklist",
+     "label": "Submission Check List / enclosures",
+     "type": "checklist",
+     "required": false,
+     "items": [
+      "Approval Letter",
+      "Budget & Statement of Expenditure",
+      "Event Brochure & Invitation",
+      "Photographs (Geo Tagged: Inauguration, Event and Valedictory)",
+      "Copy of the Participation & Resource Person(s) Certificate",
+      "List of Participants and Signed Attendance Copy (FN and AN Sections)",
+      "Feedback (Resource Person, Participant’s & Organizer)"
+     ]
+    }
+   ]
+  }
+ ],
+ "evidence": {
+  "categories": [
+   "Approval Letter",
+   "Budget & Statement of Expenditure",
+   "Event Brochure & Invitation",
+   "Photographs (Geo Tagged: Inauguration, Event and Valedictory)",
+   "Copy of the Participation & Resource Person(s) Certificate",
+   "List of Participants and Signed Attendance Copy (FN and AN Sections)",
+   "Feedback (Resource Person, Participant’s & Organizer)",
+   "Other"
+  ],
+  "required": [],
+  "note": "Source paste-in areas (brochure, photographs, certificates, attendance, feedback) are evidence items, never embedded in the report PDF. No minimum set has been agreed (docs/decisions.md D-055)."
+ }
+}

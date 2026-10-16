@@ -1,0 +1,80 @@
+{
+  "key": "kra43",
+  "version": 1,
+  "title": "Scopus Conference Organized by the Department",
+  "source": "none — project-created conference-organizing format; the supplied 'KRA 43 - Templates.xlsx - Research Papers' (UGC-CARE journal papers) does not match the workbook KRA (D-053)",
+  "source_checksum": "",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Conference", "min": 1, "max": 20},
+  "rules": [
+    {"type": "date_order", "a": "start_date", "b": "end_date", "message": "End date cannot be before the start date."},
+    {"type": "lte", "a": "papers_published", "b": "papers_accepted", "message": "Published papers cannot exceed accepted papers."},
+    {"type": "lte", "a": "kiet_accepted", "b": "papers_accepted", "message": "KIET-affiliated accepted papers cannot exceed accepted papers."},
+    {"type": "lte", "a": "kiet_published", "b": "papers_published", "message": "KIET-affiliated published papers cannot exceed published papers."}
+  ],
+  "sections": [
+    {
+      "id": "conference", "title": "1. Conference details",
+      "intro": "Project-created format (no matching template was supplied). Department, academic year and reporting period are filled from this report.",
+      "fields": [
+        {"id": "conference_name", "label": "Name of the conference", "type": "text", "required": true, "max_length": 300},
+        {"id": "start_date", "label": "Start date", "type": "date", "required": true},
+        {"id": "end_date", "label": "End date", "type": "date", "required": true},
+        {"id": "organizers", "label": "Organized by (department/cell)", "type": "text", "required": true, "max_length": 250},
+        {"id": "partners", "label": "Co-organizers / partners / sponsors (if any)", "type": "text", "required": false, "max_length": 400},
+        {"id": "venue", "label": "Venue", "type": "text", "required": true, "max_length": 200},
+        {"id": "mode", "label": "Mode", "type": "select", "required": true, "options": ["Offline", "Online", "Hybrid"]},
+        {"id": "coordinators", "label": "Convener / coordinator(s)", "type": "text", "required": true, "max_length": 300}
+      ]
+    },
+    {
+      "id": "participation", "title": "2. Participation and papers",
+      "intro": "Workbook target: \"Min 1 Per Department per Year ( 20% papers of accepted and published papers should be from KIET University )\". Enter the counts as determined by the department; the portal does not define affiliation and calculates no percentage.",
+      "fields": [
+        {"id": "delegates", "label": "Number of registered participants/delegates", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "institutions", "label": "Number of participating institutions (if known)", "type": "integer", "required": false, "min": 0, "max": 10000},
+        {"id": "papers_submitted", "label": "Papers submitted (if known)", "type": "integer", "required": false, "min": 0, "max": 100000},
+        {"id": "papers_accepted", "label": "Papers accepted", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "papers_published", "label": "Papers published", "type": "integer", "required": true, "min": 0, "max": 100000,
+         "help": "Enter 0 while the proceedings are not yet published."},
+        {"id": "kiet_accepted", "label": "Of the accepted papers: KIET-affiliated", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "kiet_published", "label": "Of the published papers: KIET-affiliated", "type": "integer", "required": true, "min": 0, "max": 100000}
+      ]
+    },
+    {
+      "id": "proceedings", "title": "3. Proceedings and indexing",
+      "intro": "Record the indexing status as it actually stands. A conference title containing \"Scopus\" is not evidence of indexing.",
+      "fields": [
+        {"id": "publication_status", "label": "Proceedings publication status", "type": "select", "required": true,
+         "options": ["Not yet published", "Published"]},
+        {"id": "publisher", "label": "Publisher / proceedings series", "type": "text", "required": false, "max_length": 250},
+        {"id": "isbn_issn", "label": "ISBN / ISSN (if assigned)", "type": "text", "required": false, "max_length": 80},
+        {"id": "indexing_status", "label": "Scopus indexing status", "type": "select", "required": true,
+         "options": ["Not indexed", "Planned / applied for", "Claimed by publisher/organizer", "Verified in Scopus"]},
+        {"id": "indexing_reference", "label": "Scopus verification reference (link or source ID)", "type": "text", "required": true, "max_length": 300,
+         "when": {"field": "indexing_status", "in": ["Verified in Scopus"]}}
+      ]
+    },
+    {
+      "id": "narrative", "title": "4. Report",
+      "fields": [
+        {"id": "brief_report", "label": "Brief report", "type": "longtext", "required": true, "max_length": 5000},
+        {"id": "outcomes", "label": "Outcomes (one per line)", "type": "longtext", "required": true, "max_length": 3000}
+      ]
+    },
+    {
+      "id": "documents", "title": "5. Documentary evidence", "intro": "Yes/No as maintained; upload files in the Evidence tab (not added to the PDF).",
+      "fields": [
+        {"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": false,
+         "items": ["Approval letter", "Conference brochure/website", "Call for papers", "List of accepted papers", "Proceedings details (publisher, ISBN/ISSN)",
+                   "Scopus indexing evidence", "Registration/attendance list", "Photographs", "Feedback"]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Approval letter", "Conference brochure/website", "Call for papers", "List of accepted papers", "Proceedings details",
+                   "Scopus indexing evidence", "Registration/attendance list", "Photographs", "Feedback", "Other"],
+    "required": [],
+    "note": "No minimum set has been agreed (docs/decisions.md D-053)."
+  }
+}

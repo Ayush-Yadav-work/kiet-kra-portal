@@ -144,3 +144,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 12** — fill C
 ## KRAs 27–30 review (events organized)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean, open each of KRAs 27–30: *+ Add event* for several events; check the KRA-specific fields (27 sport, 28 cultural activity, 29 theme, 30 club/forum + semester) and that narratives start empty. KRA 30 shows its per-club/per-semester target unchanged. These are portal formats, not supplied templates (D-052). Samples: `.work/renders/kra{27,28,29,30}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 27 --kra 28 --kra 29 --kra 30`).
+
+## KRAs 43, 44, 45 review
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 43** — project-created conference format: enter paper counts (try published > accepted, then *Submit*) and set indexing to "Verified in Scopus" to see the reference become required. **KRA 44** — check the six phases start empty (source text under *Template guidance*) and the 14-item Yes/No evidence list. **KRA 45** — tick SDGs, add resource persons, and note "Implementation/follow-up plan" replaces the undefined "MBU"; photographs/brochure/certificates go to the Evidence tab only. Samples: `.work/renders/kra{43,44,45}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 43 --kra 44 --kra 45`). Decisions: D-053 to D-055.
