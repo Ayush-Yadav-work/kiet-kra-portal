@@ -116,3 +116,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean open KRAs 1, 2 and 3 f
 ## KRAs 36–37 review (FDP / STP family)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean open KRA 36 (staff training: STP labels, write your own objectives/outcomes) and KRA 37 (FDP on I&E/IPR: tick focus area, objectives, outcomes). In KRA 37 enter 12 hours — the draft saves, *Submit* refuses below 30 hours; Nil still submits. Add participants and modules, then *Final PDF preview*; submit and approve as the VC to see "Verified by VC". Samples: `.work/renders/kra36/normal.pdf`, `kra37/normal.pdf`, `kra37/long.pdf`, `*/nil.pdf` (regenerate with `manage.py render_sample --kra 36 --kra 37`). Decisions: D-037.
+
+## KRAs 8–10 review (consolidated surveys)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: KRA 8 / KRA 10 — enter counts, organisations, tick relationships, enter averages (try `4.255` or `5.01`: the draft keeps it, *Submit* explains the error). KRA 9 — tick 9a, 9b or both; untick one to see its data kept but left out of the preview/PDF. Samples: `.work/renders/kra8/normal.pdf`, `kra8/long.pdf`, `kra10/normal.pdf`, `kra9/only9a.pdf`, `kra9/only9b.pdf`, `kra9/normal.pdf` (both), `kra9/long.pdf`, `*/nil.pdf` (regenerate with `manage.py render_sample --kra 8 --kra 9 --kra 10`). Decisions: D-038.
