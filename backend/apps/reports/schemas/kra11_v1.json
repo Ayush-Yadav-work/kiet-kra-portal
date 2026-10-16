@@ -1,0 +1,108 @@
+{
+  "key": "kra11",
+  "version": 1,
+  "title": "Report on Bridge Courses Conducted",
+  "source": "reference/templates/KRA 11 Report on Bridge Courses .docx.pdf",
+  "source_checksum": "71d61a9606e9e31cf666e1bbaa1eed5c36f80fed5eb52e3c31f979597632ed48",
+  "page": {"format": "Letter", "landscape": false, "style": "report"},
+  "activity": {"label": "Course", "min": 1, "max": 20},
+  "rules": [{"type": "lte", "a": "students_completed", "b": "students_enrolled", "message": "Students completed cannot exceed students enrolled."}],
+  "sections": [
+    {
+      "id": "header", "title": "Course header",
+      "intro": "Department and academic year are filled from this report. The Introduction and Objectives paragraphs are printed exactly as in the source template.",
+      "fields": [
+        {"id": "year_semester", "label": "Academic Session / Year/ Semester (year of study and semester)", "type": "text", "required": true, "max_length": 80,
+         "placeholder": "e.g. 1st Year / Odd Semester", "help": "Printed after the academic session, e.g. \"2026-27 / 1st Year / Odd Semester\"."},
+        {"id": "faculty_coordinators", "label": "Faculty Coordinator(s)", "type": "text", "required": true, "max_length": 300},
+        {"id": "hod", "label": "Head of the Department", "type": "text", "required": true, "max_length": 150},
+        {"id": "additional_objectives", "label": "Additional course-specific objectives (optional, one per line)", "type": "longtext", "required": false, "max_length": 2000,
+         "help": "Appended after the four source objectives."}
+      ]
+    },
+    {
+      "id": "course", "title": "Detail of Bridge Courses",
+      "fields": [
+        {"id": "course_name", "label": "Course Name", "type": "text", "required": true, "max_length": 200},
+        {"id": "duration_hours", "label": "Duration (Hours)", "type": "decimal", "required": true, "min": 0.5, "max": 1000, "decimal_places": 1},
+        {"id": "mode", "label": "Mode", "type": "select", "required": true, "options": ["Offline", "Online", "Hybrid"]},
+        {"id": "resource_person", "label": "Resource Person", "type": "text", "required": true, "max_length": 200},
+        {"id": "students_enrolled", "label": "No. of Students Enrolled", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "students_completed", "label": "No. of Students Completed", "type": "integer", "required": true, "min": 0, "max": 100000}
+      ]
+    },
+    {
+      "id": "syllabus", "title": "Course Content/Syllabus",
+      "fields": [
+        {"id": "modules", "label": "Modules", "type": "table", "required": true, "min_rows": 1, "max_rows": 100,
+         "columns": [
+           {"id": "topic", "label": "Topic", "type": "text", "required": true, "max_length": 300, "width": "62%"},
+           {"id": "hours", "label": "No. of Hours", "type": "decimal", "required": true, "min": 0.5, "max": 500, "decimal_places": 1, "width": "26%"}
+         ]}
+      ]
+    },
+    {
+      "id": "outcomes", "title": "Learning Outcomes",
+      "fields": [
+        {"id": "learning_outcomes", "label": "After successful completion of the course, students will be able to: (one per line)", "type": "longtext", "required": true, "max_length": 4000}
+      ]
+    },
+    {
+      "id": "assessment", "title": "Assessment and Certification",
+      "fields": [
+        {"id": "assessment_method", "label": "Assessment Method", "type": "text", "required": true, "max_length": 300},
+        {"id": "min_attendance", "label": "Minimum Attendance Requirement", "type": "text", "required": true, "max_length": 120},
+        {"id": "passing_criteria", "label": "Passing/Completion Criteria", "type": "text", "required": true, "max_length": 300},
+        {"id": "certificate_authority", "label": "Certificate Issuing Authority", "type": "text", "required": true, "max_length": 200},
+        {"id": "certificates_issued", "label": "Number of Certificates Issued", "type": "integer", "required": true, "min": 0, "max": 100000}
+      ]
+    },
+    {
+      "id": "impact", "title": "OUTCOME AND IMPACT",
+      "fields": [
+        {"id": "impact_indicators", "label": "Suggested Impact Indicators — tick those actually observed for this course", "type": "multiselect", "required": false,
+         "options": ["Improvement in technical/professional skills", "Improvement in employability skills", "Industry certification obtained",
+                     "Successful completion/certification rate", "Internship opportunities", "Placement support/outcomes",
+                     "Student projects developed", "Participation in competitions/hackathons"]},
+        {"id": "impact_details", "label": "Impact details (optional)", "type": "longtext", "required": false, "max_length": 3000},
+        {"id": "feedback_score", "label": "Student Feedback Summary: Overall Feedback Score (out of 5)", "type": "decimal", "required": false, "min": 0, "max": 5, "decimal_places": 2,
+         "help": "Leave blank if no feedback score was collected; the report then shows the blank line from the source."},
+        {"id": "suggestions", "label": "Major Suggestions Received (one per line)", "type": "longtext", "required": false, "max_length": 3000}
+      ]
+    },
+    {
+      "id": "signoff", "title": "Prepared By / Approved By",
+      "intro": "Signature lines stay blank for wet signatures; the portal adds only the textual VC verification.",
+      "fields": [
+        {"id": "prepared_name", "label": "Prepared By — Name", "type": "text", "required": false, "max_length": 150},
+        {"id": "prepared_designation", "label": "Prepared By — Designation", "type": "text", "required": false, "max_length": 150},
+        {"id": "prepared_date", "label": "Prepared By — Date", "type": "date", "required": false},
+        {"id": "approved_name", "label": "Approved By — Name", "type": "text", "required": false, "max_length": 150},
+        {"id": "approved_designation", "label": "Approved By — Designation", "type": "text", "required": false, "max_length": 150},
+        {"id": "approved_date", "label": "Approved By — Date", "type": "date", "required": false}
+      ]
+    },
+    {
+      "id": "documents", "title": "List of Supporting Documents",
+      "intro": "The following documents shall be maintained for each Bridge Course. Mark whether each is maintained; upload files in the Evidence tab.",
+      "fields": [
+        {"id": "supporting_documents", "label": "Supporting documents maintained", "type": "checklist", "required": false,
+         "items": ["Approval/permission for conducting the course", "Course proposal/concept note", "Course syllabus/content",
+                   "Academic calendar/activity schedule", "Course timetable", "Resource person/faculty details",
+                   "Expert profile/CV, wherever applicable", "Attendance records", "Registration/enrolment records",
+                   "Assessment records", "Result/score sheet", "Student feedback", "Sample certificates",
+                   "Photographs with date and caption", "Geo-tagged photographs, wherever applicable", "Course completion report",
+                   "List of students who completed the course", "Any other relevant supporting document"]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Approval/permission for conducting the course", "Course proposal/concept note", "Course syllabus/content",
+                   "Academic calendar/activity schedule", "Course timetable", "Resource person/faculty details",
+                   "Expert profile/CV", "Attendance records", "Registration/enrolment records", "Assessment records",
+                   "Result/score sheet", "Student feedback", "Sample certificates", "Photographs with date and caption",
+                   "Geo-tagged photographs", "Course completion report", "List of students who completed the course", "Other"],
+    "required": [],
+    "note": "No minimum evidence set has been agreed for KRA 11 (docs/decisions.md D-034); categories follow the source's supporting-document list."
+  }
+}

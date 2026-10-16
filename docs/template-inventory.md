@@ -66,7 +66,7 @@ All files opened and rendered successfully; none were unreadable. No duplicate s
 | 8 | #4 | S (survey) | Organisation, respondent, designation, contact, relationship options; 12 rating rows; suggestions | as KRA 7 | as KRA 7 |
 | 9 | #5 (9a), #6 (9b) | S (survey, 2 variants) | Alumni profile, experience table, industry expectations; 10 rating rows each (different questions per variant); suggestions | as KRA 7 | Page 3 of both is signature-only; merge. Variant choice left to college |
 | 10 | #7 | S (survey) | Same structure as KRA 8, 12 rows | as KRA 7 | Page 3 is header-only blank page; remove |
-| 11 | #8 | S | Same structure as 1-3 with "Bridge Courses" wording | 17 items | Supporting-docs list says "VAC/Add-on Course" (copied wording) — correct to bridge course, documented |
+| 11 | #8 | S — **implemented** (`kra11_v1`) | Dept, session/year/semester, coordinators, HoD; fixed intro + 4 objectives; per course: details row (name, hours, mode, resource person, enrolled, completed), syllabus modules, learning outcomes, assessment/certification, impact indicators, feedback score /5, suggestions, Prepared/Approved by | 18-item supporting-documents list | Supporting-docs list said "VAC/Add-on Course" (copied wording) — corrected to "Bridge Course" (D-034); each course repeats the 3-page source structure |
 | 12 | #9 | S | School/dept, session, period, coordinator, date; open "Complete detail of award" area; Prepared/Verified/Dean/Approved | none listed | Open area → structured award entries (plan 5.2) |
 | 13 | #10 | S | Faculty/committee particulars, committee details, objectives, contribution table (8 rows), meetings table, outcomes/impact, evidence list, summary, signatures | 10 items | — |
 | 14 | — | P | Plan 5.3 | — | Wholly missing |
@@ -96,3 +96,14 @@ All files opened and rendered successfully; none were unreadable. No duplicate s
 
 Supplied summary templates referenced by the workbook Instructions sheet but **not** supplied: `KRA 1-3 Template.xlsx`,
 `KRA 12 Data Template … .xlsx`, `KRA 19 Summary of Industrial Visits Conducted 2026-27.xlsx`. Not needed for the pilot.
+
+## Implementation coverage (portal templates)
+
+| KRA | Template | Status | Phase |
+|---|---|---|---|
+| 33 | `kra33_v1` (report style) | Implemented, accepted | 2 |
+| 20 | `kra20_v1` (sheet, A4 landscape) | Implemented, pending review | 3 |
+| 7 | `kra7_v1` (survey style) | Implemented, pending review | 3 |
+| 32 | `kra32_v1` (sheet, A4 landscape) | Implemented, pending review | 3 |
+| 11 | `kra11_v1` (report style, repeatable courses) | Implemented, pending review | 4 (bounded) |
+| All other 40 | — | Template pending | 4 |

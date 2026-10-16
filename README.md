@@ -100,3 +100,7 @@ After `git pull`/checkout, re-run `manage.py migrate` (no new migrations in Phas
 3. **KRA 32 (Dean):** switch a record between *Financial Contribution* and *Equipment/Asset* — payment fields become NA and clear; item details are required for non-financial records; no totals anywhere.
 4. For each: Evidence tab minimum (D-029–D-031), Achievement tab, Nil, then as VC reject after the period closes with "Grant 72 hours", Dean resubmits, VC approves and the PDF reads "Verified by VC - …".
 5. Compare `.work/renders/kra20|kra7|kra32/*.pdf` with the source PDFs and record decisions on D-029–D-031 in `docs/decisions.md`.
+
+## KRA 11 review (Bridge Courses)
+
+Run `manage.py seed_catalogue` (maps KRA 11 idempotently) and restart Django. As a Dean open KRA 11: add two courses (*+ Add course*), syllabus modules, outcomes and assessment; leave the feedback score blank once to see the source's blank line; check *Final PDF preview*. Samples: `.work/renders/kra11/normal.pdf`, `long.pdf`, `empty.pdf`, `nil.pdf` (regenerate with `manage.py render_sample --kra 11`). Record decisions on D-034.
