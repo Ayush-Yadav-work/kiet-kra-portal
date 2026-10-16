@@ -148,4 +148,152 @@ def course_family_schema(kra):
     return copy.deepcopy(schema)
 
 
+# ---------------------------------------------------------------------------------------------------------------
+# FDP/STP family: KRAs 36 and 37 share "KRA 36-37 Report on FDP and STP" (D-037). Workbook definitions win over the
+# template's faculty wording: KRA 36 (staff/non-teaching administrative training) uses STP/staff labels and gets no
+# faculty-specific objective/outcome claims; KRA 37 (FDP on I&E, IPR etc.) keeps the source FDP wording and the
+# workbook's minimum 30 hours, enforced at submission only (drafts and Nil are unaffected).
+SOURCE_36_37 = "reference/templates/KRA 36-37 Report on FDP and STP.docx.pdf"
+CHECKSUM_36_37 = "1949715561474523500cc2697fd1ee66f00793f3a87eafe7496b0496db7597a2"
+FDP_OBJECTIVES = ["To enhance teaching, learning and assessment competencies.",
+                  "To familiarize faculty members with emerging technologies and current developments in their respective domains.",
+                  "To promote innovative and learner-centric teaching methodologies.",
+                  "To strengthen research, innovation and consultancy capabilities.",
+                  "To enhance digital and technology-enabled teaching skills.",
+                  "To promote Outcome Based Education (OBE) and effective assessment practices.",
+                  "To encourage interdisciplinary learning and professional development.",
+                  "To facilitate knowledge sharing and interaction with academic and industry experts."]
+FDP_OUTCOMES = ["Apply innovative and effective teaching-learning methodologies.", "Enhance their subject/domain knowledge.",
+                "Use relevant digital tools and technologies in teaching and learning.", "Improve assessment and evaluation practices.",
+                "Integrate practical and experiential learning approaches.", "Develop research and innovation capabilities.",
+                "Apply the knowledge gained in academic and institutional activities."]
+FORMATS = ["Expert lectures", "Interactive technical sessions", "Demonstrations and hands-on activities", "Case studies",
+           "Group discussions", "Practical exercises", "Experience sharing", "Question-and-answer sessions"]
+FDP_DOCS = ["FDP brochure/notice", "Programme schedule", "Resource person profile", "Attendance sheet", "Photographs/screenshots",
+            "Participant feedback", "Assessment/quiz records", "Certificates", "Presentation/training material",
+            "Programme completion report"]
+
+FDP_VARIANTS = {
+    36: {"key": "kra36", "abbr": "STP", "people": "Staff", "person": "Staff Member",
+         "meaning": "KRA 36 — administrative training programmes organized for staff and non-teaching staff.",
+         "objectives": [], "outcomes": [], "min_hours": None, "focus": False,
+         "target_placeholder": "e.g. Administrative and non-teaching staff",
+         "docs": ["STP brochure/notice"] + FDP_DOCS[1:]},
+    37: {"key": "kra37", "abbr": "FDP", "people": "Faculty", "person": "Faculty",
+         "meaning": "KRA 37 — faculty development programmes organized on I&E, IPR etc. (minimum 30 hours).",
+         "objectives": FDP_OBJECTIVES, "outcomes": FDP_OUTCOMES, "min_hours": 30, "focus": True,
+         "target_placeholder": "e.g. Faculty members of engineering departments", "docs": FDP_DOCS},
+}
+
+
+def _ticks(fid, label, options):
+    """Source statements become tick boxes, never pre-asserted claims; absent when the KRA has no source list."""
+    return [{"id": fid, "label": label, "type": "multiselect", "required": True, "options": options}] if options else []
+
+
+def fdp_stp_schema(kra):
+    v = FDP_VARIANTS[kra]
+    abbr, has_lists = v["abbr"], bool(v["objectives"])
+    hours = {"id": "duration_hours", "label": "Duration (hours)", "type": "decimal", "required": True, "decimal_places": 1,
+             "min": v["min_hours"] or 0.5, "max": 1000,
+             "help": "Total contact hours." + (" KRA 37 counts programmes of at least 30 hours; checked when you submit."
+                                               if v["min_hours"] else "")}
+    if v["min_hours"]:
+        hours["range_message"] = f"KRA 37 requires a programme of at least {v['min_hours']} hours (workbook: min 30 hours)."
+    particulars = [
+        {"id": "programme_title", "label": f"Title of the {abbr}", "type": "text", "required": True, "max_length": 250},
+        hours,
+        {"id": "dates", "label": "Dates / schedule (optional)", "type": "text", "required": False, "max_length": 120,
+         "placeholder": "e.g. 12–16 October 2026"},
+        {"id": "organized_by", "label": "Organized by", "type": "text", "required": True, "max_length": 200},
+        {"id": "mode", "label": "Mode", "type": "select", "required": True, "options": ["Offline", "Online", "Hybrid"]},
+        {"id": "target_group", "label": "Target Group", "type": "text", "required": True, "max_length": 200,
+         "placeholder": v["target_placeholder"]},
+        {"id": "participants_count", "label": "No. of Participants", "type": "integer", "required": True, "min": 0, "max": 100000},
+        {"id": "coordinator", "label": "Programme Coordinator", "type": "text", "required": True, "max_length": 200},
+        {"id": "resource_persons", "label": "Resource Person(s)", "type": "longtext", "required": True, "max_length": 1500},
+    ]
+    if v["focus"]:
+        particulars.insert(1, {"id": "focus_areas", "label": "Focus area (workbook: I&E, IPR etc.)", "type": "multiselect",
+                               "required": True, "help": "Tick all that apply; describe any other area in the title or introduction.",
+                               "options": ["Innovation & Entrepreneurship (I&E)", "Intellectual Property Rights (IPR)",
+                                           "Other related area"]})
+    other = lambda fid, noun, max_length: {
+        "id": fid, "label": f"Other {noun} (optional, one per line)" if has_lists else f"{noun.capitalize()} (one per line)",
+        "type": "longtext", "required": not has_lists, "max_length": max_length}
+    schema = {
+        "key": v["key"], "version": 1,
+        "title": f"REPORT ON FACULTY DEVELOPMENT PROGRAMME (FDP)/ REPORT ON STAFF TRAINING PROGRAMME (STP) — {abbr}",
+        "family": {"name": "fdp_stp", "kra": kra, "abbr": abbr, "people": v["people"], "person": v["person"],
+                   "meaning": v["meaning"], "focus": v["focus"]},
+        "renderer": "reports/fdp_stp_v1.html",
+        "source": SOURCE_36_37, "source_checksum": CHECKSUM_36_37,
+        "page": {"format": "Letter", "landscape": False, "style": "report"},
+        "activity": {"label": "Programme", "min": 1, "max": 20},
+        "sections": [
+            {"id": "particulars", "title": f"{abbr} particulars", "intro": v["meaning"], "fields": particulars},
+            {"id": "introduction", "title": "Introduction",
+             "fields": [{"id": "introduction", "label": "Introduction", "type": "longtext", "required": True, "max_length": 4000}]},
+            {"id": "objectives", "title": "Objectives",
+             "intro": f'Printed as "The {abbr} was organized with the following objectives:".'
+                      + (" Tick the source objectives that applied and add any others." if has_lists else ""),
+             "fields": _ticks("objectives", "Objectives (from the source template)", v["objectives"])
+                       + [other("other_objectives", "objectives", 2000)]},
+            {"id": "participation", "title": f"{v['people']} Participation",
+             "fields": [{"id": "participants", "label": f"{v['people']} participants", "type": "table", "required": True,
+                         "min_rows": 1, "max_rows": 100, "editor": "cards",
+                         "columns": [
+                             {"id": "name", "label": f"Name of {v['person']}", "type": "text", "required": True, "max_length": 150, "width": "24%"},
+                             {"id": "department", "label": "Department", "type": "text", "required": True, "max_length": 150, "width": "17%"},
+                             {"id": "designation", "label": "Designation", "type": "text", "required": True, "max_length": 120, "width": "16%"},
+                             {"id": "attendance", "label": "Attendance/Participation", "type": "text", "required": True,
+                              "max_length": 120, "width": "19%", "placeholder": "e.g. Full (5/5 days)"},
+                             {"id": "certificate", "label": "Certificate", "type": "text", "required": False, "max_length": 120,
+                              "width": "16%", "placeholder": "e.g. Issued, No. TST-01",
+                              "help": "Leave blank if no certificate was issued."}]}]},
+            {"id": "syllabus", "title": f"{abbr} Content/Syllabus",
+             "fields": [{"id": "modules", "label": "Modules", "type": "table", "required": True, "min_rows": 1, "max_rows": 100,
+                         "columns": [
+                             {"id": "topic", "label": "Topic", "type": "text", "required": True, "max_length": 300, "width": "62%"},
+                             {"id": "hours", "label": "No. of Hours", "type": "decimal", "required": True, "min": 0.5, "max": 500,
+                              "decimal_places": 1, "width": "26%"}]}]},
+            {"id": "outcomes", "title": "Learning Outcomes",
+             "intro": f'Printed as "After completion of the {abbr}, participants were able to:". Record only what participants achieved.',
+             "fields": _ticks("outcomes", "Outcomes (from the source template)", v["outcomes"])
+                       + [other("other_outcomes", "learning outcomes", 3000)]},
+            {"id": "assessment", "title": "Assessment and Certification",
+             "fields": [
+                 {"id": "assessment_method", "label": "Assessment Method", "type": "text", "required": True, "max_length": 300},
+                 {"id": "min_attendance", "label": "Minimum Attendance Requirement", "type": "text", "required": True, "max_length": 120},
+                 {"id": "passing_criteria", "label": "Passing/Completion Criteria", "type": "text", "required": True, "max_length": 300},
+                 {"id": "certificate_authority", "label": "Certificate Issuing Authority", "type": "text", "required": True, "max_length": 200},
+                 {"id": "certificates_issued", "label": "Number of Certificates Issued", "type": "integer", "required": True,
+                  "min": 0, "max": 100000}]},
+            {"id": "impact", "title": "OUTCOME AND IMPACT",
+             "intro": 'Printed as "The programme included:" — tick only the session formats that actually took place.',
+             "fields": [
+                 {"id": "formats", "label": "The programme included", "type": "multiselect", "required": True, "options": FORMATS},
+                 {"id": "impact_details", "label": "Outcome and impact details (optional)", "type": "longtext", "required": False,
+                  "max_length": 3000}]},
+            {"id": "signoff", "title": "Prepared By / Approved By",
+             "intro": "Signature lines stay blank for wet signatures; the portal adds only the textual VC verification.",
+             "fields": [
+                 {"id": "prepared_name", "label": "Prepared By — Name", "type": "text", "required": False, "max_length": 150},
+                 {"id": "prepared_designation", "label": "Prepared By — Designation", "type": "text", "required": False, "max_length": 150},
+                 {"id": "prepared_date", "label": "Prepared By — Date", "type": "date", "required": False},
+                 {"id": "approved_name", "label": "Approved By — Name", "type": "text", "required": False, "max_length": 150},
+                 {"id": "approved_designation", "label": "Approved By — Designation", "type": "text", "required": False, "max_length": 150},
+                 {"id": "approved_date", "label": "Approved By — Date", "type": "date", "required": False}]},
+            {"id": "documents", "title": "Documentary Evidence",
+             "intro": "The following documents may be maintained as evidence. Mark whether each is maintained; upload files in the Evidence tab.",
+             "fields": [{"id": "supporting_documents", "label": "Documents maintained", "type": "checklist", "required": False,
+                         "items": v["docs"]}]},
+        ],
+        "evidence": {"categories": v["docs"] + ["Other"], "required": [],
+                     "note": "No minimum evidence set has been agreed for KRAs 36–37 (docs/decisions.md D-037); categories follow the source list."},
+    }
+    return copy.deepcopy(schema)
+
+
 BUILDERS = {VARIANTS[k]["key"]: (lambda k=k: course_family_schema(k)) for k in VARIANTS}
+BUILDERS.update({FDP_VARIANTS[k]["key"]: (lambda k=k: fdp_stp_schema(k)) for k in FDP_VARIANTS})

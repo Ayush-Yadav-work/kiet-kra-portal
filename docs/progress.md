@@ -62,12 +62,19 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 ## Phase 4 (bounded) — KRAs 1–3 course family ✅ (pending review)
 - [x] One family definition + template, three KRA configurations (D-036); mappings idempotent (39 assignments, targets unchanged)
 - [x] Separate drafts, evidence, achievements and submissions per KRA (tested); full workflow via shared mixin; browser smoke for all three
-- Open: D-036 assumptions for college review. Uncommitted.
+- Open: D-036 assumptions for college review. Committed by the project owner (73765ac); README review section added with KRAs 36–37.
+
+## Phase 4 (bounded) — KRAs 36–37 FDP/STP family ✅ (pending review)
+- [x] One family definition + template, two configurations (D-037); mappings idempotent (26 assignments, targets unchanged)
+- [x] KRA 36 staff labels without faculty claims; KRA 37 FDP wording, I&E/IPR focus area, ≥ 30 hours enforced at submission only
+- [x] Repeatable programmes (≤20) with participant (≤100) and module tables; separate drafts/evidence/achievements per KRA
+- [x] Shared change: Prepared/Approved box moved to `_signoff_box.html` (KRA 11/23/1–3 output identical); optional `range_message` on numeric fields
+- Open: D-037 assumptions for college review. Uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 36 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
-- OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 6 critical flows, not the full workflow.
+- Templates for the other 34 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 8 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.

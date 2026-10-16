@@ -108,3 +108,11 @@ Run `manage.py seed_catalogue` (maps KRA 11 idempotently) and restart Django. As
 ## KRA 23 review (Skill Development & Employability Training)
 
 Run `manage.py seed_catalogue`, restart Django, open KRA 23 as a Dean: enter the programme title, tick only the objectives that applied, add several *Detail of Program* records (try completed > enrolled — the draft saves, *Submit* reports it), add a second programme with *+ Add programme*, then *Final PDF preview*. Samples: `.work/renders/kra23/normal.pdf`, `long.pdf`, `empty.pdf`, `nil.pdf` (regenerate with `manage.py render_sample --kra 23`). Record decisions on D-035.
+
+## KRAs 1–3 review (course-report family)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean open KRAs 1, 2 and 3 for the same period: each is a separate report. KRA 1 asks for a Course Code (enrolment optional), KRA 2 follows the source wording, KRA 3 asks for the Platform / Certifying Body. Samples: `.work/renders/kra1|kra2|kra3/normal.pdf`, `kra2/long.pdf`, `*/nil.pdf`. Decisions: D-036.
+
+## KRAs 36–37 review (FDP / STP family)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean open KRA 36 (staff training: STP labels, write your own objectives/outcomes) and KRA 37 (FDP on I&E/IPR: tick focus area, objectives, outcomes). In KRA 37 enter 12 hours — the draft saves, *Submit* refuses below 30 hours; Nil still submits. Add participants and modules, then *Final PDF preview*; submit and approve as the VC to see "Verified by VC". Samples: `.work/renders/kra36/normal.pdf`, `kra37/normal.pdf`, `kra37/long.pdf`, `*/nil.pdf` (regenerate with `manage.py render_sample --kra 36 --kra 37`). Decisions: D-037.

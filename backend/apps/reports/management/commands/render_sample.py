@@ -29,6 +29,9 @@ CASES = {
     2: {"normal": lambda: fx.kra13_payload(2, courses=2),
         "long": lambda: fx.kra13_payload(2, courses=6, modules=40, long_text=True)},
     3: {"normal": lambda: fx.kra13_payload(3, courses=2)},
+    36: {"normal": lambda: fx.kra3637_payload(36, programmes=2, participants=4)},
+    37: {"normal": lambda: fx.kra3637_payload(37, programmes=2, participants=4),
+         "long": lambda: fx.kra3637_payload(37, programmes=3, participants=60, modules=30, long_text=True)},
     23: {"normal": lambda: fx.kra23_payload(programmes=1, programs=2, modules=4),
          "long": lambda: fx.kra23_payload(programmes=3, programs=30, modules=30, long_text=True)},
 }

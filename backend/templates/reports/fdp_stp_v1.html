@@ -1,0 +1,92 @@
+{% extends "reports/base.html" %}
+{% comment %}FDP/STP family for KRAs 36 and 37 ("KRA 36-37 Report on FDP and STP", D-037). Labels that name the
+programme type come from schema.family (FDP for KRA 37, STP/staff for KRA 36).{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% with fam=schema.family %}
+{% for a in activities %}
+<section class="k11 fdp {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Programme {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">REPORT ON FACULTY DEVELOPMENT PROGRAMME (FDP)/<br>REPORT ON STAFF TRAINING PROGRAMME (STP)</h1>
+<p class="center bold fdp-sub">KIET Deemed to be University, Ghaziabad</p>
+
+<table class="k11-head">
+  <tr><th>Title of the {{ fam.abbr }}</th><td>{{ a.programme_title }}</td></tr>
+  {% if fam.focus %}<tr><th>Focus Area</th><td>{{ a.focus_areas_list|join:", " }}</td></tr>{% endif %}
+  <tr><th>Duration</th><td>{% if a.duration_hours != "" %}{{ a.duration_hours }} hours{% endif %}{% if a.dates %} ({{ a.dates }}){% endif %}</td></tr>
+  <tr><th>Organized by</th><td>{{ a.organized_by }}</td></tr>
+  <tr><th>Mode</th><td>{{ a.mode }}</td></tr>
+  <tr><th>Target Group</th><td>{{ a.target_group }}</td></tr>
+  <tr><th>No. of Participants</th><td>{{ a.participants_count }}</td></tr>
+  <tr><th>Programme Coordinator</th><td>{{ a.coordinator }}</td></tr>
+  <tr><th>Resource Person(s)</th><td>{{ a.resource_persons|linebreaksbr }}</td></tr>
+  <tr><td colspan="2" class="prose fdp-intro"><b>Introduction –</b>
+    {% if a.introduction %}<p>{{ a.introduction|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td colspan="2" class="prose"><b>Objectives</b>
+    <p>The {{ fam.abbr }} was organized with the following objectives:</p>
+    {% if a.objectives_list or a.other_objectives_list %}
+    <ol>{% for o in a.objectives_list %}<li>{{ o }}</li>{% endfor %}{% for o in a.other_objectives_list %}<li>{{ o }}</li>{% endfor %}</ol>
+    {% else %}<p class="empty">Not entered</p>{% endif %}
+  </td></tr>
+</table>
+
+<p class="bold lead k11-label">{{ fam.people }} Participation</p>
+<table class="k11-grid fdp-people">
+  <thead><tr><th style="width:8%">S. No.</th>{% for c in fields.participants.columns %}<th style="width:{{ c.width }}">{{ c.label_html }}</th>{% endfor %}</tr></thead>
+  {% for row in a.participants_rows %}
+  <tr><td class="center">{{ forloop.counter }}</td>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+  {% empty %}
+  {% for n in "123"|make_list %}<tr><td class="center">{{ n }}</td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+  {% endfor %}
+</table>
+
+<p class="bold lead k11-label">{{ fam.abbr }} Content/Syllabus</p>
+<table class="k11-grid">
+  <thead><tr><th style="width:12%">Module</th><th style="width:58%">Topic</th><th>No. of Hours</th></tr></thead>
+  {% for row in a.modules_rows %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ row.0 }}</td><td class="center">{{ row.1 }}</td></tr>
+  {% empty %}
+  {% for n in "1234"|make_list %}<tr><td class="center">{{ n }}</td><td></td><td></td></tr>{% endfor %}
+  {% endfor %}
+</table>
+
+<div class="keep">
+<p class="bold lead fdp-label">Learning Outcomes:</p>
+<p>After completion of the {{ fam.abbr }}, participants were able to:</p>
+{% if a.outcomes_list or a.other_outcomes_list %}
+<ul>{% for o in a.outcomes_list %}<li>{{ o }}</li>{% endfor %}{% for o in a.other_outcomes_list %}<li>{{ o }}</li>{% endfor %}</ul>
+{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+
+<p class="bold lead fdp-label">Assessment and Certification</p>
+<table class="k11-grid k11-small">
+  <thead><tr><th style="width:50%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Assessment Method</td><td>{{ a.assessment_method }}</td></tr>
+  <tr><td>Minimum Attendance Requirement</td><td>{{ a.min_attendance }}</td></tr>
+  <tr><td>Passing/Completion Criteria</td><td>{{ a.passing_criteria }}</td></tr>
+  <tr><td>Certificate Issuing Authority</td><td>{{ a.certificate_authority }}</td></tr>
+  <tr><td>Number of Certificates Issued</td><td>{{ a.certificates_issued }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold lead fdp-label">OUTCOME AND IMPACT</p>
+<p>The programme included:</p>
+{% if a.formats_list %}<ul>{% for o in a.formats_list %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+{% if a.impact_details %}<p>{{ a.impact_details|linebreaksbr }}</p>{% endif %}
+
+{% include "reports/_signoff_box.html" %}
+
+<div class="k11-docs">
+<p class="bold lead k11-label">Documentary Evidence</p>
+<p class="lead">The following documents may be maintained as evidence:</p>
+<ul>{% for item, val in a.supporting_documents_items %}<li>{{ item }}{% if val %} — <b>Maintained: {{ val }}</b>{% endif %}</li>{% endfor %}</ul>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">REPORT ON FACULTY DEVELOPMENT PROGRAMME (FDP)/<br>REPORT ON STAFF TRAINING PROGRAMME (STP)</h1>
+<p class="empty">No programmes have been added to this report yet.</p>
+{% endfor %}
+{% endwith %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

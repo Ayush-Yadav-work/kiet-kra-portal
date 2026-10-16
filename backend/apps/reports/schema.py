@@ -56,7 +56,7 @@ def check_decimal(f, v, strict=True):
     d = Decimal(s)
     lo, hi = Decimal(str(f.get("min", -10**12))), Decimal(str(f.get("max", 10**12)))
     if not lo <= d <= hi:
-        return f"Must be between {f.get('min')} and {f.get('max')}."
+        return f.get("range_message") or f"Must be between {f.get('min')} and {f.get('max')}."
     return None
 
 

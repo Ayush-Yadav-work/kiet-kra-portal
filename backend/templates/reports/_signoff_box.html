@@ -1,0 +1,13 @@
+{# Source Prepared By / Approved By box: blank signature lines, optional names/dates. Input: a. #}
+<table class="k11-sign">
+  <tr>
+    <td><b>Prepared By:</b><br>Name: {% if a.prepared_name %}{{ a.prepared_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.prepared_designation %}{{ a.prepared_designation }}{% else %}________________________{% endif %}<br>
+      Signature: ___________________________<br>
+      Date: {% if a.prepared_date_display %}{{ a.prepared_date_display }}{% else %}_______________________________{% endif %}</td>
+    <td><b>Approved By:</b><br>Name: {% if a.approved_name %}{{ a.approved_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.approved_designation %}{{ a.approved_designation }}{% else %}________________________{% endif %}<br>
+      Signature: ___________________________<br>
+      Date: {% if a.approved_date_display %}{{ a.approved_date_display }}{% else %}_______________________________{% endif %}</td>
+  </tr>
+</table>

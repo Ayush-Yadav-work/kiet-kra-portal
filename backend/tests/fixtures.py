@@ -187,3 +187,38 @@ def kra13_course(kra, i=1, modules=4, long_text=False):
 
 def kra13_payload(kra, courses=1, modules=4, long_text=False):
     return {"activities": [kra13_course(kra, i + 1, modules, long_text) for i in range(courses)]}
+
+
+def kra3637_programme(kra, i=1, participants=3, modules=4, hours="32", long_text=False):
+    extra = " covering synthetic patent filing and prior-art search practice" * (4 if long_text else 0)
+    p = {
+        "programme_title": f"Synthetic {'FDP on IPR and Innovation' if kra == 37 else 'Office Procedures Training'} {i}",
+        "duration_hours": hours, "dates": "12–16 October 2026", "organized_by": "Test Department",
+        "mode": ["Offline", "Online", "Hybrid"][i % 3],
+        "target_group": "Faculty members" if kra == 37 else "Administrative and non-teaching staff",
+        "participants_count": participants, "coordinator": f"Test Coordinator {i}, Zoë Łukasz",
+        "resource_persons": "Test Resource Person A\nTest Resource Person B",
+        "introduction": "Synthetic introduction for layout testing." * (20 if long_text else 2),
+        "other_objectives": "Synthetic objective written by the Dean" + ("\nAnother synthetic objective" if kra == 36 else ""),
+        "participants": [{"name": f"Test Participant {n + 1} Śarmā", "department": "Test Department",
+                          "designation": "Assistant Professor" if kra == 37 else "Office Assistant",
+                          "attendance": "Full (5/5 days)", "certificate": f"Issued, No. TST-{n:03d}" if n % 4 else ""}
+                         for n in range(participants)],
+        "modules": [{"topic": f"Synthetic module {m + 1}{extra}", "hours": "8"} for m in range(modules)],
+        "other_outcomes": "Synthetic outcome recorded by the Dean",
+        "assessment_method": "Synthetic quiz", "min_attendance": "80%", "passing_criteria": "Attendance and quiz",
+        "certificate_authority": "Test Department", "certificates_issued": participants,
+        "formats": ["Expert lectures", "Case studies"], "impact_details": "Synthetic impact note." * (25 if long_text else 1),
+        "prepared_name": "Test Coordinator", "prepared_designation": "Associate Professor", "prepared_date": "2026-10-17",
+        "approved_name": "", "approved_designation": "", "approved_date": "",
+        "supporting_documents": {},
+    }
+    if kra == 37:
+        p.update(focus_areas=["Intellectual Property Rights (IPR)"],
+                 objectives=["To strengthen research, innovation and consultancy capabilities."],
+                 outcomes=["Develop research and innovation capabilities."])
+    return p
+
+
+def kra3637_payload(kra, programmes=1, participants=3, modules=4, hours="32", long_text=False):
+    return {"activities": [kra3637_programme(kra, i + 1, participants, modules, hours, long_text) for i in range(programmes)]}
