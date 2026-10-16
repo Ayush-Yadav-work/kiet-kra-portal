@@ -1,0 +1,9 @@
+<table class="summary">
+  <tr><th>KRA</th><td>{{ snap.kra.activity_text }}</td></tr>
+  <tr><th>Department/School</th><td>{{ snap.department.name }} ({{ snap.department.code }})</td></tr>
+  <tr><th>Academic Year / Period</th><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
+  <tr><th>Annual / Assigned Target</th><td>{{ snap.target_text }}</td></tr>
+  <tr><th>Achievement (this period)</th><td>{% if achievement %}{{ achievement }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+  {% if not is_nil %}<tr><th>Events in this report</th><td>{{ activities|length }}</td></tr>{% endif %}
+  <tr><th>Status</th><td>{{ verification_label }}</td></tr>
+</table>

@@ -1,0 +1,7 @@
+# Backend runtime (pinned). Django 5.2 LTS per plan C8.
+Django==5.2.18
+djangorestframework==3.18.3
+psycopg[binary]==3.3.6
+asgiref==3.12.1
+sqlparse==0.6.0
+tzdata==2026.5

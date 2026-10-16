@@ -1,0 +1,22 @@
+{% extends "reports/base.html" %}
+{% block body %}
+<h1 class="title">NIL REPORT — KRA {{ snap.kra.number }}</h1>
+<p class="center" style="margin-bottom:10pt">No activity was conducted for this KRA in the reporting period.</p>
+<table class="kv">
+  <thead><tr><th>Particular</th><th>Details</th></tr></thead>
+  <tr><td>Name of Institution</td><td>Krishna Institute of Engineering &amp; Technology (KIET),<br>Ghaziabad, Delhi-NCR, Uttar Pradesh</td></tr>
+  <tr><td>KRA</td><td>{{ snap.kra.activity_text }}</td></tr>
+  <tr><td>Department/School</td><td>{{ snap.department.name }} ({{ snap.department.code }})</td></tr>
+  <tr><td>Academic Year</td><td>{{ snap.year }}</td></tr>
+  <tr><td>Reporting Period</td><td>{{ snap.period.label }}</td></tr>
+  <tr><td>Annual / Assigned Target</td><td>{{ snap.target_text }}</td></tr>
+  <tr><td>Achievement (this period)</td><td>{% if achievement %}{{ achievement }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+  <tr><td>Reason for Nil</td><td>{% if nil_reason %}{{ nil_reason|linebreaksbr }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+  <tr><td>Approval state</td><td>{{ verification_label }}</td></tr>
+</table>
+<div class="signoff">
+  <div>Head/Dean: <span class="val">____________________</span></div>
+  <div>Date: <span class="val">____________________</span></div>
+</div>
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

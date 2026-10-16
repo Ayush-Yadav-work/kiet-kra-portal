@@ -1,0 +1,83 @@
+{% extends "reports/base.html" %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="{% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Event {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title">ACTIVITY REPORT Alumni Chapter / Alumni Meet and Alumni Engagement in University<br>Activities/Events</h1>
+
+<h2 style="margin-top:0">1. Basic Details</h2>
+<table class="kv">
+  <thead><tr><th>Particular</th><th>Details</th></tr></thead>
+  <tr><td>Name of Institution</td><td>Krishna Institute of Engineering &amp; Technology (KIET),<br>Ghaziabad, Delhi-NCR, Uttar Pradesh</td></tr>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Name of Alumni Chapter / Association</td><td>{{ a.chapter_name|default:"" }}</td></tr>
+  <tr><td>Name of Activity/Event</td><td>{{ a.event_name|default:"" }}</td></tr>
+  <tr><td>Type of Activity</td><td>{% if a.activity_type %}{{ a.activity_type }}{% else %}<span class="empty">Alumni Chapter / Alumni Meet / Alumni Interaction / Alumni Engagement</span>{% endif %}</td></tr>
+  <tr><td>Date</td><td>{{ a.date_display }}</td></tr>
+  <tr><td>Time</td><td>{{ a.time|default:"" }}</td></tr>
+  <tr><td>Venue/Mode</td><td>{{ a.venue_mode|default:"" }}</td></tr>
+  <tr><td>Academic Year</td><td>{{ snap.year }}</td></tr>
+  <tr><td>Organized By</td><td>{{ a.organized_by|default:"" }}</td></tr>
+  <tr><td>Alumni Coordinator</td><td>{{ a.alumni_coordinator|default:"" }}</td></tr>
+  <tr><td>Faculty Coordinator</td><td>{{ a.faculty_coordinator|default:"" }}</td></tr>
+  <tr><td>Number of Alumni Participants</td><td>{{ a.alumni_count }}</td></tr>
+  <tr><td>Number of Students Participants</td><td>{{ a.student_count }}</td></tr>
+</table>
+
+<h2>2. Objective of the Activity</h2>
+{% if a.objective %}<p>{{ a.objective|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<h2>3. Brief Description of the Activity</h2>
+{% if a.description %}<p>{{ a.description|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<h2>4. Major Activities Conducted</h2>
+{% if a.major_activities_list or a.major_other_list %}<ul>{% for m in a.major_activities_list %}<li>{{ m }}</li>{% endfor %}{% for m in a.major_other_list %}<li>{{ m }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<h2>5. Alumni Engagement in University Activities</h2>
+<table>
+  <thead><tr><th style="width:9%">Sl. No.</th>{% for c in engagement_columns %}<th style="width:{{ c.width }}">{{ c.label }}</th>{% endfor %}</tr></thead>
+  {% for r in a.engagements %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ r.alumni_name|default:"" }}</td><td>{{ r.batch_programme|default:"" }}</td><td>{{ r.organization|default:"" }}</td><td>{{ r.nature|default:"" }}</td><td>{{ r.date_activity|default:"" }}</td><td>{{ r.students_benefited|default_if_none:"" }}</td></tr>
+  {% empty %}
+  <tr><td class="center">1</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+</table>
+
+<h2>6. Participation Details</h2>
+<table>
+  <thead><tr><th style="width:63%">Category</th><th>Number</th></tr></thead>
+  <tr><td>Alumni Participants</td><td>{{ a.p_alumni }}</td></tr>
+  <tr><td>Students Participants</td><td>{{ a.p_students }}</td></tr>
+  <tr><td>Faculty Participants</td><td>{{ a.p_faculty }}</td></tr>
+  <tr><td>External/Industry Participants</td><td>{{ a.p_external }}</td></tr>
+  <tr><td>Total Participants</td><td>{{ a.p_total }}</td></tr>
+</table>
+
+<h2>7. Outcomes of the Activity</h2>
+{% if a.outcomes_list %}<p class="lead">The activity resulted in the following outcomes:</p><ol>{% for o in a.outcomes_list %}<li>{{ o }}</li>{% endfor %}</ol>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<h2>8. Feedback and Impact</h2>
+{% if a.feedback %}<p>{{ a.feedback|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<h2>9. Documentary Evidence</h2>
+<p class="lead">The following records are maintained for the activity:</p>
+<table>
+  <thead><tr><th style="width:12%">Sl. No.</th><th style="text-align:left">Document/Evidence</th><th style="width:28%;text-align:left">Available</th></tr></thead>
+  {% for item, val in a.doc_checklist_items %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td>{% if val %}{{ val }}{% else %}<span class="empty">Yes/No</span>{% endif %}</td></tr>
+  {% endfor %}
+</table>
+<div class="signoff">
+  <div>Faculty/Alumni Coordinator: <span class="val">{% if a.coordinator_name %}{{ a.coordinator_name }}{% else %}____________________{% endif %}</span></div>
+  <div>Head/Dean: <span class="val">____________________</span></div>
+  <div>Date: <span class="val">{% if a.report_date_display %}{{ a.report_date_display }}{% else %}____________________{% endif %}</span></div>
+  <div>Signature: <span class="val">____________________</span></div>
+</div>
+</section>
+{% empty %}
+<h1 class="title">ACTIVITY REPORT Alumni Chapter / Alumni Meet and Alumni Engagement in University<br>Activities/Events</h1>
+<p class="empty">No events have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}
