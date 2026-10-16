@@ -35,7 +35,7 @@ export interface Field {
   options?: string[]; items?: string[]; columns?: Field[]; min_rows?: number; max_rows?: number
   guidance?: string; help?: string; placeholder?: string; suggestions?: string[]; width?: string
   decimal_places?: number; scale?: number[]; scale_labels?: string[]; source?: 'year' | 'department'
-  when?: { field: string; in: string[] }; editor?: 'grid' | 'cards'
+  when?: { field: string; in: string[] }; keep_inactive?: boolean; editor?: 'grid' | 'cards'
 }
 export interface Section { id: string; title: string; intro?: string; fields: Field[] }
 export interface Schema {

@@ -1,0 +1,35 @@
+{% extends "reports/base.html" %}
+{% comment %}KRAs 4–6 (D-048): the source "KRA 4-6 Template" programme-component table for this KRA's component (one row
+per programme section), then the KRA's student-completion records per programme. Component values of a programme
+answered "No" are kept in the draft but printed as NA and not listed.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% with fam=schema.family %}
+<h1 class="title">Percentage of Programs that have components of field projects / research projects / internships</h1>
+<p class="center bold fdp-sub">KRA {{ fam.kra }}: {{ fam.type }} component</p>
+<table class="records">
+  <thead><tr><th style="width:4%">Sl. No.</th><th style="width:22%">Name of the Programmes offered by the HEI</th><th style="width:9%">Programme Code</th>
+    <th style="width:12%">Whether the program has components of {{ fam.type }} (Yes/ NO)</th><th style="width:16%">If yes, name of the component ({{ fam.type }})</th>
+    <th style="width:10%">Course code of the component</th><th style="width:11%">Number of students undertaking the {{ fam.plural }}</th>
+    <th style="width:16%">Link to the relevant document</th></tr></thead>
+  <tbody>
+  {% for a in activities %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ a.programme_name }}</td><td>{{ a.programme_code }}</td><td>{{ a.has_component }}</td>
+    {% if a.has_component == "Yes" %}<td>{{ a.component_name }}</td><td>{{ a.course_code }}</td><td>{{ a.students_undertaking }}</td><td>{{ a.document_link }}</td>
+    {% else %}<td><span class="na">NA</span></td><td><span class="na">NA</span></td><td><span class="na">NA</span></td><td><span class="na">NA</span></td>{% endif %}</tr>
+  {% empty %}
+  <tr><td class="center">1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="table-note">Document files are kept in the portal's Evidence tab, not in this PDF.</p>
+
+{% for a in activities %}{% if a.has_component == "Yes" %}
+<p class="bold k11-label fp-label">Students who completed the {{ fam.type|lower }} — {{ a.programme_name|default:"(programme not named)" }}{% if a.programme_code %} ({{ a.programme_code }}){% endif %}</p>
+{% if a.completions_rows %}
+{% include "reports/_records_table.html" with spec=fields.completions rows=a.completions_rows %}
+{% else %}<p class="empty">No completions recorded for this programme in this period.</p>{% endif %}
+{% endif %}{% endfor %}
+{% endwith %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

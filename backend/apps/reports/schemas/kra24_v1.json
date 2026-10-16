@@ -1,0 +1,42 @@
+{
+  "key": "kra24",
+  "version": 1,
+  "title": "Students placement in %",
+  "renderer": "reports/kra24_v1.html",
+  "source": "reference/templates/KRA 24 Template.xlsx - Placements.pdf",
+  "source_checksum": "ed406d93254f0679507cfb08683469d2299954186e1870beb28efe35c21253fd",
+  "page": {"format": "A4", "landscape": true, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "Outgoing students placed / progressing to higher education",
+      "intro": "One record per outgoing student. KRA 24 measures placement: higher-education records are listed as in the source but are not placements, and the portal calculates no percentage — enter the achievement yourself. Switching a record's category keeps the other category's values in the draft; they are not submitted or printed.",
+      "fields": [
+        {"id": "records", "label": "Student records", "type": "table", "required": true, "min_rows": 1, "max_rows": 100, "editor": "cards",
+         "columns": [
+           {"id": "student_name", "label": "Name of student placed / enrolling into higher education", "type": "text", "required": true, "max_length": 150},
+           {"id": "contact", "label": "Student contact details", "type": "text", "required": true, "max_length": 200, "placeholder": "Phone and/or email"},
+           {"id": "category", "label": "Placement/Progressed to Higher Education", "type": "select", "required": true,
+            "options": ["Placement", "Higher Education"]},
+           {"id": "programme", "label": "Program graduated from", "type": "text", "required": true, "max_length": 150, "placeholder": "e.g. B.Tech ECE"},
+           {"id": "employer", "label": "Name of the employer (placement)", "type": "text", "required": true, "max_length": 200,
+            "when": {"field": "category", "in": ["Placement"]}, "keep_inactive": true},
+           {"id": "employer_contact", "label": "Employer contact details (placement)", "type": "text", "required": false, "max_length": 200,
+            "when": {"field": "category", "in": ["Placement"]}, "keep_inactive": true},
+           {"id": "package_inr", "label": "Pay package at appointment (In INR per annum)", "type": "decimal", "required": true,
+            "min": 0, "max": 1000000000, "decimal_places": 2, "placeholder": "e.g. 650000",
+            "when": {"field": "category", "in": ["Placement"]}, "keep_inactive": true},
+           {"id": "institution", "label": "Name of institution joined (higher education)", "type": "text", "required": true, "max_length": 200,
+            "when": {"field": "category", "in": ["Higher Education"]}, "keep_inactive": true},
+           {"id": "admitted_programme", "label": "Name of program admitted to (higher education)", "type": "text", "required": true, "max_length": 200,
+            "when": {"field": "category", "in": ["Higher Education"]}, "keep_inactive": true}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Offer/Appointment Letter", "Admission Letter (Higher Education)", "Placement Record/List", "Other"],
+    "required": [],
+    "note": "The source lists no evidence; no minimum set has been agreed (docs/decisions.md D-049). Offer letters may contain personal data — upload only what the college requires."
+  }
+}
