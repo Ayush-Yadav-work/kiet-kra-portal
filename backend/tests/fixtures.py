@@ -222,3 +222,31 @@ def kra3637_programme(kra, i=1, participants=3, modules=4, hours="32", long_text
 
 def kra3637_payload(kra, programmes=1, participants=3, modules=4, hours="32", long_text=False):
     return {"activities": [kra3637_programme(kra, i + 1, participants, modules, hours, long_text) for i in range(programmes)]}
+
+
+def kra8_10_payload(kra, long_text=False):
+    para = "Synthetic consolidated text for layout testing. " * (40 if long_text else 2)
+    return {"activities": [{
+        "collection_period": "1–15 October 2026", "consolidated_by": "Test Coordinator, IQAC Cell",
+        "surveyed": 20, "respondents": 14, "organizations": "Example Industries Pvt Ltd\nSample Systems Ltd (synthetic)",
+        "designations": "", "relationships": ["Employer of Graduates", "Recruiter"] if kra == 8 else ["Academic Expert"],
+        "ratings": ["4.25", "3.80", "4", "4.05", "3.5", "4.71", "2.95", "4.10", "3.33", "1.05", "5", "4.00"],
+        "suggestions": "Synthetic suggestion one\nSynthetic suggestion two" + ("\n" + para if long_text else ""),
+        "action_taken": para, "impact_analysis": "Pending — synthetic, review due next semester.",
+        "bos_discussion": para, "report_date": "2026-10-20",
+    }]}
+
+
+def kra9_payload(variants=("9a", "9b"), long_text=False):
+    from apps.reports.families import VARIANT_9A, VARIANT_9B
+    para = "Synthetic consolidated text for layout testing. " * (40 if long_text else 2)
+    act = {"variants": [{"9a": VARIANT_9A, "9b": VARIANT_9B}[v] for v in variants],
+           "collection_period": "1–15 October 2026", "consolidated_by": "Test Coordinator, Alumni Cell",
+           "action_taken": para, "impact_analysis": "Pending — synthetic.", "bos_discussion": para, "report_date": "2026-10-20"}
+    for code, base in (("9a", "4"), ("9b", "3")):
+        act.update({f"v{code}_surveyed": 30, f"v{code}_respondents": 22, f"v{code}_passing_years": "2016–2020" if code == "9a" else "2022–2024",
+                    f"v{code}_status": ["Pvt. sector", "Higher Education"], f"v{code}_expect_technology": f"Synthetic {code} technology expectation",
+                    f"v{code}_expect_platform": "", f"v{code}_expect_others": "",
+                    f"v{code}_ratings": [f"{base}.{n}5" for n in range(10)],
+                    f"v{code}_suggestions": f"Synthetic {code} suggestion" + ("\n" + para if long_text else "")})
+    return {"activities": [act]}

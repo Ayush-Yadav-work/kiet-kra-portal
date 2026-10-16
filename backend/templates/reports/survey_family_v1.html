@@ -1,0 +1,80 @@
+{% extends "reports/base.html" %}
+{% comment %}Consolidated survey family for KRAs 8, 9 (9a/9b) and 10 (D-038). Parts come from families.survey_parts:
+one per survey form; KRA 9 prints only the selected variants, each with its own question set and averages.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+{% for part in a.survey_parts %}
+<section class="{% if not forloop.first %}event-break{% endif %}">
+<h1 class="title survey-title">{{ part.title }}</h1>
+{% if part.subtitle %}<p class="center bold survey-sub">{{ part.subtitle }}</p>{% endif %}
+<p class="consolidated-note">Consolidated report prepared by the department from {% if part.respondents != "" and part.respondents is not None %}{{ part.respondents }}{% else %}[not entered]{% endif %} {{ part.who }} response(s). Values are averages prepared by the college, not an individual response.</p>
+
+<table class="kv survey">
+  <thead><tr><th colspan="2" class="shade">{{ part.details_heading }} (consolidated)</th></tr></thead>
+  {% for label, value, na in part.details %}
+  <tr><th class="shade">{{ label }}</th><td{% if na %} class="na"{% endif %}>{{ value|linebreaksbr }}</td></tr>
+  {% endfor %}
+  {% if part.relationships %}
+  <tr><th class="shade">Relationship with the Institution</th><td><ul class="plain-list">{% for opt, on in part.relationships %}<li>{{ opt }}{% if on %} <b>— represented</b>{% endif %}</li>{% endfor %}</ul></td></tr>
+  {% endif %}
+  <tr><th class="shade">Department / Academic Year</th><td>{{ snap.department.name }} / {{ snap.year }}</td></tr>
+  <tr><th class="shade">Feedback collection period</th><td>{{ a.collection_period }}</td></tr>
+  <tr><th class="shade">Consolidated by</th><td>{{ a.consolidated_by }}</td></tr>
+</table>
+
+{% if part.experience_na %}
+<table class="survey">
+  <tr><th class="shade left">Detail of Experience (if applicable)</th></tr>
+  <tr><td class="na">Not applicable — individual employment histories are not reported in a consolidated report.</td></tr>
+</table>
+<p class="bold lead">Industry expectations from student:</p>
+<table class="kv survey">
+  {% for label, value in part.expectations %}<tr><th class="shade">{{ label }}</th><td>{% if value %}{{ value|linebreaksbr }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>{% endfor %}
+</table>
+{% endif %}
+
+<table class="survey ratings">
+  <thead>
+    <tr><th colspan="8" class="shade">{{ part.grid_heading }}{% if part.code %} ({{ part.code }}){% endif %}</th></tr>
+    <tr><th style="width:6%">S No.</th><th style="width:37%">{{ part.grid_first|safe }}</th>
+      <th style="width:7%">Poor<br>(1)</th><th style="width:9%">Satisfactory<br>(2)</th><th style="width:7%">Good<br>(3)</th>
+      <th style="width:8%">Very Good<br>(4)</th><th style="width:9%">Excellent<br>(5)</th><th style="width:17%" class="avg">Consolidated Average (1–5)</th></tr>
+  </thead>
+  {% for n, item, value in part.items %}
+  <tr><td class="center">{{ n }}.</td><td>{{ item }}</td><td></td><td></td><td></td><td></td><td></td>
+    <td class="center avg">{% if value != "" %}<b>{{ value }}</b>{% else %}<span class="empty">—</span>{% endif %}</td></tr>
+  {% endfor %}
+  <tr><td colspan="8" class="caption">Rating columns are not ticked in a consolidated report; the exact average entered by the department is shown in the last column.</td></tr>
+</table>
+
+<table class="survey box keep">
+  <tr><th class="left">{{ part.suggestions_label }}</th></tr>
+  <tr><td class="tall">{% if part.suggestions %}{{ part.suggestions|linebreaksbr }}{% else %}<span class="empty">None recorded</span>{% endif %}</td></tr>
+</table>
+</section>
+{% empty %}
+<h1 class="title survey-title">Alumni Survey Form</h1>
+<p class="empty">No survey variant has been selected yet.</p>
+{% endfor %}
+
+<div class="keep">
+<h2>Feedback Analysis</h2>
+<h3>a) Action Taken</h3>
+{% if a.action_taken %}<p>{{ a.action_taken|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+<h3>b) Impact Analysis</h3>
+{% if a.impact_analysis %}<p>{{ a.impact_analysis|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+<h3>c) Discussion in BoS</h3>
+{% if a.bos_discussion %}<p>{{ a.bos_discussion|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<div class="signoff">
+  <div>Consolidated by: <span class="val">{% if a.consolidated_by %}{{ a.consolidated_by }}{% else %}____________________{% endif %}</span></div>
+  <div>Head/Dean: <span class="val">____________________</span></div>
+  <div>Date: <span class="val">{% if a.report_date_display %}{{ a.report_date_display }}{% else %}____________________{% endif %}</span></div>
+</div>
+{% empty %}
+<p class="empty">Nothing has been entered yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

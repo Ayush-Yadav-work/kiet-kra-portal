@@ -37,9 +37,18 @@ def _blank(v):
     return v is None or v == "" or v == [] or v == {}
 
 
+def applies(cond, obj):
+    """`when` condition: {"field", "in": [...]} (value is one of) or {"field", "contains": x} (multiselect includes x)."""
+    if not cond:
+        return True
+    value = obj.get(cond["field"])
+    if "contains" in cond:
+        return isinstance(value, list) and cond["contains"] in value
+    return value in cond["in"]
+
+
 def applicable(col, row):
-    cond = col.get("when")
-    return not cond or row.get(cond["field"]) in cond["in"]
+    return applies(col.get("when"), row)
 
 
 def check_decimal(f, v, strict=True):
@@ -94,6 +103,8 @@ def _check_scalar(f, v, path, errors, strict=True):
 def _check_rules(rules, obj, path, errors):
     """Cross-field rules on an activity or a table row. Only checked when both values are present and valid."""
     for rule in rules or []:
+        if not applies(rule.get("when"), obj):
+            continue
         a, b = obj.get(rule["a"]), obj.get(rule["b"])
         if _blank(a) or _blank(b) or f"{path}{rule['a']}" in errors or f"{path}{rule['b']}" in errors:
             continue
@@ -180,6 +191,8 @@ def validate_payload(schema, payload, strict=False):
             if k not in fields:
                 errors[f"activities.{i}.{k}"] = ["Unknown field."]
         for fid, f in fields.items():
+            if strict and not applies(f.get("when"), act):
+                continue  # e.g. a deselected KRA 9 variant: kept in the draft, ignored at submission
             _check_field(f, act.get(fid, default_for(f)), f"activities.{i}.{fid}", strict, errors)
         if strict:
             _check_rules(schema.get("rules"), act, f"activities.{i}.", errors)

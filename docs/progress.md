@@ -69,12 +69,18 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] KRA 36 staff labels without faculty claims; KRA 37 FDP wording, I&E/IPR focus area, ≥ 30 hours enforced at submission only
 - [x] Repeatable programmes (≤20) with participant (≤100) and module tables; separate drafts/evidence/achievements per KRA
 - [x] Shared change: Prepared/Approved box moved to `_signoff_box.html` (KRA 11/23/1–3 output identical); optional `range_message` on numeric fields
-- Open: D-037 assumptions for college review. Uncommitted.
+- Open: D-037 assumptions for college review. Committed (39de3d8).
+
+## Phase 4 (bounded) — KRAs 8, 9, 10 consolidated surveys ✅ (pending review)
+- [x] One survey family (D-038), three configurations; mappings idempotent (39 assignments, targets unchanged); KRA 7 untouched
+- [x] Exact source questions/order/scale; consolidated mapping of every personal field; KRA 9 with 9a, 9b or both in one submission
+- [x] Shared engine: field/rule `when` (contains), family preparer hook — KRA 7/11/23/1–3 output verified identical
+- Open: D-038 assumptions for college review; deselected KRA 9 fields stay visible in the form. Uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 34 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
-- OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 8 flows, not the full workflow.
+- Templates for the other 31 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.

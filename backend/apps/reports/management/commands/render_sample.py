@@ -32,6 +32,10 @@ CASES = {
     36: {"normal": lambda: fx.kra3637_payload(36, programmes=2, participants=4)},
     37: {"normal": lambda: fx.kra3637_payload(37, programmes=2, participants=4),
          "long": lambda: fx.kra3637_payload(37, programmes=3, participants=60, modules=30, long_text=True)},
+    8: {"normal": lambda: fx.kra8_10_payload(8), "long": lambda: fx.kra8_10_payload(8, long_text=True)},
+    10: {"normal": lambda: fx.kra8_10_payload(10)},
+    9: {"normal": lambda: fx.kra9_payload(("9a", "9b")), "only9a": lambda: fx.kra9_payload(("9a",)),
+        "only9b": lambda: fx.kra9_payload(("9b",)), "long": lambda: fx.kra9_payload(("9a", "9b"), long_text=True)},
     23: {"normal": lambda: fx.kra23_payload(programmes=1, programs=2, modules=4),
          "long": lambda: fx.kra23_payload(programmes=3, programs=30, modules=30, long_text=True)},
 }

@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
+from apps.reports.families import PREPARERS
 from apps.submissions.models import ReviewDecision, Status
 from apps.submissions.services import snapshot_of
 
@@ -162,6 +163,9 @@ def _prepare_activity(schema, act, snap):
     if "detail_columns" in schema.get("family", {}):  # course family prints a configurable one-row details table
         out["detail_cells"] = ["" if act.get(c["id"]) is None else act.get(c["id"], "")
                                for c in schema["family"]["detail_columns"]]
+    prepare = PREPARERS.get(schema.get("family", {}).get("name"))
+    if prepare:  # family-specific display data (e.g. survey parts) lives with the family definition
+        out.update(prepare(schema, act, snap))
     return out
 
 

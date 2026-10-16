@@ -295,5 +295,242 @@ def fdp_stp_schema(kra):
     return copy.deepcopy(schema)
 
 
+# ---------------------------------------------------------------------------------------------------------------
+# Consolidated survey family: KRA 8 (employer/industry), KRA 9 (alumni 9a/9b) and KRA 10 (academic expert) (D-038).
+# The Dean enters college-prepared averages (plan 5.4); decimals are handled exactly as for KRA 7 (strings, never
+# rounded, precision/range checked at submission). Question texts are the sources' own, in source order.
+# Personal respondent fields are shown as consolidated or "Not applicable" — never invented.
+CURRICULUM_QUESTIONS = [
+    "The curriculum is relevant to current industry requirements.",
+    "The curriculum adequately covers emerging technologies and industry trends.",
+    "The curriculum provides adequate opportunities for developing technical/professional skills.",
+    "The curriculum promotes problem-solving and analytical thinking abilities.",
+    "The curriculum effectively develops communication and interpersonal skills.",
+    "The curriculum provides adequate practical, laboratory, and experiential learning.",
+    "The curriculum adequately integrates industry-oriented projects, internships, and real-world applications.",
+    "The curriculum incorporates multidisciplinary/interdisciplinary learning.",
+    "The curriculum adequately addresses employability and workplace readiness.",
+    "The curriculum encourages innovation, creativity, entrepreneurship, and professional competence.",
+    "The knowledge and skills acquired through the curriculum meet the expectations of employers.",
+    "Overall, the curriculum is effective in preparing students for professional careers.",
+]
+ALUMNI_9A_QUESTIONS = [
+    "The extent to which the curriculum is meeting the industrial/professional needs",
+    "How do you rate your acquired knowledge is useful in your domain and is interrelated with the other domains",
+    "How good are the opportunities you got to pursue research renowned national/international institutes (like IITs/NITs/etc.)",
+    "Rate your ability in designing a product or give services with the acquired knowledge during your course",
+    "To what extent you are updated with the evolving trends, tools and technology in your area of specialization",
+    "Your involvement and participation in the outreach activities for serving the needy and society at large",
+    "How far you could explore the entrepreneurship opportunities in the area of your specialization",
+    "How far your experience in different teams during study in the institute is useful in the current profession.",
+    "How do you rate the acquired managerial and communication skills help your professional growth",
+    "Willingness to contribute towards development of the Institute",
+]
+ALUMNI_9B_QUESTIONS = [
+    "Curriculum and syllabus content were appropriate for placement, competitive exams and higher education.",
+    "Curriculum accommodates courses with experiential learning.",
+    "Encouragement for usage of current technology and modern tools during degree course in the department.",
+    "Infrastructure facilities namely library, labs, other campus facilities and overall teaching learning ambience.",
+    "All the academic processes of the institute are transparent.",
+    "Training and Placement cell provides ample campus placement opportunities.",
+    "Role of Internship/training/skill development opportunities provided at the institute towards placement and professional growth.",
+    "Impact of academic and other professional activities in developing leadership, teamwork and managerial skills.",
+    "Institute offers sufficient scholarships to meritorious and deserving students.",
+    "Your willingness to contribute towards development of the Institute",
+]
+SCALE = {"scale": [1, 2, 3, 4, 5], "decimal_places": 2,
+         "scale_labels": ["Poor (1)", "Satisfactory (2)", "Good (3)", "Very Good (4)", "Excellent (5)"]}
+RELATIONSHIPS_8 = ["Employer of Graduates", "Industry Partner", "Recruiter", "Industry Expert", "Alumni Employer", "Other"]
+ALUMNI_STATUS = ["Higher Education", "Govt. Sector", "Pvt. sector", "Independent", "Self venture", "Other"]
+ALUMNI_SUGGESTIONS = ("Suggestions if Any: Please make any additional comments or suggestions, which you think would help "
+                      "strengthen our programs for the preparation of graduates. Any course to be added in the new curriculum. "
+                      "Suggest any software tool to be added which is related to Industry sector.")
+VARIANT_9A = "9a — Alumni with more than 4 years professional experience"
+VARIANT_9B = "9b — Alumni with less than 4 years professional experience"
+SURVEY_SOURCES = {
+    8: ("reference/templates/KRA 8 Curriculum Feedback (Employer and Industry).docx.pdf",
+        "ff05f8bd702726eafa2417857d3e702216b84ae85548139af49bc6c54bd62228"),
+    9: ("reference/templates/KRA 9a - Alumni Feedback Survey Form (more than 4 Years).docx.pdf; "
+        "reference/templates/KRA 9b - Alumni Feedback Survey Form(Less than 4 Years).docx.pdf",
+        "108e4dad2398720470993dab9e6983c86884937582d43d227c3c666cbf4809e2"),  # 9a; both listed in source_checksums
+    10: ("reference/templates/KRA 10 Curriculum Feedback (Academic Expert).docx.pdf",
+         "2725a5c0aa310e5c90dab7a27d44ccc3471ce7b7815372f37dc2dc8b383ac2ed"),
+}
+SURVEY_EVIDENCE = ["Consolidated Feedback Analysis", "Collected Feedback Forms/Responses", "Action Taken Report",
+                   "Impact Analysis", "BoS Minutes", "Other"]
+
+
+def _counts(prefix, who, when=None):
+    out = [{"id": f"{prefix}surveyed", "label": f"Number of {who} surveyed", "type": "integer", "required": True,
+            "min": 0, "max": 100000},
+           {"id": f"{prefix}respondents", "label": f"Number of {who} who responded", "type": "integer", "required": True,
+            "min": 0, "max": 100000, "help": "Entered as counted; the portal does not calculate percentages."}]
+    if when:
+        for f in out:
+            f["when"] = when
+    return out
+
+
+def _analysis_sections():
+    return [
+        {"id": "analysis", "title": "Feedback analysis (workbook instruction 8)",
+         "intro": 'Record what has actually happened. If an item is not yet done, write "Pending" (with the expected date) or "Not applicable" and why.',
+         "fields": [
+             {"id": "action_taken", "label": "a) Action Taken", "type": "longtext", "required": True, "max_length": 6000,
+              "guidance": "Workbook: mention the actions/initiatives taken based on the survey feedback."},
+             {"id": "impact_analysis", "label": "b) Impact Analysis", "type": "longtext", "required": True, "max_length": 6000,
+              "guidance": "Workbook: analyse the impact/effectiveness of the actions taken based on the survey feedback."},
+             {"id": "bos_discussion", "label": "c) Discussion in BoS", "type": "longtext", "required": True, "max_length": 6000,
+              "guidance": "Workbook: key points discussed/reviewed in the Board of Studies (BoS) and the recommendations/decisions taken."}]},
+        {"id": "signoff", "title": "Sign-off",
+         "fields": [{"id": "report_date", "label": "Date", "type": "date", "required": False}]},
+    ]
+
+
+def survey_schema(kra):
+    common = [{"id": "collection_period", "label": "Feedback collection period", "type": "text", "required": True,
+               "max_length": 120, "placeholder": "e.g. 1–15 October 2026"},
+              {"id": "consolidated_by", "label": "Consolidated by (name & designation)", "type": "text", "required": True,
+               "max_length": 150}]
+    if kra in (8, 10):
+        rel = (["Academic Expert"] if kra == 10 else []) + RELATIONSHIPS_8
+        who = "employers/industry respondents" if kra == 8 else "academic experts"
+        sections = [
+            {"id": "details", "title": "Details Required (consolidated)",
+             "intro": "One consolidated report of college-prepared results, not an individual response. Respondent name and "
+                      "email/contact are shown as consolidated / not applicable.",
+             "fields": common + _counts("", who) + [
+                 {"id": "organizations", "label": "Name of Organization(s) represented", "type": "longtext", "required": True, "max_length": 3000},
+                 {"id": "designations", "label": "Respondent designations (summary, optional)", "type": "text", "required": False, "max_length": 300},
+                 {"id": "relationships", "label": "Relationship with the Institution — tick the categories represented among respondents",
+                  "type": "multiselect", "required": True, "options": rel}]},
+            {"id": "survey", "title": "Feedback Survey Form",
+             "fields": [dict({"id": "ratings", "label": "Consolidated average per statement", "type": "ratings", "required": True,
+                              "items": CURRICULUM_QUESTIONS}, **SCALE)]},
+            {"id": "suggestions", "title": "Suggestions if Any",
+             "fields": [{"id": "suggestions", "label": "Consolidated suggestions received", "type": "longtext", "required": False, "max_length": 6000}]},
+        ]
+        rules = [{"type": "lte", "a": "respondents", "b": "surveyed", "message": "Respondents cannot exceed the number surveyed."}]
+        title = "Curriculum Feedback Survey Form"
+    else:
+        sections = [
+            {"id": "variants", "title": "Alumni survey variant(s)",
+             "intro": "Select the variant(s) the college collected this period. The college decides which alumni belong to each "
+                      "variant (the source titles do not classify exactly four years). Data of a deselected variant stays in the "
+                      "draft but is not submitted or printed. Scores of the two variants are never combined.",
+             "fields": [{"id": "variants", "label": "Variants included in this report", "type": "multiselect", "required": True,
+                         "options": [VARIANT_9A, VARIANT_9B]}] + common}]
+        rules = []
+        for code, variant, questions, more in (("9a", VARIANT_9A, ALUMNI_9A_QUESTIONS, "more"), ("9b", VARIANT_9B, ALUMNI_9B_QUESTIONS, "less")):
+            when = {"field": "variants", "contains": variant}
+            pre = f"v{code}_"
+            fields = _counts(pre, "alumni", when) + [
+                {"id": f"{pre}passing_years", "label": "Passing Year(s) represented (optional)", "type": "text", "required": False,
+                 "max_length": 120, "when": when, "placeholder": "e.g. 2016–2020"},
+                {"id": f"{pre}status", "label": "Current Status categories represented (optional)", "type": "multiselect",
+                 "required": False, "options": ALUMNI_STATUS, "when": when},
+                {"id": f"{pre}expect_technology", "label": "Industry expectations from student — Technology (consolidated, optional)",
+                 "type": "longtext", "required": False, "max_length": 2000, "when": when},
+                {"id": f"{pre}expect_platform", "label": "Industry expectations from student — Platform (consolidated, optional)",
+                 "type": "longtext", "required": False, "max_length": 2000, "when": when},
+                {"id": f"{pre}expect_others", "label": "Industry expectations from student — Others (consolidated, optional)",
+                 "type": "longtext", "required": False, "max_length": 2000, "when": when},
+                dict({"id": f"{pre}ratings", "label": "Consolidated average per statement", "type": "ratings", "required": True,
+                      "items": questions, "when": when}, **SCALE),
+                {"id": f"{pre}suggestions", "label": "Consolidated suggestions received", "type": "longtext", "required": False,
+                 "max_length": 6000, "when": when, "help": ALUMNI_SUGGESTIONS},
+            ]
+            sections.append({"id": f"alumni_{code}", "title": f"KRA {code}: Alumni Survey Form (for alumni having {more} than 4 years professional experience)",
+                             "intro": f"Used only when {code} is selected above.", "fields": fields})
+            rules.append({"type": "lte", "a": f"{pre}respondents", "b": f"{pre}surveyed", "when": when,
+                          "message": "Respondents cannot exceed the number surveyed."})
+        title = "Alumni Survey Form"
+    source, checksum = SURVEY_SOURCES[kra]
+    schema = {
+        "key": f"kra{kra}", "version": 1, "title": f"{title} — consolidated (KRA {kra})",
+        "family": {"name": "survey", "kra": kra},
+        "renderer": "reports/survey_family_v1.html",
+        "source": source, "source_checksum": checksum,
+        **({"source_checksums": {"9a": checksum, "9b": "cb414a11e3137e5b3b7a89c1c94130b8ccf6f7efbad369b43f0487ed5f07751d"}}
+           if kra == 9 else {}),
+        "page": {"format": "Letter", "landscape": False, "style": "survey"},
+        "activity": {"label": "Report", "min": 1, "max": 1},
+        "rules": rules,
+        "sections": sections + _analysis_sections(),
+        "evidence": {"categories": SURVEY_EVIDENCE, "required": [],
+                     "note": "No minimum evidence set has been agreed for KRAs 8–10 (docs/decisions.md D-038). Upload BoS minutes once available."},
+    }
+    return copy.deepcopy(schema)
+
+
+NA = "Not applicable (consolidated report)"
+
+
+def _ratings_rows(items, values):
+    values = values if isinstance(values, list) else []
+    return [(n + 1, item, values[n] if n < len(values) and values[n] is not None else "") for n, item in enumerate(items)]
+
+
+def _respondents(act, pre, who):
+    r, s = act.get(f"{pre}respondents"), act.get(f"{pre}surveyed")
+    show = lambda v: "__" if v in (None, "") else v
+    return f"Consolidated response of {show(r)} of {show(s)} {who} surveyed"
+
+
+def survey_parts(schema, act, snap):
+    """Display data for survey_family_v1.html: one part per survey form (KRA 9: only selected variants, 9a before 9b)."""
+    kra = schema["family"]["kra"]
+    dept = snap["department"]["name"]
+    if kra in (8, 10):
+        rel = act.get("relationships") or []
+        options = next(f for s in schema["sections"] for f in s["fields"] if f["id"] == "relationships")["options"]
+        parts = [{
+            "title": "Curriculum Feedback Survey Form", "subtitle": "", "details_heading": "Details Required",
+            "who": "respondent",
+            "details": [("Name of Organization", act.get("organizations", ""), False),
+                        ("Name Respondent", _respondents(act, "", "respondents"), False),
+                        ("Designation", act.get("designations") or NA, not act.get("designations")),
+                        ("Email/Contact Number", NA, True)],
+            "relationships": [(o, o in rel) for o in options],
+            "grid_heading": "Feedback Survey Form", "grid_first": "Tick Any<br>Grading from 1 to 5",
+            "items": _ratings_rows(CURRICULUM_QUESTIONS, act.get("ratings")),
+            "suggestions_label": "Suggestions if Any:", "suggestions": act.get("suggestions", ""),
+            "respondents": act.get("respondents"),
+        }]
+    else:
+        parts = []
+        chosen = act.get("variants") or []
+        for code, variant, questions, more in (("9a", VARIANT_9A, ALUMNI_9A_QUESTIONS, "more"), ("9b", VARIANT_9B, ALUMNI_9B_QUESTIONS, "less")):
+            if variant not in chosen:
+                continue
+            pre = f"v{code}_"
+            status = act.get(f"{pre}status") or []
+            parts.append({
+                "title": "Alumni Survey Form", "code": code,
+                "subtitle": f"(For Alumni having {more} than 4 Years Professional Experience after Passing Degree Course)",
+                "details_heading": "ALUMNI PROFILE", "who": "alumni",
+                "details": [("Name of Alumnus/ Alumna", _respondents(act, pre, "alumni"), False),
+                            ("Age", NA, True), ("Gender", NA, True), ("Department of Study", dept, False),
+                            ("Passing Year", act.get(f"{pre}passing_years") or "Not entered", not act.get(f"{pre}passing_years")),
+                            ("Mobile Number", NA, True), ("Email ID", NA, True),
+                            ("Current Status (Choose one of the suitable option)",
+                             ", ".join(s for s in ALUMNI_STATUS if s in status) or "Not entered", not status),
+                            ("Current Position & Company Name", NA, True)],
+                "experience_na": True,
+                "expectations": [("Technology", act.get(f"{pre}expect_technology", "")),
+                                 ("Platform", act.get(f"{pre}expect_platform", "")),
+                                 ("Others", act.get(f"{pre}expect_others", ""))],
+                "grid_heading": "ALUMNI FEEDBACK FORM", "grid_first": "Tick Any Grading<br>from 1 to 5",
+                "items": _ratings_rows(questions, act.get(f"{pre}ratings")),
+                "suggestions_label": ALUMNI_SUGGESTIONS, "suggestions": act.get(f"{pre}suggestions", ""),
+                "respondents": act.get(f"{pre}respondents"),
+            })
+    return {"survey_parts": parts}
+
+
+PREPARERS = {"survey": survey_parts}
+
+
 BUILDERS = {VARIANTS[k]["key"]: (lambda k=k: course_family_schema(k)) for k in VARIANTS}
 BUILDERS.update({FDP_VARIANTS[k]["key"]: (lambda k=k: fdp_stp_schema(k)) for k in FDP_VARIANTS})
+BUILDERS.update({f"kra{k}": (lambda k=k: survey_schema(k)) for k in (8, 9, 10)})

@@ -43,6 +43,7 @@ def open_ece_kra(page, kra_number):
     asg = next(a for a in data["results"] if a["kra"]["number"] == kra_number)
     page.goto(f"{BASE}/dean/kra/{asg['id']}/{period['id']}")
     page.get_by_role("tab", name="Report").wait_for()
+    page.wait_for_load_state("networkidle")  # workspace fully loaded before typing (slow machines)
     _, info = api(page, "GET", f"/assignments/{asg['id']}/periods/{period['id']}/")
     return info["submission_id"]
 
@@ -68,7 +69,9 @@ class BrowserTests(unittest.TestCase):
     def test_portals_reject_wrong_role(self):
         p = self.page
         login(p, "vc", "demo.dean.ece")
-        expect(p.get_by_role("alert")).to_contain_text("Invalid username or password for this portal")
+        # Repeated runs within 15 min hit the real rate limiter; either message proves the rejection.
+        expect(p.get_by_role("alert")).to_contain_text(re.compile("Invalid username or password for this portal|Too many failed attempts"))
+        self.assertEqual(p.request.get(f"{BASE}/api/v1/auth/me/").status, 401)  # no session was created
         login(p, "dean", "demo.dean.ece")
         p.wait_for_url(f"{BASE}/dean/dashboard")
         p.goto(f"{BASE}/vc/dashboard")
@@ -235,8 +238,10 @@ class BrowserTests(unittest.TestCase):
                                                                     "decision": "RETURN", "reason": "Synthetic e2e reset"})
                 vc.close()
                 p.reload()
+                p.wait_for_load_state("networkidle")
             title = f"Synthetic browser programme KRA {n} {int(time.time())}"
             p.locator("input[name='activities.0.programme_title']").fill(title)
+            expect(p.locator("input[name='activities.0.programme_title']")).to_have_value(title)
             p.get_by_role("button", name="Save draft").click()
             expect(p.get_by_role("status")).to_contain_text("Saved")
             p.reload()
@@ -273,6 +278,53 @@ class BrowserTests(unittest.TestCase):
         r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
         text = "".join(pg.get_text() for pg in pymupdf.open(stream=r.body(), filetype="pdf"))
         self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
+
+    def test_kra8_9_10_surveys_save_reload_preview_export(self):
+        """Survey family: KRAs 8 and 10 save/reload/preview/export; KRA 9 variant ticking in the UI keeps 9b data
+        when deselected and the preview shows only the selected variant(s)."""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        stamp = int(time.time())
+        frame = p.frame_locator("iframe[title='Report preview']")
+        for n in (8, 10):
+            sid = open_ece_kra(p, n)
+            p.locator("[id='activities.0.collection_period']").fill(f"Synthetic period {n} {stamp}")
+            p.locator("[id='activities.0.ratings.0']").fill("4.50")
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator("[id='activities.0.ratings.0']")).to_have_value("4.50")
+            expect(frame.get_by_text(f"Synthetic period {n} {stamp}")).to_be_visible(timeout=10000)
+            expect(frame.get_by_text("Curriculum Feedback Survey Form").first).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
+
+        sid = open_ece_kra(p, 9)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": {"activities": [{}]}})
+        p.reload()
+        box9a = p.get_by_label("9a — Alumni with more than 4 years professional experience", exact=True)
+        box9b = p.get_by_label("9b — Alumni with less than 4 years professional experience", exact=True)
+        box9a.check()
+        box9b.check()
+        p.locator("[id='activities.0.v9a_ratings.0']").fill("4.25")
+        p.locator("[id='activities.0.v9b_ratings.0']").fill("3.75")
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        expect(frame.get_by_text("ALUMNI FEEDBACK FORM (9b)")).to_be_visible(timeout=10000)
+        box9b.uncheck()  # deselect 9b: its data stays, the preview drops it
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        p.reload()
+        expect(p.locator("[id='activities.0.v9b_ratings.0']")).to_have_value("3.75")
+        expect(frame.get_by_text("ALUMNI FEEDBACK FORM (9a)")).to_be_visible(timeout=10000)
+        expect(frame.get_by_text("ALUMNI FEEDBACK FORM (9b)")).to_have_count(0)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        act = d["payload"]["activities"][0]
+        self.assertEqual((act["v9a_ratings"][0], act["v9b_ratings"][0]), ("4.25", "3.75"))
+        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+        self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
 
 
 if __name__ == "__main__":
