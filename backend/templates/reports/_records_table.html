@@ -1,0 +1,11 @@
+{# Shared repeatable-records table for spreadsheet-family templates. Inputs: spec (table field), rows (display cells). #}
+<table class="records">
+  <thead><tr><th style="width:3.5%">Sl. No.</th>{% for c in spec.columns %}<th style="width:{{ c.width }}">{{ c.label_html }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr><td class="center">{{ forloop.counter }}</td>{% for cell in row %}<td>{% if cell == "NA" %}<span class="na">NA</span>{% else %}{{ cell|linebreaksbr }}{% endif %}</td>{% endfor %}</tr>
+  {% empty %}
+    <tr><td class="center">1</td>{% for c in spec.columns %}<td></td>{% endfor %}</tr>
+  {% endfor %}
+  </tbody>
+</table>

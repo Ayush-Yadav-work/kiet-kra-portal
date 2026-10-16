@@ -1,0 +1,13 @@
+{% extends "reports/base.html" %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<h1 class="title">Alumni Contribution to the Institution through the Registered Alumni Association</h1>
+{% include "reports/_records_table.html" with spec=fields.contributions rows=a.contributions_rows %}
+<p class="table-note">NA = not applicable for the contribution type. Amounts are listed as entered; no totals are calculated.</p>
+{% empty %}
+<h1 class="title">Alumni Contribution to the Institution through the Registered Alumni Association</h1>
+<p class="empty">No contribution records have been added yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

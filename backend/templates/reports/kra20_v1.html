@@ -1,0 +1,12 @@
+{% extends "reports/base.html" %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<h1 class="title">Number of Faculty trained in industry for more than a week</h1>
+{% include "reports/_records_table.html" with spec=fields.trainings rows=a.trainings_rows %}
+{% empty %}
+<h1 class="title">Number of Faculty trained in industry for more than a week</h1>
+<p class="empty">No training records have been added yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

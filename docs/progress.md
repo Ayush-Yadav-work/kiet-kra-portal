@@ -1,7 +1,7 @@
 # Progress
 
-Last updated: 2026-10-16. Current gate: **Phase 2 acceptance (KRA 33 pilot) — waiting for team review.** Do not start
-Phase 3/4 template expansion until the pilot is accepted. Nothing is committed to git yet.
+Last updated: 2026-10-17. Current gate: **Phase 3 complete — waiting for team review of KRAs 20, 7 and 32.** Do not start
+Phase 4 (remaining 41 KRAs) until accepted. Phase 0–2 committed on branch `phase2-kra33-pilot` (3f4748a); Phase 3 changes are uncommitted.
 
 ## Phase 0 — Source audit and seed preparation ✅
 - [x] Inventory of 30 PDFs + workbook with SHA-256, page sizes, visual review → `docs/template-inventory.md`
@@ -31,11 +31,24 @@ Phase 3/4 template expansion until the pilot is accepted. Nothing is committed t
 - [x] Reopen request (incl. no prior row, C2), VC decision → 72 h grant, reject/return grant option (C1), Dean banner with server countdown (C9)
 - [x] Shared save queue with flush on tab switch and 409 handling (C3)
 - [x] Visual comparison of generated PDFs with the source (single event, 3 events × 40 rows long text, empty, Nil, real pilot flow)
-- [ ] Team acceptance of template fidelity/usability ← **next step (human)**
+- [x] Team acceptance of template fidelity/usability — accepted by project owner 2026-10-17
+
+## Phase 3 — Prove remaining template families ✅ (pending review)
+- [x] Outstanding pilot checks: C7 preview scroll preservation (50 rows) and C3 upload-during-autosave now automated browser tests (`e2e/test_browser.py`)
+- [x] Engine generalised without KRA-specific app logic: measured page styles (report/survey/sheet), landscape pages, auto/conditional table columns, card editor for wide tables, ratings grid, exact-decimal fields, row/field rules, single-record templates
+- [x] KRA 20 — wide repeatable table repaired onto A4 landscape (schema `kra20_v1`, template `kra20_v1.html`, shared `_records_table.html`)
+- [x] KRA 7 — consolidated faculty survey with Dean-entered decimal averages (survey header style, `kra7_v1`)
+- [x] KRA 32 — alumni contributions with conditional financial/non-financial fields (`kra32_v1`)
+- [x] Each: draft save/reload, live preview, evidence minimum, PDF export, achievements, Nil, reject-after-close with 72 h grant, resubmit, approve (shared workflow test mixin)
+- [x] Synthetic normal/long/empty/Nil sample PDFs rendered and inspected for all four piloted KRAs
+- [x] Concurrent exports still bounded by the renderer pool (existing C4 test passes)
+- Fixed during Phase 3: Latin-Extended glyphs (₹, Ł, Ś) fell back to system Times → Tinos Latin-Ext embedded; bold header caption synthesised as Type3 → bold face embedded; stale save errors stayed on screen; cross-field/range errors blocked draft saves (now submit-only).
+- Open for the college: D-029, D-030, D-031 (evidence minima, KRA 7 consolidated layout, KRA 32 extra type/column), D-012/D-013 from Phase 2.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 44 KRAs (Phases 3–4); their assignments show "Template pending (Phase 4)".
-- OpenAPI document, frontend component tests and Playwright browser-workflow tests (manual browser walkthrough done instead — see validation).
+- Templates for the other 41 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 6 critical flows, not the full workflow.
+- Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.

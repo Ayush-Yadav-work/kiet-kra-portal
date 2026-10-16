@@ -1,17 +1,22 @@
-import { useState } from 'react'
-import { useFieldArray, useWatch, type Control, type UseFormRegister, type UseFormSetValue } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useFieldArray, useWatch, type Control, type UseFormGetValues, type UseFormRegister, type UseFormSetValue } from 'react-hook-form'
 import type { Field, Payload, Schema } from '../../api/types'
 
 type Errors = Record<string, string[]>
-interface Ctx { control: Control<Payload>; register: UseFormRegister<Payload>; setValue: UseFormSetValue<Payload>; disabled: boolean; errors: Errors }
+interface Ctx {
+  control: Control<Payload>; register: UseFormRegister<Payload>; setValue: UseFormSetValue<Payload>
+  getValues: UseFormGetValues<Payload>; disabled: boolean; errors: Errors
+}
 
 export function emptyValue(f: Field): unknown {
-  return f.type === 'table' || f.type === 'multiselect' ? [] : f.type === 'checklist' ? {} : ''
+  return f.type === 'table' || f.type === 'multiselect' || f.type === 'ratings' ? [] : f.type === 'checklist' ? {} : ''
 }
 export function emptyActivity(schema: Schema) {
   return Object.fromEntries(schema.sections.flatMap((s) => s.fields).map((f) => [f.id, emptyValue(f)]))
 }
 const intOrBlank = (v: unknown) => (v === '' || v === null || v === undefined ? '' : Number(v))
+// Decimals stay the exact entered text so the server can reject (never silently round) extra places.
+const decimalText = (v: unknown) => (v === null || v === undefined ? '' : String(v).trim())
 
 function FieldError({ path, errors }: { path: string; errors: Errors }) {
   const msgs = errors[path]
@@ -36,7 +41,7 @@ function Scalar({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
     case 'integer':
       return <input {...common} type="number" inputMode="numeric" step={1} min={f.min} max={f.max} {...reg({ setValueAs: intOrBlank })} />
     case 'decimal':
-      return <input {...common} type="number" inputMode="decimal" step="any" min={f.min} max={f.max} {...reg({ setValueAs: intOrBlank })} />
+      return <input {...common} type="text" inputMode="decimal" placeholder={f.placeholder ?? `${f.min ?? ''}–${f.max ?? ''}`} {...reg({ setValueAs: decimalText })} />
     case 'date':
       return <input {...common} type="date" {...reg()} />
     case 'select':
@@ -54,6 +59,25 @@ function Scalar({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
         </>
       )
   }
+}
+
+/** Column that applies only for some values of another column in the same row (e.g. payment fields). */
+function ConditionalCell({ c, rowName, ctx }: { c: Field; rowName: string; ctx: Ctx }) {
+  const name = `${rowName}.${c.id}`
+  const ctrl = useWatch({ control: ctx.control, name: `${rowName}.${c.when!.field}` as never }) as unknown as string
+  const applies = c.when!.in.includes(ctrl)
+  useEffect(() => {
+    if (!applies && !ctx.disabled) {
+      const cur = ctx.getValues(name as never) as unknown
+      if (cur !== '' && cur !== undefined && cur !== null) ctx.setValue(name as never, '' as never, { shouldDirty: true })
+    }
+  }, [applies, name, ctx])
+  if (!applies) return <input className="input" value="NA" disabled readOnly aria-label={`${c.label}: not applicable`} />
+  return <Scalar f={c} name={name} ctx={ctx} />
+}
+
+function Cell({ c, rowName, ctx }: { c: Field; rowName: string; ctx: Ctx }) {
+  return c.when ? <ConditionalCell c={c} rowName={rowName} ctx={ctx} /> : <Scalar f={c} name={`${rowName}.${c.id}`} ctx={ctx} />
 }
 
 function MultiSelect({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
@@ -95,40 +119,99 @@ function Checklist({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   )
 }
 
+/** Consolidated averages per survey statement, entered by the Dean (plan 5.4): no tick boxes, no averaging. */
+function Ratings({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
+  const lo = f.scale![0], hi = f.scale![f.scale!.length - 1]
+  return (
+    <fieldset>
+      <legend className="label">{f.label}{f.required && <span className="text-red-700"> *</span>}</legend>
+      <p className="mb-2 text-xs text-slate-500">Scale {lo}–{hi}: {f.scale_labels?.join(' · ')}. Enter the college-prepared average, up to {f.decimal_places ?? 2} decimals.</p>
+      <table className="w-full text-sm">
+        <thead><tr className="text-left"><th className="w-8 p-1">S No.</th><th className="p-1">Statement</th><th className="w-28 p-1">Average ({lo}–{hi})</th></tr></thead>
+        <tbody>
+          {f.items!.map((item, n) => {
+            const p = `${name}.${n}`
+            return (
+              <tr key={n} className="border-t border-slate-100 align-top">
+                <td className="p-1">{n + 1}.</td>
+                <td className="p-1"><label htmlFor={p}>{item}</label></td>
+                <td className="p-1">
+                  <input id={p} className="input" type="text" inputMode="decimal" placeholder={`${lo}–${hi}`} disabled={ctx.disabled}
+                    aria-invalid={!!ctx.errors[p]} {...ctx.register(p as never, { setValueAs: decimalText })} />
+                  <FieldError path={p} errors={ctx.errors} />
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </fieldset>
+  )
+}
+
 function Table({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   const { fields, append, remove } = useFieldArray({ control: ctx.control, name: name as never })
   const values = useWatch({ control: ctx.control, name: name as never }) as Record<string, unknown>[] | undefined
   const max = f.max_rows ?? 100
+  const cols = f.columns!.filter((c) => c.type !== 'auto') // auto columns are filled from the report on render
+  const cards = f.editor === 'cards' || cols.length > 7
   function removeRow(i: number) {
     const row = values?.[i] ?? {}
     const populated = Object.values(row).some((v) => v !== '' && v !== null && v !== undefined)
     if (!populated || window.confirm(`Remove row ${i + 1}? Its entered values will be lost.`)) remove(i)
   }
+  const removeBtn = (i: number) => !ctx.disabled && <button type="button" className="btn-secondary" aria-label={`Remove row ${i + 1}`} onClick={() => removeRow(i)}>✕</button>
   return (
     <div>
       <Label f={f} />
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead><tr className="bg-slate-100 text-left"><th className="p-1 w-10">Sl.</th>{f.columns!.map((c) => <th key={c.id} className="p-1">{c.label}{c.required && <span className="text-red-700"> *</span>}</th>)}<th /></tr></thead>
-          <tbody>
-            {fields.map((row, i) => (
-              <tr key={row.id} className="border-t border-slate-100 align-top">
-                <td className="p-1">{i + 1}</td>
-                {f.columns!.map((c) => {
+      {cards ? (
+        <ol className="space-y-3">
+          {fields.map((row, i) => (
+            <li key={row.id} className="rounded border border-slate-200 p-3">
+              <div className="mb-2 flex items-center justify-between"><span className="text-sm font-semibold">Record {i + 1}</span>{removeBtn(i)}</div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {cols.map((c) => {
                   const p = `${name}.${i}.${c.id}`
-                  return <td key={c.id} className="p-1"><span className="sr-only">{c.label} row {i + 1}</span><Scalar f={c} name={p} ctx={ctx} /><FieldError path={p} errors={ctx.errors} /></td>
+                  return (
+                    <div key={c.id} className={c.type === 'longtext' ? 'sm:col-span-2' : ''}>
+                      <label className="label" htmlFor={p}>{c.label}{c.required && <span className="text-red-700"> *</span>}</label>
+                      <Cell c={c} rowName={`${name}.${i}`} ctx={ctx} />
+                      {c.help && <p className="mt-1 text-xs text-slate-500">{c.help}</p>}
+                      <FieldError path={p} errors={ctx.errors} />
+                    </div>
+                  )
                 })}
-                <td className="p-1">{!ctx.disabled && <button type="button" className="btn-secondary" aria-label={`Remove row ${i + 1}`} onClick={() => removeRow(i)}>✕</button>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead><tr className="bg-slate-100 text-left"><th className="w-10 p-1">Sl.</th>{cols.map((c) => <th key={c.id} className="p-1">{c.label}{c.required && <span className="text-red-700"> *</span>}</th>)}<th /></tr></thead>
+            <tbody>
+              {fields.map((row, i) => (
+                <tr key={row.id} className="border-t border-slate-100 align-top">
+                  <td className="p-1">{i + 1}</td>
+                  {cols.map((c) => {
+                    const p = `${name}.${i}.${c.id}`
+                    return <td key={c.id} className="p-1"><span className="sr-only">{c.label} row {i + 1}</span><Cell c={c} rowName={`${name}.${i}`} ctx={ctx} /><FieldError path={p} errors={ctx.errors} /></td>
+                  })}
+                  <td className="p-1">{removeBtn(i)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {!ctx.disabled && (
         <button type="button" className="btn-secondary mt-2" disabled={fields.length >= max}
-          onClick={() => append(Object.fromEntries(f.columns!.map((c) => [c.id, emptyValue(c)])) as never)}>
-          + Add row {fields.length >= max && `(max ${max})`}
+          onClick={() => append(Object.fromEntries(cols.map((c) => [c.id, emptyValue(c)])) as never)}>
+          + Add {cards ? 'record' : 'row'} {fields.length >= max && `(max ${max})`}
         </button>
+      )}
+      {f.columns!.some((c) => c.type === 'auto') && (
+        <p className="mt-1 text-xs text-slate-500">{f.columns!.filter((c) => c.type === 'auto').map((c) => c.label).join(' and ')} are filled from this report automatically.</p>
       )}
     </div>
   )
@@ -140,6 +223,7 @@ function FieldView({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   if (f.type === 'table') body = <Table f={f} name={name} ctx={ctx} />
   else if (f.type === 'multiselect') body = <MultiSelect f={f} name={name} ctx={ctx} />
   else if (f.type === 'checklist') body = <Checklist f={f} name={name} ctx={ctx} />
+  else if (f.type === 'ratings') body = <Ratings f={f} name={name} ctx={ctx} />
   else body = <><Label f={f} htmlFor={name} /><Scalar f={f} name={name} ctx={ctx} /></>
   return (
     <div className="mb-3">
@@ -161,6 +245,7 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
   const values = useWatch({ control: ctx.control, name: 'activities' })
   const [open, setOpen] = useState(0)
   const label = schema.activity.label
+  const single = schema.activity.max === 1 // one consolidated record set per period: no event tabs
   function removeActivity(i: number) {
     const name = String(values?.[i]?.event_name || `${label} ${i + 1}`)
     if (window.confirm(`Remove "${name}" and everything entered for it?`)) { remove(i); setOpen(0) }
@@ -168,18 +253,20 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
   return (
     <div>
       <FieldError path="activities" errors={ctx.errors} />
-      <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label={`${label}s in this report`}>
-        {fields.map((a, i) => (
-          <button key={a.id} type="button" role="tab" aria-selected={open === i} onClick={() => setOpen(i)}
-            className={open === i ? 'btn-primary' : 'btn-secondary'}>
-            {label} {i + 1}{Object.keys(ctx.errors).some((k) => k.startsWith(`activities.${i}.`)) && <span className="text-red-300"> ●</span>}
-          </button>
-        ))}
-        {!ctx.disabled && (
-          <button type="button" className="btn-secondary" disabled={fields.length >= schema.activity.max}
-            onClick={() => { append(emptyActivity(schema) as never); setOpen(fields.length) }}>+ Add {label.toLowerCase()}</button>
-        )}
-      </div>
+      {!single && (
+        <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label={`${label}s in this report`}>
+          {fields.map((a, i) => (
+            <button key={a.id} type="button" role="tab" aria-selected={open === i} onClick={() => setOpen(i)}
+              className={open === i ? 'btn-primary' : 'btn-secondary'}>
+              {label} {i + 1}{Object.keys(ctx.errors).some((k) => k.startsWith(`activities.${i}.`)) && <span className="text-red-300"> ●</span>}
+            </button>
+          ))}
+          {!ctx.disabled && (
+            <button type="button" className="btn-secondary" disabled={fields.length >= schema.activity.max}
+              onClick={() => { append(emptyActivity(schema) as never); setOpen(fields.length) }}>+ Add {label.toLowerCase()}</button>
+          )}
+        </div>
+      )}
       {fields.map((a, i) => (
         <div key={a.id} hidden={open !== i}>
           <nav className="mb-3 flex flex-wrap gap-2 text-xs" aria-label="Sections">
@@ -192,7 +279,7 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
               {s.fields.map((f) => <FieldView key={f.id} f={f} name={`activities.${i}.${f.id}`} ctx={ctx} />)}
             </section>
           ))}
-          {!ctx.disabled && fields.length > 1 && <button type="button" className="btn-danger" onClick={() => removeActivity(i)}>Remove {label.toLowerCase()} {i + 1}</button>}
+          {!single && !ctx.disabled && fields.length > 1 && <button type="button" className="btn-danger" onClick={() => removeActivity(i)}>Remove {label.toLowerCase()} {i + 1}</button>}
         </div>
       ))}
     </div>

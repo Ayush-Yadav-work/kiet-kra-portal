@@ -1,0 +1,184 @@
+"""Browser regression tests against the running local stack (Vite :5173, Django :8000, renderer :8790).
+
+  python e2e/test_browser.py            # needs `manage.py seed_demo`; uses the synthetic demo.dean.ece account
+
+They change only demo data (ECE draft rows in the open period). SYNTHETIC values only.
+"""
+import json
+import re
+import sys
+import unittest
+from pathlib import Path
+
+from playwright.sync_api import expect, sync_playwright
+
+ROOT = Path(__file__).resolve().parent.parent
+BASE = "http://localhost:5173"
+CREDS = dict(re.findall(r"^(?:VC|DEAN)\s+(\S+)\s+(\S+)$", (ROOT / ".work" / "demo-credentials.txt").read_text(), re.M))
+
+
+def login(page, portal, username):
+    page.goto(f"{BASE}/{portal}/login")
+    page.get_by_label("Username").fill(username)
+    page.get_by_label("Password", exact=True).fill(CREDS[username])
+    page.get_by_role("button", name="Sign in").click()
+
+
+def api(page, method, path, body=None):
+    token = next(c["value"] for c in page.context.cookies() if c["name"] == "csrftoken")
+    r = page.request.fetch(f"{BASE}/api/v1{path}", method=method, headers={"X-CSRFToken": token, "Content-Type": "application/json"},
+                           data=json.dumps(body) if body is not None else None)
+    return r.status, (r.json() if "json" in r.headers.get("content-type", "") else None)
+
+
+def open_ece_kra(page, kra_number):
+    """Open the ECE workspace for the open period; returns submission id."""
+    page.goto(f"{BASE}/dean/dashboard")
+    _, rows = api(page, "GET", "/periods/?year=2026-27")
+    period = next(p for p in rows["results"] if p["is_open"])
+    _, data = api(page, "GET", f"/assignments/?year=2026-27&period={period['id']}")
+    asg = next(a for a in data["results"] if a["kra"]["number"] == kra_number)
+    page.goto(f"{BASE}/dean/kra/{asg['id']}/{period['id']}")
+    page.get_by_role("tab", name="Report").wait_for()
+    _, info = api(page, "GET", f"/assignments/{asg['id']}/periods/{period['id']}/")
+    return info["submission_id"]
+
+
+class BrowserTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.pw = sync_playwright().start()
+        cls.browser = cls.pw.chromium.launch()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.close()
+        cls.pw.stop()
+
+    def setUp(self):
+        self.ctx = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        self.page = self.ctx.new_page()
+
+    def tearDown(self):
+        self.ctx.close()
+
+    def test_portals_reject_wrong_role(self):
+        p = self.page
+        login(p, "vc", "demo.dean.ece")
+        expect(p.get_by_role("alert")).to_contain_text("Invalid username or password for this portal")
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url(f"{BASE}/dean/dashboard")
+        p.goto(f"{BASE}/vc/dashboard")
+        p.wait_for_url(f"{BASE}/dean/dashboard")  # typed URL cannot cross roles
+
+    def test_c7_preview_keeps_scroll_while_editing_50_row_table(self):
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 33)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        rows = [{"alumni_name": f"Test Alumnus {i}", "batch_programme": "2019", "organization": "Example Org",
+                 "nature": "Mentoring", "date_activity": "1 Oct", "students_benefited": i} for i in range(50)]
+        status, _ = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"],
+                        "payload": {"activities": [{"event_name": "Synthetic 50-row event", "engagements": rows}]}})
+        self.assertEqual(status, 200)
+        p.reload()
+        frame = p.frame_locator("iframe[title='Report preview']")
+        expect(frame.get_by_text("Test Alumnus 49")).to_be_visible(timeout=10000)
+        handle = p.locator("iframe[title='Report preview']").element_handle().content_frame()
+        handle.evaluate("window.scrollTo(0, 1500)")
+        before = handle.evaluate("window.scrollY")
+        self.assertGreater(before, 1000)
+        with p.expect_response(lambda r: "/preview/" in r.url and r.status == 200):
+            p.locator("input[name='activities.0.engagements.25.alumni_name']").fill("Edited Alumnus 25")
+        frame.get_by_text("Edited Alumnus 25").wait_for()
+        p.wait_for_timeout(300)
+        after = p.locator("iframe[title='Report preview']").element_handle().content_frame().evaluate("window.scrollY")
+        self.assertAlmostEqual(after, before, delta=5, msg="preview scroll position must be preserved (C7)")
+
+    def test_c3_evidence_upload_during_autosave_no_conflict(self):
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 33)
+        p.locator("input[name='activities.0.chapter_name']").fill("Synthetic chapter typed before upload")
+        # Upload while the debounced autosave is pending/in flight, through the Evidence tab (tab switch flushes).
+        p.get_by_role("tab", name="Evidence").click()
+        p.get_by_label("Category").select_option("Photographs")
+        p.get_by_label("Label").fill("Synthetic photo")
+        p.set_input_files("#ev-file", files=[{"name": "photo.png", "mimeType": "image/png",
+                                               "buffer": b"\x89PNG\r\n\x1a\n" + b"0" * 512}])
+        p.get_by_role("button", name="Add evidence").click()
+        expect(p.get_by_text("Synthetic photo").first).to_be_visible()
+        p.get_by_role("tab", name="Report").click()
+        p.locator("input[name='activities.0.chapter_name']").fill("Synthetic chapter typed after upload")
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        self.assertEqual(p.get_by_text("Conflict").count(), 0)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        self.assertEqual(d["payload"]["activities"][0]["chapter_name"], "Synthetic chapter typed after upload")
+
+    # ---- Phase 3 templates ----
+    def test_kra32_conditional_payment_fields(self):
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 32)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": {"activities": [{}]}})
+        p.reload()
+        p.get_by_role("button", name="+ Add record").click()
+        row = "activities.0.contributions.0"
+        p.locator(f"select[name='{row}.contribution_type']").select_option("Financial Contribution")
+        p.locator(f"input[name='{row}.amount']").fill("1500.75")
+        expect(p.get_by_label("Item/Asset Details (non-financial): not applicable")).to_be_visible()
+        p.locator(f"select[name='{row}.contribution_type']").select_option("Equipment/Asset")
+        expect(p.get_by_label("Amount (₹): not applicable")).to_be_visible()  # payment fields switch to NA
+        p.locator(f"textarea[name='{row}.item_details']").fill("Synthetic projector")
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        rec = d["payload"]["activities"][0]["contributions"][0]
+        self.assertEqual(rec["amount"], "")  # stale payment value cleared, not silently kept
+        self.assertEqual(rec["item_details"], "Synthetic projector")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        expect(frame.get_by_text("Synthetic projector")).to_be_visible(timeout=10000)
+
+    def test_kra7_decimal_kept_exactly_through_autosave_and_reload(self):
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 7)
+        p.locator("[id='activities.0.ratings.0']").fill("3.80")
+        p.locator("[id='activities.0.overall_satisfaction']").fill("7.50")
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        p.reload()
+        expect(p.locator("[id='activities.0.ratings.0']")).to_have_value("3.80")
+        expect(p.locator("[id='activities.0.overall_satisfaction']")).to_have_value("7.50")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        expect(frame.get_by_text("7.50 / 10")).to_be_visible(timeout=10000)
+
+    def test_kra20_card_editor_saves_record(self):
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 20)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": {"activities": [{}]}})
+        p.reload()
+        p.get_by_role("button", name="+ Add record").click()
+        p.get_by_role("button", name="+ Add record").click()
+        p.locator("input[name='activities.0.trainings.1.faculty_name']").fill("Synthetic Faculty Two")
+        p.locator("input[name='activities.0.trainings.1.start_date']").fill("2026-09-01")
+        p.locator("input[name='activities.0.trainings.1.end_date']").fill("2026-08-01")  # bad order still saves as draft
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        self.assertEqual(len(d["payload"]["activities"][0]["trainings"]), 2)
+        _, v = api(p, "POST", f"/submissions/{sid}/validate/")
+        self.assertIn("activities.0.trainings.1.end_date", v["field_errors"])
+
+
+if __name__ == "__main__":
+    unittest.main(argv=sys.argv[:1], verbosity=2)

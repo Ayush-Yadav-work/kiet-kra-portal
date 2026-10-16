@@ -1,0 +1,63 @@
+{% extends "reports/base.html" %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<h1 class="title survey-title">Curriculum Feedback Survey Form (for Faculty Members)</h1>
+<p class="consolidated-note">Consolidated report prepared by the department from {% if a.respondents != "" %}{{ a.respondents }}{% else %}[not entered]{% endif %} faculty response(s). Values are averages prepared by the college, not an individual response.</p>
+
+<table class="kv survey">
+  <thead><tr><th colspan="2" class="shade">Details of Faculty Member (consolidated)</th></tr></thead>
+  <tr><th class="shade">Name &amp; Designation</th><td>Consolidated response of {% if a.respondents != "" %}{{ a.respondents }}{% else %}__{% endif %} of {% if a.eligible != "" %}{{ a.eligible }}{% else %}__{% endif %} faculty members surveyed</td></tr>
+  <tr><th class="shade">Email ID</th><td class="na">Not applicable (consolidated report)</td></tr>
+  <tr><th class="shade">Mobile No.</th><td class="na">Not applicable (consolidated report)</td></tr>
+  <tr><th class="shade">Academic Year/ Semester</th><td>{{ snap.year }}{% if a.semester %} / {{ a.semester }}{% endif %}</td></tr>
+  <tr><th class="shade">Department</th><td>{{ snap.department.name }}</td></tr>
+  <tr><th class="shade">Subject</th><td>{{ a.subjects|linebreaksbr }}</td></tr>
+  <tr><th class="shade">Feedback collection period</th><td>{{ a.collection_period }}</td></tr>
+  <tr><th class="shade">Consolidated by</th><td>{{ a.consolidated_by }}</td></tr>
+</table>
+
+<table class="survey ratings">
+  <thead>
+    <tr><th colspan="8" class="shade">Feedback Survey Form for Faculty member</th></tr>
+    <tr><th style="width:6%">S No.</th><th style="width:37%">Tick Any<br>Grading from 1 to 5</th>
+      <th style="width:7%">Poor<br>(1)</th><th style="width:9%">Satisfactory<br>(2)</th><th style="width:7%">Good<br>(3)</th>
+      <th style="width:8%">Very Good<br>(4)</th><th style="width:9%">Excellent<br>(5)</th><th style="width:17%" class="avg">Consolidated Average (1–5)</th></tr>
+  </thead>
+  {% for n, item, value in a.ratings_items %}
+  <tr><td class="center">{{ n }}.</td><td>{{ item }}</td><td></td><td></td><td></td><td></td><td></td>
+    <td class="center avg">{% if value != "" %}<b>{{ value }}</b>{% else %}<span class="empty">—</span>{% endif %}</td></tr>
+  {% endfor %}
+  <tr><td colspan="8" class="caption">Rating columns are not ticked in a consolidated report; the exact average entered by the department is shown in the last column.</td></tr>
+</table>
+
+<table class="survey overall">
+  <tr><th colspan="10" class="left">On a scale of 1 to 10 how do you rate your overall satisfaction with the prescribed syllabus and the curriculum?</th></tr>
+  <tr>{% for i in "12345678910"|make_list %}{% if forloop.counter < 10 %}<td class="center">{{ i }}</td>{% endif %}{% endfor %}<td class="center">10</td></tr>
+  <tr><td colspan="10" class="avg">Consolidated average: {% if a.overall_satisfaction != "" %}<b>{{ a.overall_satisfaction }} / 10</b>{% else %}<span class="empty">not entered</span>{% endif %}</td></tr>
+</table>
+
+<table class="survey box">
+  <tr><th class="left">Suggestions if Any (consolidated):</th></tr>
+  <tr><td class="tall">{% if a.suggestions %}{{ a.suggestions|linebreaksbr }}{% else %}<span class="empty">None recorded</span>{% endif %}</td></tr>
+</table>
+
+<h2>Feedback Analysis</h2>
+<h3>a) Action Taken</h3>
+{% if a.action_taken %}<p>{{ a.action_taken|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+<h3>b) Impact Analysis</h3>
+{% if a.impact_analysis %}<p>{{ a.impact_analysis|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+<h3>c) Discussion in BoS</h3>
+{% if a.bos_discussion %}<p>{{ a.bos_discussion|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<div class="signoff">
+  <div>Consolidated by: <span class="val">{% if a.consolidated_by %}{{ a.consolidated_by }}{% else %}____________________{% endif %}</span></div>
+  <div>Head/Dean: <span class="val">____________________</span></div>
+  <div>Date: <span class="val">{% if a.report_date_display %}{{ a.report_date_display }}{% else %}____________________{% endif %}</span></div>
+</div>
+{% empty %}
+<h1 class="title survey-title">Curriculum Feedback Survey Form (for Faculty Members)</h1>
+<p class="empty">Nothing has been entered yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

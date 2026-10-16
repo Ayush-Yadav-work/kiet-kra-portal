@@ -41,3 +41,50 @@ def kra33_activity(i=1, rows=3, long_text=False):
 
 def kra33_payload(events=1, rows=3, long_text=False):
     return {"activities": [kra33_activity(i + 1, rows, long_text) for i in range(events)]}
+
+
+def kra20_payload(rows=5, long_text=False):
+    out = []
+    for i in range(rows):
+        out.append({
+            "faculty_name": f"Test Faculty {i + 1} Ñúñez-Śarmā", "employee_id": f"T{1000 + i}",
+            "designation": "Assistant Professor", "organization": f"Example Industries Pvt Ltd Unit {i % 4 + 1}",
+            "training_title": "Synthetic industrial training on embedded systems" + (" and IoT deployment practices" * 3 if long_text else ""),
+            "start_date": "2026-09-01", "end_date": "2026-09-12", "duration": "12 days",
+            "mode": "Offline" if i % 3 else "Online", "certificate_no": f"CERT-TEST-{i:03d}" if i % 4 else "",
+            "mentor": "Test Mentor", "outcome": "Synthetic outcome: lab exercise redesigned." * (6 if long_text else 1),
+        })
+    return {"activities": [{"trainings": out}]}
+
+
+def kra7_payload(long_text=False):
+    para = "Synthetic consolidated text for layout testing. " * (40 if long_text else 2)
+    return {"activities": [{
+        "semester": "Odd semester", "subjects": "Synthetic Subject A; Synthetic Subject B" + ("; Synthetic Subject C" * 10 if long_text else ""),
+        "collection_period": "1–15 October 2026", "eligible": 42, "respondents": 38,
+        "consolidated_by": "Test Coordinator, IQAC Cell",
+        "ratings": ["4.25", "3.80", "4", "4.05", "3.5", "4.71", "2.95", "4.10", "3.33", "1.05"],
+        "overall_satisfaction": "7.85",
+        "suggestions": "Synthetic suggestion one\nSynthetic suggestion two" + ("\n" + para if long_text else ""),
+        "action_taken": para, "impact_analysis": "Pending — synthetic, review due next semester.",
+        "bos_discussion": para, "report_date": "2026-10-20",
+    }]}
+
+
+def kra32_payload(rows=4, long_text=False):
+    out = []
+    types = ["Financial Contribution", "Equipment/Asset", "Financial Contribution", "Other Non-financial"]
+    for i in range(rows):
+        t = types[i % 4]
+        row = {"association_name": "Synthetic KIET Alumni Association", "registration_no": "REG-TEST-001",
+               "donor_name": f"Test Alumna {i + 1} Zoë Łukasz", "alumni_id": f"ALM-T{i:04d}",
+               "contribution_date": "2026-09-2" + str(i % 9), "contribution_type": t,
+               "purpose": "Synthetic scholarship fund" if t.startswith("Financial") else "Synthetic lab equipment",
+               "utilization": "Synthetic utilization note." * (8 if long_text else 1), "evidence_ref": f"Receipt {i + 1}"}
+        if t.startswith("Financial"):
+            row.update(amount=["25000.00", "2500.5"][(i // 2) % 2], payment_mode=["NEFT", "UPI"][(i // 2) % 2],
+                       receipt_no=f"RCPT-T{i:03d}", transaction_ref=f"TXN-SYN-{i:06d}")
+        else:
+            row["item_details"] = "2 synthetic oscilloscopes" + (" with accessories and manuals" * 4 if long_text else "")
+        out.append(row)
+    return {"activities": [{"contributions": out}]}

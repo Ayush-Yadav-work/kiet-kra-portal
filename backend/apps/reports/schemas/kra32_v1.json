@@ -1,0 +1,49 @@
+{
+  "key": "kra32",
+  "version": 1,
+  "title": "Alumni Contribution",
+  "source": "reference/templates/KRA 32 Alumni Contribution.xlsx - Sheet1.pdf",
+  "source_checksum": "5f633f2b9319334074c5d52c8b30677fed6875ddbfb461578f5a72c91c65fe59",
+  "page": {"format": "A4", "landscape": true, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "Alumni contributions through the registered Alumni Association",
+      "intro": "One record per contribution. Payment fields apply only to financial contributions; for equipment/assets or other non-financial support describe the item instead. The portal does not total amounts — enter the period achievement yourself.",
+      "fields": [
+        {"id": "contributions", "label": "Contribution records", "type": "table", "required": true, "min_rows": 1, "max_rows": 100, "editor": "cards",
+         "columns": [
+           {"id": "academic_year", "label": "Academic Year", "type": "auto", "source": "year", "width": "4.5%"},
+           {"id": "association_name", "label": "Alumni Association Name", "type": "text", "required": true, "max_length": 200, "width": "7%"},
+           {"id": "registration_no", "label": "Registration No.", "type": "text", "required": true, "max_length": 80, "width": "5.5%"},
+           {"id": "donor_name", "label": "Donor/Alumnus Name", "type": "text", "required": true, "max_length": 150, "width": "7%"},
+           {"id": "alumni_id", "label": "Alumni ID", "type": "text", "required": true, "max_length": 60, "width": "5%"},
+           {"id": "contribution_date", "label": "Date of Contribution", "type": "date", "required": true, "width": "6.5%"},
+           {"id": "contribution_type", "label": "Contribution Type", "type": "select", "required": true, "width": "7%",
+            "options": ["Financial Contribution", "Equipment/Asset", "Other Non-financial"]},
+           {"id": "purpose", "label": "Purpose", "type": "text", "required": true, "max_length": 250, "width": "7%"},
+           {"id": "amount", "label": "Amount (₹)", "type": "decimal", "required": true, "min": 0.01, "max": 1000000000, "decimal_places": 2, "width": "5.5%",
+            "when": {"field": "contribution_type", "in": ["Financial Contribution"]}, "placeholder": "e.g. 25000.00"},
+           {"id": "payment_mode", "label": "Mode of Payment", "type": "select", "required": true, "options": ["NEFT", "RTGS", "UPI", "Cheque"], "width": "5%",
+            "when": {"field": "contribution_type", "in": ["Financial Contribution"]}},
+           {"id": "receipt_no", "label": "Receipt No.", "type": "text", "required": true, "max_length": 80, "width": "5%",
+            "when": {"field": "contribution_type", "in": ["Financial Contribution"]}},
+           {"id": "transaction_ref", "label": "Bank/Transaction Ref.", "type": "text", "required": true, "max_length": 120, "width": "6%",
+            "when": {"field": "contribution_type", "in": ["Financial Contribution"]}},
+           {"id": "item_details", "label": "Item/Asset Details (non-financial)", "type": "longtext", "required": true, "max_length": 600, "width": "7%",
+            "when": {"field": "contribution_type", "in": ["Equipment/Asset", "Other Non-financial"]},
+            "help": "What was contributed (quantity, description; value if formally assessed)."},
+           {"id": "utilization", "label": "Utilization", "type": "longtext", "required": true, "max_length": 1000, "width": "8%"},
+           {"id": "evidence_ref", "label": "Evidence", "type": "text", "required": false, "max_length": 150, "width": "5.5%",
+            "help": "Label of the matching item in the Evidence tab (files are never embedded in this PDF)."}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Donation/Acknowledgement Letter", "Payment Receipt", "Bank/Transaction Proof", "Asset Handover/Stock Register Entry",
+                   "Utilization Certificate", "Alumni Association Registration", "Other"],
+    "required": ["Donation/Acknowledgement Letter"],
+    "note": "Proposed minimum set (docs/decisions.md D-031), pending college review. Add payment receipts for financial contributions. Nil submissions need no evidence."
+  }
+}
