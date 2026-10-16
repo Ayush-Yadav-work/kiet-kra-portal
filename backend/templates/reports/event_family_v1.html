@@ -1,0 +1,74 @@
+{% extends "reports/base.html" %}
+{% comment %}KRAs 27–30 portal event-organizing format (D-052): no supplied template; one section per event, shared
+details/participation/narratives/evidence with the KRA-specific detail rows from schema.family.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% with fam=schema.family %}
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Event {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">{{ fam.title }}</h1>
+<p class="center fdp-sub">Portal report format — no event template was supplied for this KRA</p>
+
+<p class="bold k11-label">1. Event details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:36%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Academic Year / Reporting Period</td><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
+  <tr><td>Title of the event</td><td>{{ a.event_title }}</td></tr>
+  <tr><td>Category</td><td>{{ a.category }}</td></tr>
+  {% if fam.kra == 27 %}<tr><td>Sport(s) / game(s)</td><td>{{ a.sport }}</td></tr>
+  <tr><td>Competition format</td><td>{{ a.competition_format|default:"—" }}</td></tr>
+  <tr><td>Number of teams</td><td>{% if a.teams != "" %}{{ a.teams }}{% else %}—{% endif %}</td></tr>
+  {% elif fam.kra == 28 %}<tr><td>Cultural activity / art form(s)</td><td>{{ a.cultural_activity }}</td></tr>
+  {% elif fam.kra == 29 %}<tr><td>Technical / academic theme</td><td>{{ a.theme }}</td></tr>
+  <tr><td>Sub-events / tracks</td><td>{% if a.sub_events %}{{ a.sub_events|linebreaksbr }}{% else %}—{% endif %}</td></tr>
+  {% else %}<tr><td>Name of the club / forum</td><td>{{ a.club_name }}</td></tr>
+  <tr><td>Semester</td><td>{{ a.semester }}</td></tr>{% endif %}
+  <tr><td>Dates</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
+  <tr><td>Venue / Mode</td><td>{{ a.venue }}{% if a.venue and a.mode %} / {% endif %}{{ a.mode }}</td></tr>
+  <tr><td>Organized by</td><td>{{ a.organizer }}</td></tr>
+  <tr><td>Faculty coordinator(s)</td><td>{{ a.coordinators }}</td></tr>
+  <tr><td>Student coordinator(s)</td><td>{{ a.student_coordinators|default:"—" }}</td></tr>
+  <tr><td>Collaborating organization(s)</td><td>{{ a.collaborators|default:"—" }}</td></tr>
+  <tr><td>Resource persons / judges / guests</td><td>{% if a.resource_persons %}{{ a.resource_persons|linebreaksbr }}{% else %}—{% endif %}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Participation</p>
+<table class="k11-grid mou-kv">
+  <tr><td style="width:36%">Target audience</td><td>{{ a.target_audience }}</td></tr>
+  <tr><td>Student participants</td><td>{{ a.participants_students }}</td></tr>
+  <tr><td>Faculty participants</td><td>{{ a.participants_faculty }}</td></tr>
+  <tr><td>External participants</td><td>{{ a.participants_external }}</td></tr>
+  <tr><td>Participating institutions</td><td>{% if a.institutions != "" %}{{ a.institutions }}{% else %}—{% endif %}</td></tr>
+</table>
+</div>
+
+<div class="keep"><p class="bold k11-label">3. Objectives</p>
+{% if a.objectives_list %}<ul>{% for o in a.objectives_list %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+<p class="bold k11-label">4. Description of the activity</p>
+{% if a.description %}<p>{{ a.description|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+<div class="keep"><p class="bold k11-label">5. Outcomes</p>
+{% if a.outcomes_list %}<ul>{% for o in a.outcomes_list %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+<div class="keep"><p class="bold k11-label">6. Feedback</p>
+{% if a.feedback %}<p>{{ a.feedback|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+
+<div class="keep">
+<p class="bold k11-label">7. Documentary evidence</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:12%">Sl. No.</th><th>Evidence</th><th style="width:20%">Maintained</th></tr></thead>
+  {% for item, val in a.doc_checklist_items %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td class="center">{{ val|default:"—" }}</td></tr>{% endfor %}
+</table>
+<p class="table-note">Files are kept in the portal's Evidence tab, not in this PDF.</p>
+<div class="signoff"><div>Report prepared by: <span class="val">{% if a.reported_by %}{{ a.reported_by }}{% else %}____________________{% endif %}</span></div>
+  <div>Date: <span class="val">{% if a.report_date_display %}{{ a.report_date_display }}{% else %}____________{% endif %}</span></div></div>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">{{ fam.title }}</h1>
+<p class="empty">No events have been added to this report yet.</p>
+{% endfor %}
+{% endwith %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

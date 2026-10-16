@@ -545,5 +545,38 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_kra27_28_29_30_events(self):
+        """Events batch: for KRAs 27–30 two synthetic events are stored, the second event's KRA-specific field edited in the form,
+        saved, reloaded, previewed (both events, edited value) and exported."""
+        from tests.fixtures import event_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        specific = {27: "sport", 28: "cultural_activity", 29: "theme", 30: "club_name"}
+        for n, field in specific.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": event_payload(n, 2),
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            p.get_by_role("tab", name=re.compile("Event 2")).click()
+            value = f"Synthetic {field} {n} {int(time.time())}"
+            box = p.locator(f"[name='activities.1.{field}']")
+            box.fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            p.get_by_role("tab", name=re.compile("Event 2")).click()
+            expect(p.locator(f"[name='activities.1.{field}']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            expect(frame.get_by_text("Event 2 of 2")).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

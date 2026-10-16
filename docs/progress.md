@@ -105,11 +105,17 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] KRA 12 `kra12_v1`: source header + structured award records inside the open details area (D-050)
 - [x] KRAs 25/26: awards sheet family, separate datasets; team award = one record with all members (D-051)
 - [x] Mappings idempotent, targets unchanged; no computed counts; frontend unchanged
-- Open: D-050–D-051 college questions. Committed on phase2-kra33-pilot.
+- Open: D-050–D-051 college questions. Committed (11a519c).
+
+## Phase 4 (bounded) — KRAs 27–30 events organized ✅ (pending review)
+- [x] Portal event-organizing format (no supplied template): `event_schema` + `event_family_v1.html`, four configurations (D-052)
+- [x] KRA-specific fields (sport, cultural activity, theme, club/forum + semester); multiple events per report; no totals
+- [x] Mappings idempotent, targets unchanged (KRA 30 per-club/per-semester target shown as assigned); frontend unchanged
+- Open: D-052 college questions. Committed on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 16 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 12 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
