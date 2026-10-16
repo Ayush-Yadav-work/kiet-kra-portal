@@ -511,5 +511,39 @@ class BrowserTests(unittest.TestCase):
         r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
         self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
 
+    def test_kra12_25_26_awards(self):
+        """Awards batch: KRA 12 award title edited in its card; KRAs 25/26 a team award's member list edited (one record, several
+        names) — each saved, reloaded, previewed and exported."""
+        from tests.fixtures import award_payload, kra12_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        cases = {12: (kra12_payload(2), "activities.0.awards.0.award_title", None),
+                 25: (award_payload(25, 2), "activities.0.records.1.student_names", "\n"),
+                 26: (award_payload(26, 2), "activities.0.records.1.student_names", "\n")}
+        for n, (payload, field, sep) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            stamp = int(time.time())
+            value = f"Synthetic award {n} {stamp}" if sep is None else f"Team member A {stamp}{sep}Team member B {stamp}"
+            p.locator(f"[name='{field}']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator(f"[name='{field}']")).to_have_value(value)
+            expect(frame.get_by_text(f"Team member B {stamp}" if sep else value).first).to_be_visible(timeout=10000)
+            if sep:
+                expect(frame.locator("table.records tbody tr")).to_have_count(2)  # team award stays one row
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

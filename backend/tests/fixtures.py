@@ -456,3 +456,32 @@ def kra24_student(i=1, long_text=False):
 
 def kra24_payload(rows=6, long_text=False):
     return {"activities": [{"records": [kra24_student(i + 1, long_text) for i in range(rows)]}]}
+
+
+def kra12_award(i=1, long_text=False):
+    team = i % 2 == 0
+    extra = " Synthetic extended description for layout testing." * (15 if long_text else 0)
+    return {"recipients": "Test Faculty A\nTest Student B Zoë\nTest Student C" if team else f"Test Faculty {i}",
+            "recipient_category": ["Faculty", "Student", "Department", "Institute"][i % 4], "award_title": f"Synthetic Innovation Award {i}",
+            "awarding_body": "Example Science Council (synthetic)", "award_date": f"2026-09-{1 + i % 28:02d}",
+            "level": "" if i % 3 == 0 else "National", "contribution": "Synthetic low-cost sensor design." + extra[:400],
+            "description": "Synthetic description of the recognition." + extra}
+
+
+def kra12_payload(awards=3, long_text=False):
+    return {"activities": [{"coordinator": "Test Coordinator", "report_date": "2026-10-05",
+                            "awards": [kra12_award(i + 1, long_text) for i in range(awards)]}]}
+
+
+def award_record(kra, i=1, long_text=False):
+    team = i % 2 == 0
+    sport = "Synthetic Football" if kra == 25 else "Synthetic Group Dance"
+    return {"student_names": "\n".join(f"Test Student {i}.{m + 1}" for m in range(11 if long_text else 4)) if team else f"Test Student {i} Zoë",
+            "event": (f"{sport} Championship {i}" if team else f"Synthetic Solo Event {i}") + (" — inter-university zonal finals" if long_text else ""),
+            "event_date": f"2026-09-{1 + i % 28:02d}", "participation": "Team" if team else "Individual",
+            "level": ["University (inter-university)", "State", "National", "International"][i % 4],
+            "position": ["First", "Second", "Gold medal", "Third"][i % 4], "organiser": "Example University (synthetic)"}
+
+
+def award_payload(kra, rows=4, long_text=False):
+    return {"activities": [{"records": [award_record(kra, i + 1, long_text) for i in range(rows)]}]}

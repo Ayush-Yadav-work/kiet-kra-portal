@@ -1,0 +1,43 @@
+{
+  "key": "kra12",
+  "version": 1,
+  "title": "Awards and Recognition for Research/Innovations by Faculty/Students/Dept./Institute",
+  "source": "reference/templates/KRA 12 Report on Awards and Recognition.docx.pdf",
+  "source_checksum": "bccd58e681f964a2f370f43a252bec50b3221a125503562a194fcc9a5e689929",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "header", "title": "Report details",
+      "intro": "School/Department, Academic Session and Reporting Period are filled from this report.",
+      "fields": [
+        {"id": "coordinator", "label": "Coordinator (if any)", "type": "text", "required": false, "max_length": 150},
+        {"id": "report_date", "label": "Date", "type": "date", "required": false}
+      ]
+    },
+    {
+      "id": "awards", "title": "Complete Detail of Award/ Recognition",
+      "intro": "The source leaves this area open; the structured fields below are an approved-format adaptation (D-050). One record per award; an award shared by several people is one record listing all recipients.",
+      "fields": [
+        {"id": "awards", "label": "Awards / recognitions", "type": "table", "required": true, "min_rows": 1, "max_rows": 50, "editor": "cards",
+         "columns": [
+           {"id": "recipients", "label": "Recipient name(s) (one per line)", "type": "longtext", "required": true, "max_length": 1000},
+           {"id": "recipient_category", "label": "Recipient category", "type": "select", "required": true,
+            "options": ["Faculty", "Student", "Department", "Institute"]},
+           {"id": "award_title", "label": "Award / recognition title", "type": "text", "required": true, "max_length": 250},
+           {"id": "awarding_body", "label": "Awarding organization", "type": "text", "required": true, "max_length": 250},
+           {"id": "award_date", "label": "Date of award", "type": "date", "required": true},
+           {"id": "level", "label": "Level (where applicable)", "type": "text", "required": false, "max_length": 60,
+            "placeholder": "e.g. National", "help": "Leave blank when the award has no level."},
+           {"id": "contribution", "label": "Research/innovation contribution recognised", "type": "longtext", "required": true, "max_length": 1000},
+           {"id": "description", "label": "Description", "type": "longtext", "required": true, "max_length": 2000}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Award Certificate/Letter", "Citation", "Photographs", "News/Media Coverage", "Other"],
+    "required": [],
+    "note": "The source lists no evidence; no minimum set has been agreed (docs/decisions.md D-050)."
+  }
+}

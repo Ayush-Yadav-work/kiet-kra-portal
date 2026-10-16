@@ -1,0 +1,41 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 12 (D-050): source header block and sign-off labels; the open "Complete Detail of Award/ Recognition" area
+holds structured award records (approved-format adaptation). Signature labels are blank lines only; verification is the
+server label below.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 awd">
+<h1 class="title fdp-title">Awards and Recognition for Research/Innovations by Faculty/Students/Dept./Institute</h1>
+<table class="k11-grid mou-kv awd-head">
+  <tr><td style="width:32%"><b>School/Department:</b></td><td>{{ snap.department.name }}</td></tr>
+  <tr><td><b>Academic Session:</b></td><td>{{ snap.year }}</td></tr>
+  <tr><td><b>Reporting Period:</b></td><td>{{ snap.period.label }}</td></tr>
+  <tr><td><b>Coordinator (if any):</b></td><td>{{ a.coordinator|default:"—" }}</td></tr>
+  <tr><td><b>Date:</b></td><td>{{ a.report_date_display }}</td></tr>
+</table>
+
+<p class="bold k11-label awd-label">Complete Detail of Award/ Recognition</p>
+{% for r in a.awards_records %}
+<table class="k11-grid mou-kv awd-item">
+  <tr><th colspan="2" class="left">Award {{ forloop.counter }} of {{ a.awards_records|length }}{% if r.award_title %}: {{ r.award_title }}{% endif %}</th></tr>
+  <tr><td style="width:32%">Recipient(s)</td><td>{{ r.recipients|linebreaksbr }}</td></tr>
+  <tr><td>Recipient category</td><td>{{ r.recipient_category }}</td></tr>
+  <tr><td>Award / recognition title</td><td>{{ r.award_title }}</td></tr>
+  <tr><td>Awarding organization</td><td>{{ r.awarding_body }}</td></tr>
+  <tr><td>Date of award</td><td>{{ r.award_date }}</td></tr>
+  <tr><td>Level</td><td>{{ r.level|default:"Not applicable" }}</td></tr>
+  <tr><td>Research/innovation contribution recognised</td><td>{{ r.contribution|linebreaksbr }}</td></tr>
+  <tr><td>Description</td><td>{{ r.description|linebreaksbr }}</td></tr>
+</table>
+{% empty %}<p class="empty">No awards have been added yet.</p>{% endfor %}
+<p class="table-note">Structured award fields are a portal adaptation of the source's open detail area. Supporting files are in the portal's Evidence tab, not in this PDF.</p>
+
+<table class="k11-sign awd-sign">
+  <tr><td>Prepared By:<br><br>________________</td><td>Verified By:<br><br>________________</td>
+    <td>Dean<br><br>________________</td><td>Approved By:<br><br>________________</td></tr>
+</table>
+</section>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}
