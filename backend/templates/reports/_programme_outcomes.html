@@ -1,0 +1,42 @@
+{% comment %}Learning outcomes, assessment/certification, outcome & impact, feedback, suggestions and Prepared/Approved box.
+Identical in the KRA 11 and KRA 23 sources (page 2); field ids are shared by both schemas. Input: a (activity), fields.{% endcomment %}
+<p class="bold lead k11-label">Learning Outcomes: - After successful completion of the course, students will be able to:</p>
+{% if a.learning_outcomes_list %}<ol>{% for o in a.learning_outcomes_list %}<li>{{ o }}</li>{% endfor %}</ol>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<p class="bold lead k11-label">Assessment and Certification</p>
+<table class="k11-grid k11-small">
+  <thead><tr><th style="width:50%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Assessment Method</td><td>{{ a.assessment_method }}</td></tr>
+  <tr><td>Minimum Attendance Requirement</td><td>{{ a.min_attendance }}</td></tr>
+  <tr><td>Passing/Completion Criteria</td><td>{{ a.passing_criteria }}</td></tr>
+  <tr><td>Certificate Issuing Authority</td><td>{{ a.certificate_authority }}</td></tr>
+  <tr><td>Number of Certificates Issued</td><td>{{ a.certificates_issued }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">OUTCOME AND IMPACT</p>
+<p class="bold lead k11-label">Suggested Impact Indicators</p>
+<ul>{% for o in fields.impact_indicators.options %}<li>{{ o }}{% if o in a.impact_indicators_list %} <b>— observed</b>{% endif %}</li>{% endfor %}</ul>
+</div>
+{% if a.impact_details %}<p>{{ a.impact_details|linebreaksbr }}</p>{% endif %}
+
+<p class="bold k11-label">Student Feedback Summary: - &nbsp;Overall Feedback Score: {% if a.feedback_score != "" %}<u>{{ a.feedback_score }}</u>{% else %}__________{% endif %} / 5</p>
+<div class="keep">
+<p class="bold lead k11-label">Major Suggestions Received:</p>
+{% if a.suggestions_list %}<ol class="plain">{% for s in a.suggestions_list %}<li>{{ s }}</li>{% endfor %}</ol>
+{% else %}<p class="lines">1. __________________________________________<br>2. __________________________________________<br>3. __________________________________________</p>{% endif %}
+</div>
+
+<table class="k11-sign">
+  <tr>
+    <td><b>Prepared By:</b><br>Name: {% if a.prepared_name %}{{ a.prepared_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.prepared_designation %}{{ a.prepared_designation }}{% else %}________________________{% endif %}<br>
+      Signature: ___________________________<br>
+      Date: {% if a.prepared_date_display %}{{ a.prepared_date_display }}{% else %}_______________________________{% endif %}</td>
+    <td><b>Approved By:</b><br>Name: {% if a.approved_name %}{{ a.approved_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.approved_designation %}{{ a.approved_designation }}{% else %}________________________{% endif %}<br>
+      Signature: ___________________________<br>
+      Date: {% if a.approved_date_display %}{{ a.approved_date_display }}{% else %}_______________________________{% endif %}</td>
+  </tr>
+</table>
+

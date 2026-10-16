@@ -1,7 +1,7 @@
 # Progress
 
-Last updated: 2026-10-17. Current gate: **KRA 11 (bounded Phase 4 task) complete — waiting for review together with KRAs 20, 7 and 32.**
-No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pilot` (3f4748a); Phase 3 committed (f9ebf88); KRA 11 changes are uncommitted.
+Last updated: 2026-10-17. Current gate: **KRA 23 (bounded Phase 4 task) complete — waiting for review with KRAs 11, 20, 7 and 32.**
+No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pilot` (3f4748a); Phase 3 committed (f9ebf88); KRA 11 committed (713e092); KRA 23 changes are uncommitted.
 
 ## Phase 0 — Source audit and seed preparation ✅
 - [x] Inventory of 30 PDFs + workbook with SHA-256, page sizes, visual review → `docs/template-inventory.md`
@@ -52,9 +52,16 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] Shared code touched only minimally: summary count label now uses the template's activity label ("Courses in this report"; KRA 33 unchanged), KRA 11 CSS classes
 - Open: D-034 assumptions (no evidence minimum; optional feedback score/checklist) for college review. No other Phase 4 KRAs started.
 
+## Phase 4 (bounded) — KRA 23 Skill Development & Employability Training ✅ (pending review)
+- [x] Schema `kra23_v1` + template `kra23_v1.html` (report style) following the KRA 23 source's own title, header rows, objectives and column wording; mapping added idempotently (13 assignments, targets unchanged)
+- [x] Repeatable programmes (≤20) each with repeatable "Detail of Program" rows (≤50) — one submission per period
+- [x] Shared support only: page-2 block and supporting-documents list moved to partials reused by KRA 11 (output verified identical); KRA 23 CSS
+- [x] Draft save/reload, live preview, PDF export, evidence/achievement/Nil/review via shared workflow tests; browser check done
+- Open: D-035 assumptions for college review. No other Phase 4 KRAs started.
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 40 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 39 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 6 critical flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).

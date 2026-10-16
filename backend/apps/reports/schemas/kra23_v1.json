@@ -1,0 +1,125 @@
+{
+  "key": "kra23",
+  "version": 1,
+  "title": "Report on Skill Development & Employability Training",
+  "source": "reference/templates/KRA 23 - Report on Skill Development .docx.pdf",
+  "source_checksum": "6ba6e5e70321d17c8eab5ee7f0eae5e360986e809b641390054b84a4ed1cbb78",
+  "page": {"format": "Letter", "landscape": false, "style": "report"},
+  "activity": {"label": "Programme", "min": 1, "max": 20},
+  "sections": [
+    {
+      "id": "header", "title": "Programme header",
+      "intro": "Department and academic year are filled from this report; the reporting period appears in the report summary.",
+      "fields": [
+        {"id": "programme_title", "label": "Title of the Programme", "type": "text", "required": true, "max_length": 250},
+        {"id": "year_semester", "label": "Academic Session / Year/ Semester (year of study and semester)", "type": "text", "required": true, "max_length": 80,
+         "placeholder": "e.g. 3rd Year / Odd Semester", "help": "Printed after the academic session, e.g. \"2026-27 / 3rd Year / Odd Semester\"."},
+        {"id": "faculty_coordinators", "label": "Faculty Coordinator(s)", "type": "text", "required": true, "max_length": 300},
+        {"id": "hod", "label": "Head of the Department", "type": "text", "required": true, "max_length": 150}
+      ]
+    },
+    {
+      "id": "objectives", "title": "Objectives of the Programme",
+      "intro": "Printed as \"The programme was organized with the following objectives:\". Tick the source objectives that applied and add any others.",
+      "fields": [
+        {"id": "objectives", "label": "Objectives (from the source template)", "type": "multiselect", "required": false,
+         "options": ["To develop an entrepreneurial mind-set among students.",
+                     "To enhance entrepreneurial and employability skills.",
+                     "To familiarize students with the fundamentals of entrepreneurship and startup development.",
+                     "To develop skills related to idea generation, innovation and opportunity identification.",
+                     "To provide practical knowledge of business planning, market analysis and financial management.",
+                     "To encourage students to explore entrepreneurship and self-employment as career options.",
+                     "To develop communication, leadership, teamwork, problem-solving and decision-making skills."]},
+        {"id": "other_objectives", "label": "Other objectives (optional, one per line)", "type": "longtext", "required": false, "max_length": 2000}
+      ]
+    },
+    {
+      "id": "programs", "title": "Detail of Program",
+      "fields": [
+        {"id": "programs", "label": "Program records", "type": "table", "required": true, "min_rows": 1, "max_rows": 50, "editor": "cards",
+         "columns": [
+           {"id": "program_name", "label": "Program Name", "type": "text", "required": true, "max_length": 200, "width": "22%"},
+           {"id": "duration_hours", "label": "Duration (Hours)", "type": "decimal", "required": true, "min": 0.5, "max": 1000, "decimal_places": 1, "width": "11%"},
+           {"id": "mode", "label": "Mode Offline/ Online/ Hybrid", "type": "select", "required": true, "options": ["Offline", "Online", "Hybrid"], "width": "13%"},
+           {"id": "resource_agency", "label": "Resource Person/ Agency", "type": "text", "required": true, "max_length": 200, "width": "18%"},
+           {"id": "students_enrolled", "label": "No. of Students Enrolled", "type": "integer", "required": true, "min": 0, "max": 100000, "width": "14%"},
+           {"id": "students_completed", "label": "No. of Students Completed", "type": "integer", "required": true, "min": 0, "max": 100000, "width": "14%"}
+         ],
+         "row_rules": [{"type": "lte", "a": "students_completed", "b": "students_enrolled", "message": "Students completed cannot exceed students enrolled."}]}
+      ]
+    },
+    {
+      "id": "syllabus", "title": "Course Content/Syllabus",
+      "fields": [
+        {"id": "modules", "label": "Modules", "type": "table", "required": true, "min_rows": 1, "max_rows": 100,
+         "columns": [
+           {"id": "topic", "label": "Topic", "type": "text", "required": true, "max_length": 300, "width": "62%"},
+           {"id": "hours", "label": "No. of Hours", "type": "decimal", "required": true, "min": 0.5, "max": 500, "decimal_places": 1, "width": "26%"}
+         ]}
+      ]
+    },
+    {
+      "id": "outcomes", "title": "Learning Outcomes",
+      "fields": [
+        {"id": "learning_outcomes", "label": "After successful completion of the course, students will be able to: (one per line)", "type": "longtext", "required": true, "max_length": 4000}
+      ]
+    },
+    {
+      "id": "assessment", "title": "Assessment and Certification",
+      "fields": [
+        {"id": "assessment_method", "label": "Assessment Method", "type": "text", "required": true, "max_length": 300},
+        {"id": "min_attendance", "label": "Minimum Attendance Requirement", "type": "text", "required": true, "max_length": 120},
+        {"id": "passing_criteria", "label": "Passing/Completion Criteria", "type": "text", "required": true, "max_length": 300},
+        {"id": "certificate_authority", "label": "Certificate Issuing Authority", "type": "text", "required": true, "max_length": 200},
+        {"id": "certificates_issued", "label": "Number of Certificates Issued", "type": "integer", "required": true, "min": 0, "max": 100000}
+      ]
+    },
+    {
+      "id": "impact", "title": "OUTCOME AND IMPACT",
+      "fields": [
+        {"id": "impact_indicators", "label": "Suggested Impact Indicators — tick those actually observed", "type": "multiselect", "required": false,
+         "options": ["Improvement in technical/professional skills", "Improvement in employability skills", "Industry certification obtained",
+                     "Successful completion/certification rate", "Internship opportunities", "Placement support/outcomes",
+                     "Student projects developed", "Participation in competitions/hackathons"]},
+        {"id": "impact_details", "label": "Impact details (optional)", "type": "longtext", "required": false, "max_length": 3000},
+        {"id": "feedback_score", "label": "Student Feedback Summary: Overall Feedback Score (out of 5)", "type": "decimal", "required": false, "min": 0, "max": 5, "decimal_places": 2,
+         "help": "Leave blank if no feedback score was collected; the report then shows the blank line from the source."},
+        {"id": "suggestions", "label": "Major Suggestions Received (one per line)", "type": "longtext", "required": false, "max_length": 3000}
+      ]
+    },
+    {
+      "id": "signoff", "title": "Prepared By / Approved By",
+      "intro": "Signature lines stay blank for wet signatures; the portal adds only the textual VC verification.",
+      "fields": [
+        {"id": "prepared_name", "label": "Prepared By — Name", "type": "text", "required": false, "max_length": 150},
+        {"id": "prepared_designation", "label": "Prepared By — Designation", "type": "text", "required": false, "max_length": 150},
+        {"id": "prepared_date", "label": "Prepared By — Date", "type": "date", "required": false},
+        {"id": "approved_name", "label": "Approved By — Name", "type": "text", "required": false, "max_length": 150},
+        {"id": "approved_designation", "label": "Approved By — Designation", "type": "text", "required": false, "max_length": 150},
+        {"id": "approved_date", "label": "Approved By — Date", "type": "date", "required": false}
+      ]
+    },
+    {
+      "id": "documents", "title": "List of Supporting Documents",
+      "intro": "The following documents shall be maintained for each programme. Mark whether each is maintained; upload files in the Evidence tab.",
+      "fields": [
+        {"id": "supporting_documents", "label": "Supporting documents maintained", "type": "checklist", "required": false,
+         "items": ["Approval/permission for conducting the course", "Proposal/concept note", "Course syllabus/content",
+                   "Academic calendar/activity schedule", "Timetable", "Resource person/faculty details",
+                   "Expert profile/CV, wherever applicable", "Attendance records", "Registration/enrolment records",
+                   "Assessment records", "Result/score sheet", "Student feedback", "Sample certificates",
+                   "Photographs with date and caption", "Geo-tagged photographs, wherever applicable", "Course completion report",
+                   "List of students who completed the course", "Any other relevant supporting document"]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Approval/permission for conducting the course", "Proposal/concept note", "Course syllabus/content",
+                   "Academic calendar/activity schedule", "Timetable", "Resource person/faculty details", "Expert profile/CV",
+                   "Attendance records", "Registration/enrolment records", "Assessment records", "Result/score sheet",
+                   "Student feedback", "Sample certificates", "Photographs with date and caption", "Geo-tagged photographs",
+                   "Course completion report", "List of students who completed the course", "Other"],
+    "required": [],
+    "note": "No minimum evidence set has been agreed for KRA 23 (docs/decisions.md D-035); categories follow the source's supporting-document list."
+  }
+}

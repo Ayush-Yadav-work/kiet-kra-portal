@@ -104,3 +104,7 @@ After `git pull`/checkout, re-run `manage.py migrate` (no new migrations in Phas
 ## KRA 11 review (Bridge Courses)
 
 Run `manage.py seed_catalogue` (maps KRA 11 idempotently) and restart Django. As a Dean open KRA 11: add two courses (*+ Add course*), syllabus modules, outcomes and assessment; leave the feedback score blank once to see the source's blank line; check *Final PDF preview*. Samples: `.work/renders/kra11/normal.pdf`, `long.pdf`, `empty.pdf`, `nil.pdf` (regenerate with `manage.py render_sample --kra 11`). Record decisions on D-034.
+
+## KRA 23 review (Skill Development & Employability Training)
+
+Run `manage.py seed_catalogue`, restart Django, open KRA 23 as a Dean: enter the programme title, tick only the objectives that applied, add several *Detail of Program* records (try completed > enrolled — the draft saves, *Submit* reports it), add a second programme with *+ Add programme*, then *Final PDF preview*. Samples: `.work/renders/kra23/normal.pdf`, `long.pdf`, `empty.pdf`, `nil.pdf` (regenerate with `manage.py render_sample --kra 23`). Record decisions on D-035.

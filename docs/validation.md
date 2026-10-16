@@ -104,3 +104,13 @@ Not covered: real college data volumes, Devanagari names, printing on physical p
 - Samples (`python backend/manage.py render_sample --kra 11`) in `.work/renders/kra11/`: normal (2 courses × 4 modules) 8 pages; long (6 courses × 40 modules, long text) 55 pages; empty 4 pages; Nil 1 page. Visual review against the source: header/footer geometry identical to KRA 33 style; header table, fixed intro/objectives, course row, syllabus, outcomes, assessment, impact, feedback, signature box and supporting-documents page follow the source order; syllabus header repeats across pages; no split or clipped rows. Fixed during review: the narrow "Mode Offline/Online/Hybrid" column broke words letter-by-letter → explicit column widths.
 - Regression samples for KRAs 33/20/7/32 re-rendered: page counts unchanged (3/21/3/1, 1/51/1/1, 3/4/3/1, 1/51/1/1); all 20 sample PDFs embed only Tinos.
 - Not verified: real course data, printing.
+
+---
+
+# KRA 23 validation (2026-10-17)
+
+- `python backend/manage.py test tests.test_kra23 tests.test_kra11` → **Ran 20 tests, OK**. KRA 23: mapping idempotent with targets unchanged; exact draft round trip; incomplete draft (title only) saves; strict validation lists required fields, no evidence required, optional fields not required; per-row completed ≤ enrolled, required columns, 1-decimal hours and mode options (draft still saves as typed); 2–3 programmes × 50 rows in one submission, 51 rows rejected; un-ticked objectives/indicators are not printed as achieved; "VAC/Add-on" absent; shared workflow (submit → reject after close with 72 h grant → resubmit → approve; Nil; PDF Tinos-only).
+- Shared partials refactor: KRA 11 sample HTML (normal/long/empty/Nil) compared before/after with normalised whitespace → identical.
+- Full regression: `python backend/manage.py test tests` → **Ran 92 tests, OK**.
+- Frontend unchanged → no rebuild. Browser check (ECE demo): programme title + one record entered via the card editor, *Save draft* → "Saved", reload kept title/name/mode, live preview showed the record and "Pending approval", `/export/?inline=1` returned `application/pdf` (238 KB).
+- Samples `.work/renders/kra23/`: normal (1 programme, 2 rows, 4 modules) 4 pages; long (3 programmes × 30 rows × 30 modules, long text) 66 pages; empty 3; Nil 1. Visual review: title/header rows and font sizes match the source page 1; program and syllabus table headers repeat across pages; no clipped cells; only Tinos embedded; approval label in summary, footer and closing box. Note: in the normal sample the Prepared/Approved box moves to its own page because it is kept unsplit (source fits it on page 2).
