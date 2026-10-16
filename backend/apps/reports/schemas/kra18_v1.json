@@ -1,0 +1,72 @@
+{
+  "key": "kra18",
+  "version": 1,
+  "title": "Report on Signed Functional MoU with Industry / Research Organization",
+  "source": "reference/templates/KRA 18 Activity Report Functional MoU.docx.pdf",
+  "source_checksum": "f479f2d1c1748403cda825cf94e0c6642865a7359016cbdcc65b5470574315b0",
+  "page": {"format": "Letter", "landscape": false, "style": "report"},
+  "activity": {"label": "MoU", "min": 1, "max": 20},
+  "sections": [
+    {
+      "id": "mou", "title": "1. MoU details",
+      "intro": "Enter one MoU here and every activity conducted under it below. Name of Institution prints as in the source; the department is filled from this report.",
+      "fields": [
+        {"id": "org_name", "label": "Name of Industry/Research Organization", "type": "text", "required": true, "max_length": 250},
+        {"id": "org_type", "label": "Type of Organization", "type": "select", "required": true,
+         "options": ["Industry", "Research Organization", "R&D Institution"]},
+        {"id": "mou_ref", "label": "MoU Reference No.", "type": "text", "required": true, "max_length": 120},
+        {"id": "signing_date", "label": "Date of Signing", "type": "date", "required": true},
+        {"id": "validity", "label": "MoU Validity", "type": "text", "required": true, "max_length": 120, "placeholder": "e.g. 5 years, up to 31 Mar 2030"},
+        {"id": "coord_institution", "label": "Coordinator from Institution", "type": "text", "required": true, "max_length": 200},
+        {"id": "coord_organization", "label": "Coordinator from Organization", "type": "text", "required": true, "max_length": 200}
+      ]
+    },
+    {
+      "id": "activities", "title": "Activities conducted under this MoU",
+      "intro": "Each activity prints as a full activity report (source sections 1–6) under this MoU. The source's objective, description and outcome paragraphs are examples only: nothing is prefilled — describe what actually happened.",
+      "fields": [
+        {"id": "mou_activities", "label": "MoU activities", "type": "table", "required": true, "min_rows": 1, "max_rows": 30, "editor": "cards",
+         "columns": [
+           {"id": "title", "label": "Title of Activity", "type": "text", "required": true, "max_length": 250},
+           {"id": "activity_date", "label": "Date of Activity", "type": "date", "required": true},
+           {"id": "duration", "label": "Duration", "type": "text", "required": true, "max_length": 80, "placeholder": "e.g. 3 hours / 2 days"},
+           {"id": "activity_type", "label": "Type of Activity", "type": "select", "required": true,
+            "options": ["Training", "Workshop", "Expert Talk", "Internship", "Joint Research", "Project", "Consultancy", "Industrial Visit", "Other"]},
+           {"id": "activity_type_other", "label": "Type of Activity (if Other)", "type": "text", "required": true, "max_length": 150,
+            "when": {"field": "activity_type", "in": ["Other"]}},
+           {"id": "venue", "label": "Venue", "type": "text", "required": true, "max_length": 200},
+           {"id": "mode", "label": "Mode", "type": "select", "required": true, "options": ["Offline", "Online", "Hybrid"]},
+           {"id": "target_participants", "label": "Target Participants", "type": "text", "required": true, "max_length": 100,
+            "placeholder": "Students / Faculty / Researchers"},
+           {"id": "programme_branch", "label": "Programme/Branch", "type": "text", "required": true, "max_length": 150},
+           {"id": "participants", "label": "Number of Participants", "type": "integer", "required": true, "min": 0, "max": 100000},
+           {"id": "resource_person", "label": "Resource Person/Industry Expert", "type": "text", "required": true, "max_length": 250},
+           {"id": "rp_designation", "label": "Designation & Organization", "type": "text", "required": true, "max_length": 300},
+           {"id": "key_topics", "label": "Key Topics Covered", "type": "longtext", "required": true, "max_length": 1000},
+           {"id": "objective", "label": "Objective of the MoU Activity", "type": "longtext", "required": true, "max_length": 1500,
+            "help": "Source example (adapt, do not copy as a claim): organized under the MoU with the objective of strengthening industry/research collaboration, providing experiential learning, facilitating knowledge exchange, promoting joint research and innovation, and enhancing employability."},
+           {"id": "description", "label": "Brief Description of the Activity", "type": "longtext", "required": true, "max_length": 3000},
+           {"id": "outcomes", "label": "Outcome of the Activity (one per line)", "type": "longtext", "required": true, "max_length": 2000,
+            "help": "Source examples: enhanced industry/research exposure; practical and domain-specific skills; interaction with experts; internship/project opportunities; joint research opportunities; stronger academic–industry linkages; awareness of current technologies. List only outcomes actually achieved."},
+           {"id": "ev_signed_mou", "label": "Evidence maintained: Signed MoU", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_notice", "label": "Evidence maintained: Activity Notice/Circular", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_schedule", "label": "Evidence maintained: Programme Schedule", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_attendance", "label": "Evidence maintained: Participant Attendance", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_photographs", "label": "Evidence maintained: Photographs", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_report", "label": "Evidence maintained: Activity Report", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_expert_profile", "label": "Evidence maintained: Expert Profile", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_feedback", "label": "Evidence maintained: Feedback", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_certificates", "label": "Evidence maintained: Certificates", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_web_link", "label": "Evidence maintained: Website/News Link", "type": "select", "required": false, "options": ["Yes", "No"]},
+           {"id": "ev_outcome", "label": "Evidence maintained: Outcome/Impact Evidence", "type": "select", "required": false, "options": ["Yes", "No"]}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Signed MoU", "Activity Notice/Circular", "Programme Schedule", "Participant Attendance", "Photographs", "Activity Report",
+                   "Expert Profile", "Feedback", "Certificates", "Website/News Link", "Outcome/Impact Evidence", "Other"],
+    "required": [],
+    "note": "Categories follow the source 'Evidence Maintained' list. No minimum set has been agreed (docs/decisions.md D-040); the Yes/No answers in the report are entered by the Dean."
+  }
+}

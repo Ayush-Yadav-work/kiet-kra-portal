@@ -1,0 +1,110 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 13 faculty membership report (source order, sections 1–8 + sign-off), one section per membership (D-042).
+Source objectives print only when ticked; contribution rows print only as entered.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 iab {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Membership {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">Report on Faculty Membership In Industry Advisory Board / Other Committees</h1>
+
+<p class="bold k11-label">1. Basic Details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:40%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Name of Faculty Member</td><td>{{ a.faculty_name }}</td></tr>
+  <tr><td>Designation</td><td>{{ a.designation }}</td></tr>
+  <tr><td>Department</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Employee ID</td><td>{{ a.employee_id }}</td></tr>
+  <tr><td>Name of Institution/Organization</td><td>{{ a.organization }}</td></tr>
+  <tr><td>Academic Year</td><td>{{ snap.year }}</td></tr>
+  <tr><td>Type of Committee/Board</td><td>{% if a.committee_type == "Other" %}Other: {{ a.committee_type_other }}{% else %}{{ a.committee_type }}{% endif %}</td></tr>
+  <tr><td>Name of Committee/Board</td><td>{{ a.committee_name }}</td></tr>
+  <tr><td>Date of Appointment/Nomination</td><td>{{ a.appointment_date_display }}</td></tr>
+  <tr><td>Tenure of Membership</td><td>From {{ a.tenure_from_display|default:"____________" }} To {% if a.tenure_to_display %}{{ a.tenure_to_display }}{% elif a.tenure_from %}continuing{% else %}____________{% endif %}</td></tr>
+  <tr><td>Nature of Membership</td><td>{{ a.membership_nature }}</td></tr>
+  <tr><td>Appointing Authority/Organization</td><td>{{ a.appointing_authority }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Details of Committee / Board</p>
+<p class="lines"><b>Name of Industry/Organization/Committee:</b> {% if a.committee_org %}{{ a.committee_org }}{% else %}{{ a.organization }}{% endif %}<br>
+<b>Name and Designation of Chairperson/Head:</b> {{ a.chairperson }}<br>
+<b>Nature and Purpose of the Committee/Board:</b> {{ a.purpose|linebreaksbr }}<br>
+<b>Area/Domain of Expertise:</b> {{ a.domain }}<br>
+<b>Official Website / Reference:</b> {% if a.website %}{{ a.website }}{% else %}<span class="empty">Not provided</span>{% endif %}</p>
+</div>
+
+<div class="keep">
+<p class="bold k11-label">3. Objectives of Membership</p>
+{% if a.objectives_list or a.other_objectives_list %}
+<p>The membership/contribution in the above Board/Committee was undertaken with the following objectives:</p>
+<ol>{% for o in a.objectives_list %}<li>{{ o }}</li>{% endfor %}{% for o in a.other_objectives_list %}<li>{{ o }}</li>{% endfor %}</ol>
+{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+
+<p class="bold k11-label">4. Nature of Contribution / Responsibilities</p>
+<p>During the period of membership, the faculty member contributed in the following areas:</p>
+<table class="k11-grid k11-courses">
+  <thead><tr><th style="width:8%">S. No.</th><th style="width:32%">Activity / Responsibility</th><th style="width:18%">Date / Period</th><th>Contribution / Outcome</th></tr></thead>
+  {% for r in a.contributions_records %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ r.activity }}</td><td>{{ r.period }}</td><td>{{ r.contribution|linebreaksbr }}</td></tr>
+  {% empty %}<tr><td class="center">1</td><td></td><td></td><td></td></tr>{% endfor %}
+</table>
+
+<p class="bold k11-label">5. Meetings Attended</p>
+<table class="k11-grid k11-courses">
+  <thead><tr><th style="width:7%">S. No.</th><th style="width:13%">Date of Meeting</th><th style="width:14%">Meeting No. / Reference</th><th style="width:26%">Major Agenda</th>
+    <th style="width:26%">Faculty Contribution</th><th style="width:14%">Evidence</th></tr></thead>
+  {% for r in a.meetings_records %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ r.meeting_date }}</td><td>{{ r.meeting_ref }}</td><td>{{ r.agenda|linebreaksbr }}</td>
+    <td>{{ r.contribution|linebreaksbr }}</td><td>{{ r.evidence }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="empty">No meetings recorded for this membership.</td></tr>{% endfor %}
+</table>
+
+<div class="keep">
+<p class="bold k11-label">6. Major Outcomes / Impact</p>
+<p>The membership/contribution resulted in the following outcomes:</p>
+<p class="lines"><b>Impact on Students:</b> {{ a.impact_students|linebreaksbr }}</p>
+<p class="lines"><b>Impact on Curriculum / Teaching-Learning:</b> {{ a.impact_curriculum|linebreaksbr }}</p>
+<p class="lines"><b>Impact on Industry Interaction / Employability:</b> {{ a.impact_industry|linebreaksbr }}</p>
+<p class="lines"><b>Impact on Research / Consultancy / Innovation:</b> {{ a.impact_research|linebreaksbr }}</p>
+<p class="lines"><b>Impact on Institutional Quality Enhancement:</b> {{ a.impact_quality|linebreaksbr }}</p>
+</div>
+
+<div class="keep">
+<p class="bold k11-label">7. Documentary Evidence Attached</p>
+<p>The following documents are attached as evidence of the membership and contribution (files are kept in the portal's Evidence tab, not in this PDF):</p>
+<ul>{% for item, val in a.documents_items %}<li>{{ item }}{% if val %} — <b>{{ val }}</b>{% endif %}</li>{% endfor %}
+  <li>Any other supporting document: {% if a.other_documents %}{{ a.other_documents }}{% else %}—{% endif %}</li></ul>
+</div>
+
+<div class="keep">
+<p class="bold k11-label">8. Summary of Contribution</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:40%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Total Period of Membership</td><td>{{ a.total_period }}</td></tr>
+  <tr><td>Number of Meetings Attended</td><td>{{ a.meetings_attended }}</td></tr>
+  <tr><td>Major Activities Undertaken</td><td>{{ a.major_activities|linebreaksbr }}</td></tr>
+  <tr><td>Major Recommendations / Contributions</td><td>{{ a.recommendations|linebreaksbr }}</td></tr>
+  <tr><td>Major Outcomes</td><td>{{ a.major_outcomes|linebreaksbr }}</td></tr>
+  <tr><td>Student Beneficiaries, if applicable</td><td>{{ a.student_beneficiaries|default:"—" }}</td></tr>
+  <tr><td>Industry/Professional Organizations Involved</td><td>{{ a.orgs_involved }}</td></tr>
+</table>
+<table class="k11-sign">
+  <tr>
+    <td>Name of Faculty Member: {{ a.faculty_name|default:"______________________________" }}<br>
+      Signature: ___________________________<br>Date: _______________________________</td>
+    <td><b>Head of Department / Competent Authority</b><br>
+      Name: {% if a.hod_name %}{{ a.hod_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.hod_designation %}{{ a.hod_designation }}{% else %}________________________{% endif %}<br>
+      Signature with Seal: ___________________<br>Date: _______________________________</td>
+  </tr>
+</table>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">Report on Faculty Membership In Industry Advisory Board / Other Committees</h1>
+<p class="empty">No memberships have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

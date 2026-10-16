@@ -124,3 +124,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: KRA 8 / KRA 10 — en
 ## KRA 19 review (Industrial Visits)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean open KRA 19: add visits with *+ Add visit* (one report for the period), fill the 19a sections, add matrix rows (cells accept short text such as `3` or `H`; no scale is enforced), and enter the 19b consolidated summary; upload individual feedback forms in the Evidence tab. Check: both matrix columns read "PSO1" (D-012 unresolved), counts rule (forms ≤ participated ≤ class size) only at *Submit*. Samples: `.work/renders/kra19/normal.pdf`, `multi.pdf`, `long.pdf`, `empty.pdf`, `nil.pdf` (regenerate with `manage.py render_sample --kra 19`). Decisions: D-039, D-012.
+
+## KRAs 18, 17, 13 review (industry collaboration)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 18** — *+ Add mou* per MoU, fill its details, then *+ Add record* for each activity (try type "Other"; leave an evidence Yes/No blank to see —). **KRA 17** — one record per centre/lab; check all source columns appear on one landscape table. **KRA 13** — *+ Add membership* per faculty member; add contribution rows and meetings; leave "To" blank for a continuing tenure. Samples: `.work/renders/kra18/{normal,multi,long,empty,nil}.pdf`, `kra17/{normal,long,empty,nil}.pdf`, `kra13/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 18 --kra 17 --kra 13`). Decisions: D-040 to D-043.

@@ -1,0 +1,131 @@
+{
+  "key": "kra13",
+  "version": 1,
+  "title": "Report on Faculty Membership In Industry Advisory Board / Other Committees",
+  "source": "reference/templates/KRA 13 Report on Industry Advisory Board.docx.pdf",
+  "source_checksum": "be527fe3f1a46dbf9ee373c7931149a56cd00e0cd08e4a85bdf5e64e480da935",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Membership", "min": 1, "max": 20},
+  "rules": [{"type": "date_order", "a": "tenure_from", "b": "tenure_to", "message": "Tenure end cannot be before the tenure start."}],
+  "sections": [
+    {
+      "id": "basic", "title": "1. Basic Details",
+      "intro": "One membership per faculty member and board/committee. Department and academic year are filled from this report. KRA 13 also counts think tanks, councils, NGOs, government committees, statutory university bodies and advisory councils of other HEIs — choose \"Other\" and name the type.",
+      "fields": [
+        {"id": "faculty_name", "label": "Name of Faculty Member", "type": "text", "required": true, "max_length": 150},
+        {"id": "designation", "label": "Designation", "type": "text", "required": true, "max_length": 100},
+        {"id": "employee_id", "label": "Employee ID", "type": "text", "required": true, "max_length": 40},
+        {"id": "organization", "label": "Name of Institution/Organization", "type": "text", "required": true, "max_length": 250,
+         "help": "The institution/organization that constituted the board or committee."},
+        {"id": "committee_type", "label": "Type of Committee/Board", "type": "select", "required": true,
+         "options": ["Industry Advisory Board", "Board of Studies", "Academic Committee", "Professional Committee", "Other"]},
+        {"id": "committee_type_other", "label": "Type of Committee/Board (if Other)", "type": "text", "required": true, "max_length": 150,
+         "when": {"field": "committee_type", "in": ["Other"]}},
+        {"id": "committee_name", "label": "Name of Committee/Board", "type": "text", "required": true, "max_length": 250},
+        {"id": "appointment_date", "label": "Date of Appointment/Nomination", "type": "date", "required": true},
+        {"id": "tenure_from", "label": "Tenure of Membership: From", "type": "date", "required": true},
+        {"id": "tenure_to", "label": "Tenure of Membership: To", "type": "date", "required": false, "help": "Leave blank if the membership is continuing."},
+        {"id": "membership_nature", "label": "Nature of Membership", "type": "select", "required": true,
+         "options": ["Member", "Expert Member", "External Member", "Coordinator", "Chairperson"]},
+        {"id": "appointing_authority", "label": "Appointing Authority/Organization", "type": "text", "required": true, "max_length": 250}
+      ]
+    },
+    {
+      "id": "committee", "title": "2. Details of Committee / Board",
+      "fields": [
+        {"id": "committee_org", "label": "Name of Industry/Organization/Committee", "type": "text", "required": false, "max_length": 250,
+         "help": "Optional when the same as the organization in section 1."},
+        {"id": "chairperson", "label": "Name and Designation of Chairperson/Head", "type": "text", "required": true, "max_length": 250},
+        {"id": "purpose", "label": "Nature and Purpose of the Committee/Board", "type": "longtext", "required": true, "max_length": 1500},
+        {"id": "domain", "label": "Area/Domain of Expertise", "type": "text", "required": true, "max_length": 250},
+        {"id": "website", "label": "Official Website / Reference", "type": "text", "required": false, "max_length": 300}
+      ]
+    },
+    {
+      "id": "objectives", "title": "3. Objectives of Membership",
+      "intro": "Printed as \"The membership/contribution in the above Board/Committee was undertaken with the following objectives:\". Only the objectives you tick (and any you add) are printed.",
+      "fields": [
+        {"id": "objectives", "label": "Objectives (from the source template)", "type": "multiselect", "required": false,
+         "options": ["To establish and strengthen interaction between academia and industry/professional organizations.",
+                     "To obtain industry/professional inputs for curriculum development and academic improvement.",
+                     "To facilitate industry-relevant teaching, training, internships, projects and placements.",
+                     "To provide expert inputs for quality enhancement and institutional development.",
+                     "To promote collaborative activities such as consultancy, research, training, workshops and knowledge sharing.",
+                     "To contribute professional expertise towards the objectives of the concerned Board/Committee."]},
+        {"id": "other_objectives", "label": "Other objectives (optional, one per line)", "type": "longtext", "required": false, "max_length": 1500}
+      ]
+    },
+    {
+      "id": "contributions", "title": "4. Nature of Contribution / Responsibilities",
+      "intro": "Add a row for each contribution actually made during the membership. The source's eight activity rows are offered as choices; rows you do not add are not printed.",
+      "fields": [
+        {"id": "contributions", "label": "Contributions", "type": "table", "required": true, "min_rows": 1, "max_rows": 30,
+         "columns": [
+           {"id": "activity", "label": "Activity / Responsibility", "type": "select", "required": true,
+            "options": ["Participation in Board/Committee Meeting", "Curriculum / Syllabus Review", "Industry/Professional Expert Inputs",
+                        "Review of Student Projects / Training", "Internship / Placement Facilitation", "Guest Lecture / Expert Talk / Workshop",
+                        "Research / Consultancy / Collaborative Activity", "Any Other Contribution"]},
+           {"id": "period", "label": "Date / Period", "type": "text", "required": true, "max_length": 100},
+           {"id": "contribution", "label": "Contribution / Outcome", "type": "longtext", "required": true, "max_length": 1000}
+         ]}
+      ]
+    },
+    {
+      "id": "meetings", "title": "5. Meetings Attended",
+      "fields": [
+        {"id": "meetings", "label": "Meetings attended", "type": "table", "required": false, "max_rows": 50,
+         "columns": [
+           {"id": "meeting_date", "label": "Date of Meeting", "type": "date", "required": true},
+           {"id": "meeting_ref", "label": "Meeting No. / Reference", "type": "text", "required": false, "max_length": 100},
+           {"id": "agenda", "label": "Major Agenda", "type": "longtext", "required": true, "max_length": 600},
+           {"id": "contribution", "label": "Faculty Contribution", "type": "longtext", "required": true, "max_length": 800},
+           {"id": "evidence", "label": "Evidence", "type": "text", "required": false, "max_length": 100, "placeholder": "Minutes / Attendance"}
+         ]}
+      ]
+    },
+    {
+      "id": "impact", "title": "6. Major Outcomes / Impact",
+      "intro": "Write \"Not applicable\" where there was no impact in an area.",
+      "fields": [
+        {"id": "impact_students", "label": "Impact on Students", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "impact_curriculum", "label": "Impact on Curriculum / Teaching-Learning", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "impact_industry", "label": "Impact on Industry Interaction / Employability", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "impact_research", "label": "Impact on Research / Consultancy / Innovation", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "impact_quality", "label": "Impact on Institutional Quality Enhancement", "type": "longtext", "required": true, "max_length": 1000}
+      ]
+    },
+    {
+      "id": "documents", "title": "7. Documentary Evidence Attached",
+      "intro": "Answer for each document; upload the files in the Evidence tab (they are not inserted into the PDF).",
+      "fields": [
+        {"id": "documents", "label": "Documents", "type": "checklist", "required": false,
+         "items": ["Appointment / Nomination / Invitation Letter", "Membership Certificate, if applicable", "Committee / Board Constitution or Notification",
+                   "Meeting Notice / Agenda", "Attendance Record", "Minutes of Meeting", "Photographs of Meeting / Activities",
+                   "Participation / Contribution Certificate", "Reports / Presentations / Recommendations submitted",
+                   "Evidence of activities resulting from the membership"]},
+        {"id": "other_documents", "label": "Any other supporting document", "type": "text", "required": false, "max_length": 300}
+      ]
+    },
+    {
+      "id": "summary", "title": "8. Summary of Contribution",
+      "fields": [
+        {"id": "total_period", "label": "Total Period of Membership", "type": "text", "required": true, "max_length": 100, "placeholder": "e.g. 2 years (2025–2027)"},
+        {"id": "meetings_attended", "label": "Number of Meetings Attended", "type": "integer", "required": true, "min": 0, "max": 1000},
+        {"id": "major_activities", "label": "Major Activities Undertaken", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "recommendations", "label": "Major Recommendations / Contributions", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "major_outcomes", "label": "Major Outcomes", "type": "longtext", "required": true, "max_length": 1000},
+        {"id": "student_beneficiaries", "label": "Student Beneficiaries, if applicable", "type": "text", "required": false, "max_length": 200},
+        {"id": "orgs_involved", "label": "Industry/Professional Organizations Involved", "type": "text", "required": true, "max_length": 300},
+        {"id": "hod_name", "label": "Head of Department / Competent Authority: Name (optional)", "type": "text", "required": false, "max_length": 150},
+        {"id": "hod_designation", "label": "Head of Department / Competent Authority: Designation (optional)", "type": "text", "required": false, "max_length": 150}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Appointment / Nomination / Invitation Letter", "Membership Certificate", "Committee / Board Constitution or Notification",
+                   "Meeting Notice / Agenda", "Attendance Record", "Minutes of Meeting", "Photographs of Meeting / Activities",
+                   "Participation / Contribution Certificate", "Reports / Presentations / Recommendations", "Evidence of resulting activities", "Other"],
+    "required": [],
+    "note": "Categories follow the source 'Documentary Evidence Attached' list. No minimum set has been agreed (docs/decisions.md D-042)."
+  }
+}

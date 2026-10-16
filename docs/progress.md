@@ -80,11 +80,18 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 ## Phase 4 (bounded) — KRA 19 Industrial Visits ✅ (pending review)
 - [x] `kra19_v1` schema + template: full 19a per visit, multiple visits in one submission, LO→PO/PSO matrix, consolidated 19b (D-039)
 - [x] Mapping idempotent (targets unchanged, incl. "NIL"); no mandatory evidence; existing review workflow
-- Open: D-012 PSO1 duplicate still unresolved (labels kept); D-039 assumptions for college review. Uncommitted.
+- Open: D-012 PSO1 duplicate still unresolved (labels kept); D-039 assumptions for college review. Committed (2fbd120).
+
+## Phase 4 (bounded) — KRAs 18, 17, 13 industry collaboration ✅ (pending review)
+- [x] KRA 18 `kra18_v1`: MoUs with nested activities, full source report per activity (D-040)
+- [x] KRA 17 `kra17_v1`: one landscape table, split pagination repaired (D-041)
+- [x] KRA 13 `kra13_v1`: memberships with contributions, meetings, impact, summary, sign-off (D-042)
+- [x] Mappings idempotent, targets unchanged; no mandatory evidence; existing workflow; shared `_records` (D-043)
+- Open: D-040–D-042 college questions. Committed on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 30 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 27 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).

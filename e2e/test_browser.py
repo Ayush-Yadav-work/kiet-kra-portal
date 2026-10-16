@@ -385,5 +385,39 @@ class BrowserTests(unittest.TestCase):
         self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
         self.assertIn(name, text)
 
+    def test_kra18_17_13_save_reload_preview_export(self):
+        """Industry-collaboration batch: for KRAs 18, 17 and 13 a complete synthetic draft is stored, one field edited in the UI,
+        saved, reloaded, previewed and exported."""
+        from tests.fixtures import kra13iab_payload, kra17_payload, kra18_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        cases = {18: (kra18_payload(2, 2), "activities.0.org_name", "MoU 2 of 2"),
+                 17: (kra17_payload(3), "activities.0.centres.0.centre_name", "Industry Coordinator"),
+                 13: (kra13iab_payload(2), "activities.0.committee_name", "Membership 2 of 2")}
+        for n, (payload, field, marker) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            value = f"Synthetic browser value KRA {n} {int(time.time())}"
+            box = p.locator(f"[name='{field}']")
+            box.fill(value)
+            expect(box).to_have_value(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator(f"[name='{field}']")).to_have_value(value)
+            frame = p.frame_locator("iframe[title='Report preview']")
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            expect(frame.get_by_text(marker).first).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

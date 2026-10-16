@@ -290,3 +290,80 @@ def kra19_visit(i=1, matrix_rows=4, long_text=False, sparse_matrix=False):
 
 def kra19_payload(visits=1, matrix_rows=4, long_text=False, sparse_matrix=False):
     return {"activities": [kra19_visit(i + 1, matrix_rows, long_text, sparse_matrix) for i in range(visits)]}
+
+
+KRA18_EVIDENCE = ['ev_signed_mou', 'ev_notice', 'ev_schedule', 'ev_attendance', 'ev_photographs', 'ev_report', 'ev_expert_profile', 'ev_feedback', 'ev_certificates', 'ev_web_link', 'ev_outcome']
+
+
+def kra18_activity(m=1, i=1, long_text=False):
+    para = "Synthetic description sentence for layout testing. " * (30 if long_text else 3)
+    row = {"title": f"Synthetic MoU activity {m}.{i}", "activity_date": f"2026-09-{10 + i:02d}", "duration": "3 hours",
+           "activity_type": "Other" if i == 3 else ["Expert Talk", "Workshop", "Training", "Joint Research"][i % 4],
+           "activity_type_other": "Synthetic hackathon" if i == 3 else "", "venue": "Seminar Hall (synthetic)",
+           "mode": "Offline", "target_participants": "Students / Faculty", "programme_branch": "B.Tech ECE",
+           "participants": 40 + i, "resource_person": f"Test Expert {m}.{i}", "rp_designation": "Senior Engineer, Example Labs (synthetic)",
+           "key_topics": "Synthetic topic A\nSynthetic topic B", "objective": "Synthetic objective of the MoU activity. " + para[:200],
+           "description": para, "outcomes": "Synthetic outcome one\nSynthetic outcome two" + ("\nSynthetic further outcome" * 8 if long_text else "")}
+    row.update({k: ("Yes" if n % 3 else "No") for n, k in enumerate(KRA18_EVIDENCE)})
+    row["ev_web_link"] = ""  # unanswered item prints a dash
+    return row
+
+
+def kra18_mou(m=1, activities=2, long_text=False):
+    return {"org_name": f"Example Research Organization {m} (synthetic)", "org_type": "Research Organization",
+            "mou_ref": f"SYN/MOU/{m:03d}", "signing_date": "2025-07-01", "validity": "5 years, up to 30 Jun 2030",
+            "coord_institution": "Test Coordinator (KIET)", "coord_organization": f"Test Partner Coordinator {m}",
+            "mou_activities": [kra18_activity(m, i + 1, long_text) for i in range(activities)]}
+
+
+def kra18_payload(mous=1, activities=2, long_text=False):
+    return {"activities": [kra18_mou(m + 1, activities, long_text) for m in range(mous)]}
+
+
+def kra17_centre(i=1, long_text=False):
+    return {"centre_name": f"Synthetic IoT Training Centre {i}", "industry_partner": f"Example Industry Partner {i} (synthetic)",
+            "nature": ["Joint Lab", "Training Centre", "Centre of Excellence (CoE)"][i % 3], "date_established": "2026-08-20",
+            "mou_date": "" if i % 4 == 0 else "2026-07-15", "mou_validity": "" if i % 4 == 0 else "5 years",
+            "location": f"Block A, Room {200 + i}",
+            "facilities": "Synthetic workstations, development kits, oscilloscopes" + (", additional synthetic equipment" * 12 if long_text else ""),
+            "purpose": "Synthetic embedded systems training" + (" for final-year projects and certification" * 4 if long_text else ""),
+            "faculty_coordinator": f"Test Faculty {i}", "industry_coordinator": f"Test Industry Coordinator {i}", "status": "Active"}
+
+
+def kra17_payload(centres=2, long_text=False):
+    return {"activities": [{"centres": [kra17_centre(i + 1, long_text) for i in range(centres)]}]}
+
+
+KRA13IAB_CONTRIBUTIONS = ["Participation in Board/Committee Meeting", "Curriculum / Syllabus Review", "Industry/Professional Expert Inputs",
+                       "Review of Student Projects / Training", "Internship / Placement Facilitation", "Guest Lecture / Expert Talk / Workshop",
+                       "Research / Consultancy / Collaborative Activity", "Any Other Contribution"]
+
+
+def kra13iab_membership(i=1, contributions=3, meetings=2, long_text=False):
+    extra = " Synthetic additional detail for layout testing." * (12 if long_text else 0)
+    return {
+        "faculty_name": f"Test Faculty {i}", "designation": "Associate Professor", "employee_id": f"T{1000 + i}",
+        "organization": f"Example Industry Council {i} (synthetic)", "committee_type": "Other" if i % 3 == 0 else "Industry Advisory Board",
+        "committee_type_other": "Government committee (synthetic)" if i % 3 == 0 else "",
+        "committee_name": f"Synthetic Advisory Board {i}", "appointment_date": "2025-06-01", "tenure_from": "2025-07-01",
+        "tenure_to": "" if i % 2 == 0 else "2027-06-30", "membership_nature": "Expert Member",
+        "appointing_authority": "Example Industry Council (synthetic)", "committee_org": "", "chairperson": "Test Chairperson, Director (synthetic)",
+        "purpose": "Synthetic advisory purpose." + extra, "domain": "Embedded systems", "website": "",
+        "objectives": ["To obtain industry/professional inputs for curriculum development and academic improvement."],
+        "other_objectives": "Synthetic additional objective",
+        "contributions": [{"activity": KRA13IAB_CONTRIBUTIONS[n % 8], "period": "Aug 2026",
+                           "contribution": f"Synthetic contribution {n + 1}." + extra} for n in range(contributions)],
+        "meetings": [{"meeting_date": f"2026-0{8 + n % 2}-1{n % 9}", "meeting_ref": f"SYN-M{n + 1}", "agenda": "Synthetic agenda." + extra,
+                      "contribution": "Synthetic inputs given." + extra, "evidence": "Minutes / Attendance"} for n in range(meetings)],
+        "impact_students": "Synthetic student impact.", "impact_curriculum": "Synthetic curriculum impact.",
+        "impact_industry": "Not applicable", "impact_research": "Not applicable", "impact_quality": "Synthetic quality impact." + extra,
+        "documents": {"Appointment / Nomination / Invitation Letter": "Yes", "Minutes of Meeting": "Yes", "Membership Certificate, if applicable": "No"},
+        "other_documents": "",
+        "total_period": "2 years (2025–2027)", "meetings_attended": meetings, "major_activities": "Synthetic activities." + extra,
+        "recommendations": "Synthetic recommendations.", "major_outcomes": "Synthetic outcomes.", "student_beneficiaries": "",
+        "orgs_involved": "Example Industry Council (synthetic)", "hod_name": "", "hod_designation": "",
+    }
+
+
+def kra13iab_payload(members=1, contributions=3, meetings=2, long_text=False):
+    return {"activities": [kra13iab_membership(i + 1, contributions, meetings, long_text) for i in range(members)]}

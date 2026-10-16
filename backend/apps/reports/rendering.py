@@ -142,7 +142,7 @@ def _cell(col, row, snap):
 def _prepare_activity(schema, act, snap):
     """Derive display values by field type. Raw values stay available under their ids:
     <id>_display (dates), <id>_list (multiselect/longtext lines), <id>_items (checklist pairs;
-    ratings triples (n, item, value)), <id>_rows (table rows as lists of display cells)."""
+    ratings triples (n, item, value)), <id>_rows (table rows as lists of display cells), <id>_records (same cells keyed by column id)."""
     out = {k: ("" if v is None else v) for k, v in act.items()}
     for f in (f for s in schema["sections"] for f in s["fields"]):
         v = act.get(f["id"])
@@ -160,6 +160,7 @@ def _prepare_activity(schema, act, snap):
                                        for n, item in enumerate(f["items"])]
         elif f["type"] == "table":
             out[f["id"] + "_rows"] = [[_cell(c, row, snap) for c in f["columns"]] for row in (v or [])]
+            out[f["id"] + "_records"] = [{c["id"]: cell for c, cell in zip(f["columns"], r)} for r in out[f["id"] + "_rows"]]
     if "detail_columns" in schema.get("family", {}):  # course family prints a configurable one-row details table
         out["detail_cells"] = ["" if act.get(c["id"]) is None else act.get(c["id"], "")
                                for c in schema["family"]["detail_columns"]]
