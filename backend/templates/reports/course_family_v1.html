@@ -1,0 +1,58 @@
+{% extends "reports/base.html" %}
+{% comment %}Shared course-report family for KRAs 1, 2 and 3 ("KRA 1-3 Report Format", D-036). Wording that
+names the course type comes from schema.family.term; KRA 2 keeps the source's "Value Added Courses".{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% with fam=schema.family %}
+{% for a in activities %}
+<section class="k11 {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Course {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title">REPORT ON VALUE ADDED COURSES, ADD-ON COURSES AND MOOCs</h1>
+<p class="center bold sub">KIET Deemed to be University, Ghaziabad</p>
+
+<table class="k11-head">
+  <tr><th>Name of the Department</th><td>{{ snap.department.name }}</td></tr>
+  <tr><th>Academic Session / Year/ Semester</th><td>{{ snap.year }}{% if a.year_semester %} / {{ a.year_semester }}{% endif %}</td></tr>
+  <tr><th>Faculty Coordinator(s)</th><td>{{ a.faculty_coordinators }}</td></tr>
+  <tr><th>Head of the Department</th><td>{{ a.hod }}</td></tr>
+  <tr><td colspan="2" class="prose">
+    <p class="bold">Introduction - KIET Deemed to be University is committed to providing students with opportunities for holistic development and enhancing their employability, professional competencies, interdisciplinary knowledge and lifelong learning skills.</p>
+    <p>In addition to the prescribed curriculum, the University offers <b>Value Added Courses (VACs), Add-on Courses and Massive Open Online Courses (MOOCs)</b> to provide students with exposure to emerging technologies, industry practices, professional skills, interdisciplinary learning and global learning resources.</p>
+    <ul><li>These courses are designed to complement the regular curriculum and contribute to the development of graduate attributes, employability skills and overall student development</li></ul>
+  </td></tr>
+  <tr><td colspan="2" class="prose">
+    <p class="bold">Objectives of {{ fam.term }} - The major objectives of the {{ fam.term }} are:</p>
+    {% if a.objectives_list or a.other_objectives_list %}
+    <ol>{% for o in a.objectives_list %}<li>{{ o }}</li>{% endfor %}{% for o in a.other_objectives_list %}<li>{{ o }}</li>{% endfor %}</ol>
+    {% else %}<p class="empty">Not entered</p>{% endif %}
+  </td></tr>
+</table>
+
+<p class="bold lead k11-label">Detail of {{ fam.term }}</p>
+<table class="k11-grid fam-details">
+  <thead><tr><th style="width:7%">S. No.</th>{% for c in fam.detail_columns %}<th>{{ c.label }}</th>{% endfor %}</tr></thead>
+  <tr><td class="center">1</td>{% for cell in a.detail_cells %}<td class="center">{{ cell }}</td>{% endfor %}</tr>
+</table>
+{% if a.approval_ref %}<p class="table-note">Approval reference: {{ a.approval_ref }}</p>{% endif %}
+
+<p class="bold lead k11-label">Course Content/Syllabus</p>
+<table class="k11-grid">
+  <thead><tr><th style="width:12%">Module</th><th style="width:58%">Topic</th><th>No. of Hours</th></tr></thead>
+  {% for row in a.modules_rows %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ row.0 }}</td><td class="center">{{ row.1 }}</td></tr>
+  {% empty %}
+  {% for n in "1234"|make_list %}<tr><td class="center">{{ n }}</td><td></td><td></td></tr>{% endfor %}
+  {% endfor %}
+</table>
+
+{% include "reports/_programme_outcomes.html" %}
+
+{% include "reports/_supporting_docs.html" with doc_unit=fam.doc_unit %}
+</section>
+{% empty %}
+<h1 class="title">REPORT ON VALUE ADDED COURSES, ADD-ON COURSES AND MOOCs</h1>
+<p class="empty">No courses have been added to this report yet.</p>
+{% endfor %}
+{% endwith %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

@@ -107,4 +107,5 @@ Supplied summary templates referenced by the workbook Instructions sheet but **n
 | 32 | `kra32_v1` (sheet, A4 landscape) | Implemented, pending review | 3 |
 | 11 | `kra11_v1` (report style, repeatable courses) | Implemented, pending review | 4 (bounded) |
 | 23 | `kra23_v1` (report style, repeatable programmes + program rows) | Implemented, pending review | 4 (bounded) |
-| All other 39 | — | Template pending | 4 |
+| 1, 2, 3 | `kra1_v1`, `kra2_v1`, `kra3_v1` built by `apps/reports/families.py`, rendered by `course_family_v1.html` | Implemented, pending review | 4 (bounded) |
+| All other 36 | — | Template pending | 4 |

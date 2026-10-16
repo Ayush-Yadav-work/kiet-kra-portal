@@ -123,9 +123,9 @@ class WorkflowMixin:
             self.assertEqual(r.status_code, 200)
             data = b"".join(r.streaming_content)
         doc = pymupdf.open(stream=data, filetype="pdf")
-        text = " ".join(pdf_text(data).split())  # cells wrap, so compare with normalised whitespace
+        text = " ".join(pdf_text(data).split()).replace("- ", "-")  # cells wrap (also after hyphens): normalise
         for t in self.expect_text:
-            self.assertIn(" ".join(t.split()), text)
+            self.assertIn(" ".join(t.split()).replace("- ", "-"), text)
         self.assertIn("Pending approval", text)
         fonts = {f[3] for i in range(doc.page_count) for f in doc.get_page_fonts(i)}
         self.assertTrue(fonts and all("Tinos" in f for f in fonts), fonts)  # C12: no system-font fallback

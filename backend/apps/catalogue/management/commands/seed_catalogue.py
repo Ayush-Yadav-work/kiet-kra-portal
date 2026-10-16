@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.catalogue.models import KRA, AcademicYear, AnnualAssignment, Department, ReportingPeriod, TemplateVersion
+from apps.reports.families import BUILDERS
 from apps.submissions.models import Submission
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -23,7 +24,8 @@ YEARS = ("2026-27", "2027-28", "2028-29")
 PERIODS = ((7, 9, "July – August"), (9, 11, "September – October"), (11, 1, "November – December"),
            (1, 3, "January – February"), (3, 5, "March – April"), (5, 7, "May – June"))
 # KRA number -> (template key, version) available in this release.
-TEMPLATE_FOR_KRA = {33: ("kra33", 1), 20: ("kra20", 1), 7: ("kra7", 1), 32: ("kra32", 1), 11: ("kra11", 1), 23: ("kra23", 1)}
+TEMPLATE_FOR_KRA = {33: ("kra33", 1), 20: ("kra20", 1), 7: ("kra7", 1), 32: ("kra32", 1), 11: ("kra11", 1), 23: ("kra23", 1),
+                    1: ("kra1", 1), 2: ("kra2", 1), 3: ("kra3", 1)}
 
 
 def period_bounds(start_year, index):
@@ -58,9 +60,11 @@ class Command(BaseCommand):
                 "activity_text": k["activity_text"], "nba_ref": k["nba_ref"], "naac_ref": k["naac_ref"]})
         templates = {}
         for number, (key, version) in TEMPLATE_FOR_KRA.items():
-            schema = json.loads((SCHEMAS / f"{key}_v{version}.json").read_text(encoding="utf-8"))
+            path = SCHEMAS / f"{key}_v{version}.json"
+            schema = json.loads(path.read_text(encoding="utf-8")) if path.exists() else BUILDERS[key]()
             tv, created = TemplateVersion.objects.get_or_create(key=key, version=version, defaults={
-                "title": schema["title"], "schema": schema, "renderer_template": f"reports/{key}_v{version}.html",
+                "title": schema["title"], "schema": schema,
+                "renderer_template": schema.get("renderer", f"reports/{key}_v{version}.html"),
                 "source_checksum": schema.get("source_checksum", "")})
             if not created and tv.schema != schema:
                 if Submission.objects.filter(assignment__template_version=tv).exists():

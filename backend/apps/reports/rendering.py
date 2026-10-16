@@ -159,6 +159,9 @@ def _prepare_activity(schema, act, snap):
                                        for n, item in enumerate(f["items"])]
         elif f["type"] == "table":
             out[f["id"] + "_rows"] = [[_cell(c, row, snap) for c in f["columns"]] for row in (v or [])]
+    if "family" in schema:  # family templates print a configurable one-row details table
+        out["detail_cells"] = ["" if act.get(c["id"]) is None else act.get(c["id"], "")
+                               for c in schema["family"]["detail_columns"]]
     return out
 
 
