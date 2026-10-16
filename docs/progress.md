@@ -87,11 +87,17 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] KRA 17 `kra17_v1`: one landscape table, split pagination repaired (D-041)
 - [x] KRA 13 `kra13_v1`: memberships with contributions, meetings, impact, summary, sign-off (D-042)
 - [x] Mappings idempotent, targets unchanged; no mandatory evidence; existing workflow; shared `_records` (D-043)
-- Open: D-040–D-042 college questions. Committed on phase2-kra33-pilot.
+- Open: D-040–D-042 college questions. Committed (61840c6).
+
+## Phase 4 (bounded) — KRAs 15, 22, 31, 38 table reports ✅ (pending review)
+- [x] Shared one-table sheet template `records_sheet_v1.html` (D-044) for all four
+- [x] KRA 15 entrepreneurs with faculty adaptation (D-044); KRA 22 career counselling (D-045); KRA 31 hackathons/ideathons (D-046); KRA 38 FDPs/MDPs attended, Letter portrait (D-047)
+- [x] Mappings idempotent, targets unchanged; no mandatory evidence; no computed percentages/totals
+- Open: D-044–D-047 college questions. Committed on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 27 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 23 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).

@@ -1,0 +1,42 @@
+{
+  "key": "kra22",
+  "version": 1,
+  "title": "No. of Career counselling activities conducted",
+  "sheet_title": "Career Counselling Activities Conducted",
+  "renderer": "reports/records_sheet_v1.html",
+  "source": "reference/templates/KRA 22 No. of Career counselling activities conducted.xlsx - Sheet1.pdf",
+  "source_checksum": "1c9508d82133fec222d73ca18bc8df8812b01bb3089e8ac841bc8dd8d5a7d04e",
+  "page": {"format": "A4", "landscape": true, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "Career counselling activities",
+      "intro": "One record per career counselling activity conducted. Academic Year is filled from this report. Type and domain suggestions are the source's sample values; any wording may be entered.",
+      "fields": [
+        {"id": "records", "label": "Activity records", "type": "table", "required": true, "min_rows": 1, "max_rows": 100, "editor": "cards",
+         "columns": [
+           {"id": "academic_year", "label": "Academic Year", "type": "auto", "source": "year", "width": "5%"},
+           {"id": "date", "label": "Date", "type": "date", "required": true, "width": "6%"},
+           {"id": "title", "label": "Title of Activity", "type": "text", "required": true, "max_length": 250, "width": "10%"},
+           {"id": "activity_type", "label": "Type of Activity", "type": "text", "required": true, "max_length": 80, "width": "7.5%",
+            "suggestions": ["Counselling", "Expert Talk"]},
+           {"id": "career_domain", "label": "Career Domain", "type": "text", "required": true, "max_length": 100, "width": "7.5%",
+            "suggestions": ["IT/Software", "Higher Studies", "Core Engineering"]},
+           {"id": "target_programme", "label": "Target Programme/Branch", "type": "text", "required": true, "max_length": 150, "width": "8%",
+            "placeholder": "e.g. B.Tech CSE"},
+           {"id": "resource_person", "label": "Resource Person/Counsellor", "type": "text", "required": true, "max_length": 200, "width": "8.5%"},
+           {"id": "organization", "label": "Organization", "type": "text", "required": true, "max_length": 200, "width": "8%"},
+           {"id": "duration", "label": "Duration", "type": "text", "required": true, "max_length": 60, "width": "5.5%", "placeholder": "e.g. 2 hours"},
+           {"id": "students", "label": "No. of Students", "type": "integer", "required": true, "min": 0, "max": 100000, "width": "5%"},
+           {"id": "faculty", "label": "No. of Faculty", "type": "integer", "required": true, "min": 0, "max": 10000, "width": "5%"},
+           {"id": "outcome", "label": "Outcome", "type": "longtext", "required": true, "max_length": 1000, "width": "22%"}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Notice/Circular", "Attendance Sheet", "Photographs", "Activity Report", "Resource Person Profile", "Other"],
+    "required": [],
+    "note": "The source lists no evidence; no minimum set has been agreed (docs/decisions.md D-045)."
+  }
+}

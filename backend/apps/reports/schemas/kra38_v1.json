@@ -1,0 +1,36 @@
+{
+  "key": "kra38",
+  "version": 1,
+  "title": "Teachers who have undergone online/face-to-face FDP/MDP",
+  "sheet_title": "Percentage of teachers undergoing online/ face-to-face Faculty Development Programmes (FDPs)/ Management Development Programmes (MDPs).",
+  "renderer": "reports/records_sheet_v1.html",
+  "source": "reference/templates/KRA 38 - Template.xlsx - FDPs Attended.pdf",
+  "source_checksum": "83371b0ba92b42b992a24bf83656a12c6f4fd406c0e718a29e8c835e73f6db0c",
+  "page": {"format": "Letter", "landscape": false, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "FDPs/MDPs attended",
+      "intro": "One record per programme attended by a faculty member of this department (online or face-to-face). Programmes the department organized are reported under KRAs 36–37, not here. The portal does not calculate the percentage in the title.",
+      "fields": [
+        {"id": "records", "label": "Programmes attended", "type": "table", "required": true, "min_rows": 1, "max_rows": 100, "editor": "cards",
+         "columns": [
+           {"id": "faculty_name", "label": "Name of the Faculty", "type": "text", "required": true, "max_length": 150, "width": "20%"},
+           {"id": "programme_type", "label": "Type of Program (Professional Development Programmes, Orientation/Induction Programmes, Refresher Course, Short Term Course )",
+            "type": "select", "required": true, "width": "26%",
+            "options": ["Professional Development Programmes", "Orientation/Induction Programmes", "Refresher Course", "Short Term Course"]},
+           {"id": "duration_days", "label": "Duration (in No. of days)", "type": "integer", "required": true, "min": 1, "max": 365, "width": "10%"},
+           {"id": "start_date", "label": "Start Date", "type": "date", "required": true, "width": "10.5%"},
+           {"id": "end_date", "label": "End Date", "type": "date", "required": true, "width": "10.5%"},
+           {"id": "institution", "label": "Name of the Organising Institution", "type": "text", "required": true, "max_length": 250, "width": "19.5%"}
+         ],
+         "row_rules": [{"type": "date_order", "a": "start_date", "b": "end_date", "message": "End date cannot be before the start date."}]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Participation/Completion Certificate", "Nomination/Relieving Order", "Programme Schedule", "Other"],
+    "required": [],
+    "note": "The source lists no evidence; no minimum set has been agreed (docs/decisions.md D-047)."
+  }
+}

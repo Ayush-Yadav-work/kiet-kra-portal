@@ -128,3 +128,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean open KRA 19: add visit
 ## KRAs 18, 17, 13 review (industry collaboration)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 18** — *+ Add mou* per MoU, fill its details, then *+ Add record* for each activity (try type "Other"; leave an evidence Yes/No blank to see —). **KRA 17** — one record per centre/lab; check all source columns appear on one landscape table. **KRA 13** — *+ Add membership* per faculty member; add contribution rows and meetings; leave "To" blank for a continuing tenure. Samples: `.work/renders/kra18/{normal,multi,long,empty,nil}.pdf`, `kra17/{normal,long,empty,nil}.pdf`, `kra13/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 18 --kra 17 --kra 13`). Decisions: D-040 to D-043.
+
+## KRAs 15, 22, 31, 38 review (table reports)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean, add records with *+ Add record*: **KRA 15** — switch Category to Faculty to see Programme/Batch become not applicable (NA in the PDF) and enter an Employee ID; leave Registration/DPIIT blank. **KRA 22** — type/domain accept any text (suggestions are the source samples). **KRA 31** — try teams > participants, then *Submit*. **KRA 38** — try an end date before the start date; note the title's percentage is not computed. Samples: `.work/renders/kra{15,22,31,38}/{normal,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 15 --kra 22 --kra 31 --kra 38`). Decisions: D-044 to D-047.
