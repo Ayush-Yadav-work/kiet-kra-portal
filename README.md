@@ -136,3 +136,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean, add records with *+ A
 ## KRAs 4, 5, 6 and 24 review
 
 Run `manage.py seed_catalogue`, restart Django (frontend changed: rebuild for production). As a Dean: **KRAs 4–6** — *+ Add programme*; answer Yes and add completion records; switch a programme to No and check the preview shows NA and no students (values return when switched back). Each KRA keeps its own data. **KRA 24** — add records; switch a Placement record to Higher Education: the employer/package fields show "NA (entered value kept, not used)", the preview shows only the institution/programme, and switching back restores them. Samples: `.work/renders/kra{4,5,6,24}/{normal,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 4 --kra 5 --kra 6 --kra 24`). Decisions: D-048, D-049.
+
+## KRAs 12, 25, 26 review (awards)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 12** — fill Coordinator/Date, add award records (an award shared by several people: one record, names one per line); check the four signature labels print as blank lines. **KRAs 25/26** — add a team award as one record with every member on its own line (Team), and an individual award; check the PDF shows one row per award. Level "University (inter-university)" reflects the workbook wording (D-051). Samples: `.work/renders/kra{12,25,26}/{normal,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 12 --kra 25 --kra 26`). Decisions: D-050, D-051.

@@ -607,3 +607,53 @@ def field_project_schema(kra):
 
 
 BUILDERS.update({f"kra{k}": (lambda k=k: field_project_schema(k)) for k in FP_VARIANTS})
+
+
+# KRAs 25–26: the "A11B Extra Curricular" sheet of "KRA 25 to 30 Template", sports and cultural awards only (D-051).
+AWARD_SOURCE = ("reference/templates/KRA 25 to 30 Template.xlsx - A11B Extra Curricular.pdf",
+                "7a25932c2fbaab0b8246df9090b06f139bc01bab199b8a59087398fc961190e1")
+AWARD_VARIANTS = {25: "sports", 26: "cultural activities"}
+
+
+def award_sheet_schema(kra):
+    area = AWARD_VARIANTS[kra]
+    return copy.deepcopy({
+        "key": f"kra{kra}", "version": 1, "title": f"Awards/medals for outstanding performance in {area} (KRA {kra})",
+        "sheet_title": "Number of awards/medals for outstanding performance in sports/cultural activities at University / state / "
+                       "national/international Level events (award for a team event should be counted as one)",
+        "renderer": "reports/records_sheet_v1.html",
+        "source": AWARD_SOURCE[0], "source_checksum": AWARD_SOURCE[1],
+        "page": {"format": "A4", "landscape": True, "style": "sheet"},
+        "activity": {"label": "Report", "min": 1, "max": 1},
+        "sections": [
+            {"id": "records", "title": f"Awards/medals in {area}",
+             "intro": f"One row per award won in {area}. An award for a team event is ONE row: list every team member in "
+                      "\"Name of the student\" (one per line) — do not repeat the award per member. The portal counts nothing; "
+                      "enter the achievement yourself.",
+             "fields": [
+                 {"id": "records", "label": "Award records", "type": "table", "required": True, "min_rows": 1, "max_rows": 100,
+                  "editor": "cards",
+                  "columns": [
+                      {"id": "student_names", "label": "Name of the student", "type": "longtext", "required": True, "max_length": 1500,
+                       "width": "22%", "help": "One name per line; for a team award list all members in this one record."},
+                      {"id": "event", "label": "Name of the event", "type": "text", "required": True, "max_length": 250, "width": "18%"},
+                      {"id": "event_date", "label": "Date of the event", "type": "date", "required": True, "width": "9%"},
+                      {"id": "participation", "label": "Team / Individual", "type": "select", "required": True,
+                       "options": ["Team", "Individual"], "width": "8%"},
+                      {"id": "level", "label": "University / state / National/ International", "type": "select", "required": True,
+                       "options": ["University (inter-university)", "State", "National", "International"], "width": "12%",
+                       "help": "The workbook counts inter-university, state, national and international events; whether "
+                               "intra-university events count is pending college review."},
+                      {"id": "position", "label": "Position secured", "type": "text", "required": True, "max_length": 80,
+                       "width": "10%", "placeholder": "e.g. First / Gold medal"},
+                      {"id": "organiser", "label": "Name of the Organising Institution", "type": "text", "required": True,
+                       "max_length": 250, "width": "17.5%"},
+                  ]},
+             ]},
+        ],
+        "evidence": {"categories": ["Certificate/Medal", "Result/Merit List", "Event Notice/Brochure", "Photographs", "Other"],
+                     "required": [], "note": "The source lists no evidence; no minimum set has been agreed (docs/decisions.md D-051)."},
+    })
+
+
+BUILDERS.update({f"kra{k}": (lambda k=k: award_sheet_schema(k)) for k in AWARD_VARIANTS})
