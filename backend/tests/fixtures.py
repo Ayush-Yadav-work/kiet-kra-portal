@@ -250,3 +250,43 @@ def kra9_payload(variants=("9a", "9b"), long_text=False):
                     f"v{code}_ratings": [f"{base}.{n}5" for n in range(10)],
                     f"v{code}_suggestions": f"Synthetic {code} suggestion" + ("\n" + para if long_text else "")})
     return {"activities": [act]}
+
+
+def kra19_visit(i=1, matrix_rows=4, long_text=False, sparse_matrix=False):
+    para = "Synthetic observation for layout testing." * (25 if long_text else 2)
+    matrix = []
+    for r in range(matrix_rows):
+        row = {"outcome": f"Synthetic learning outcome {r + 1}" + (" about automation lines and quality systems" * 3 if long_text else "")}
+        for po in range(1, 13):
+            row[f"po{po}"] = "" if (sparse_matrix and po % 3) else ["3", "2", "1", "H", "M"][(r + po) % 5]
+        row["pso1_a"], row["pso1_b"] = ("2", "") if r % 2 else ("", "3")
+        matrix.append(row)
+    return {
+        "visit_date": f"2026-09-{10 + i:02d}", "year_semester": "3rd Year / Odd Semester",
+        "faculty_coordinators": f"Test Coordinator {i}, Zoë Łukasz", "hod": "Test Head of Department",
+        "industry_name": f"Example Manufacturing Plant {i} (synthetic)", "students_participated": 58, "students_eligible": 64,
+        "industry_profile": "Synthetic profile of the industry.\n" + para,
+        "experts": [{"name": f"Test Expert {e + 1}", "designation": "Plant Engineer", "topics": "Industrial automation, Career opportunities"}
+                    for e in range(2)],
+        "objectives": "Synthetic objective one\nSynthetic objective two",
+        "technical_overview": "Synthetic technical overview. " + para,
+        "departments_visited": [{"department": f"Synthetic Assembly Shop {d + 1}", "purpose": "Synthetic purpose",
+                                 "activities": "Synthetic activities", "machinery": "Synthetic CNC line" if d % 2 == 0 else "",
+                                 "principles": "", "observations": ("Synthetic observation. " + para)[:790]} for d in range(3 if long_text else 2)],  # within the 800-char limit
+        "equipment": "Synthetic equipment list", "quality_safety": "Synthetic PPE and inspection practices observed",
+        "environmental": "Not observed",
+        "learning_outcomes": "Synthetic learning outcome 1\nSynthetic learning outcome 2",
+        "courses": [{"course_name": "Synthetic Manufacturing Processes", "course_code": "TST301", "year_semester": "3rd / V"}],
+        "lo_matrix": matrix,
+        "gaps": [{"gap": "Theory-Practice Gap (synthetic)", "solution": "Observed live production line (synthetic)"}],
+        "suggestions": "Synthetic suggestion", "conclusion": "Synthetic conclusion. " + para,
+        "coordinator_remarks": "Synthetic remark", "coordinator_name": "Test Coordinator",
+        "feedback_responses": 40,
+        "feedback_ratings": ["4.20", "4", "3.85", "4.10", "3.9", "4.05", "4.30", "3.75", "4.5", "4.25"],
+        "feedback_summary": "Synthetic consolidated feedback summary.",
+        "annexures": {"Industrial Visit Approval": "Yes", "Attendance Record": "Yes", "Student’s Feedback": "Yes"},
+    }
+
+
+def kra19_payload(visits=1, matrix_rows=4, long_text=False, sparse_matrix=False):
+    return {"activities": [kra19_visit(i + 1, matrix_rows, long_text, sparse_matrix) for i in range(visits)]}

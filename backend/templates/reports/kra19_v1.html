@@ -1,0 +1,128 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 19 Industrial Visit Report (19a order) with the consolidated 19b feedback summary (D-039).
+Source example/instruction lists are form guidance only; the report prints what the department entered.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 iv {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Visit {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title iv-title">Industrial Visit Report</h1>
+
+<table class="k11-head">
+  <tr><th>Name of the Department</th><td>{{ snap.department.name }}</td></tr>
+  <tr><th>Date of Visit</th><td>{{ a.visit_date_display }}</td></tr>
+  <tr><th>Academic Session / Year/ Semester</th><td>{{ snap.year }}{% if a.year_semester %} / {{ a.year_semester }}{% endif %}</td></tr>
+  <tr><th>Faculty Coordinator(s)</th><td>{{ a.faculty_coordinators }}</td></tr>
+  <tr><th>Head of the Department</th><td>{{ a.hod }}</td></tr>
+  <tr><th>Name of Industry Visited</th><td>{{ a.industry_name }}</td></tr>
+  <tr><th>Students participated</th><td>{{ a.students_participated }}{% if a.students_eligible != "" %} (of {{ a.students_eligible }} in the class/batch){% endif %}</td></tr>
+  <tr><td colspan="2" class="prose"><b>Profile of the Industry Visited (Brief Introduction)</b>
+    {% if a.industry_profile %}<p>{{ a.industry_profile|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td colspan="2" class="prose"><b>Detail of the Industry Experts (Interacted with)</b>
+    {% if a.experts_rows %}
+    <table class="k11-grid iv-inner"><thead><tr><th style="width:8%">S. No.</th><th style="width:26%">Name</th><th style="width:24%">Designation</th><th style="width:42%">Topics Discussed</th></tr></thead>
+      {% for r in a.experts_rows %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ r.0 }}</td><td>{{ r.1 }}</td><td>{{ r.2 }}</td></tr>{% endfor %}
+    </table>
+    {% else %}<p class="empty">None recorded</p>{% endif %}</td></tr>
+  <tr><td colspan="2" class="prose"><b>Objectives of the Industry Visited</b>
+    {% if a.objectives_list %}<ul>{% for o in a.objectives_list %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td colspan="2" class="prose"><b>Technical Overview</b>
+    {% if a.technical_overview %}<p>{{ a.technical_overview|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+</table>
+
+<table class="k11-head iv-box">
+  <tr><td class="prose"><b>Departments and Facilities Visited</b>
+    {% for r in a.departments_visited_rows %}
+    <table class="k11-grid iv-inner iv-dept">
+      <tr><th colspan="2" class="left">{{ forloop.counter }}. {{ r.0 }}</th></tr>
+      <tr><td style="width:32%">Purpose of the department</td><td>{{ r.1|linebreaksbr }}</td></tr>
+      <tr><td>Major activities</td><td>{{ r.2|linebreaksbr }}</td></tr>
+      <tr><td>Machinery or equipment observed</td><td>{{ r.3|linebreaksbr }}</td></tr>
+      <tr><td>Engineering principles involved</td><td>{{ r.4|linebreaksbr }}</td></tr>
+      <tr><td>Key observations</td><td>{{ r.5|linebreaksbr }}</td></tr>
+    </table>
+    {% empty %}<p class="empty">Not entered</p>{% endfor %}</td></tr>
+  <tr><td class="prose"><b>Equipment and Technologies Observed</b>
+    {% if a.equipment %}<p>{{ a.equipment|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td class="prose"><b>Quality Assurance and Safety Practices</b>
+    {% if a.quality_safety %}<p>{{ a.quality_safety|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td class="prose"><b>Environmental and Sustainability Practices</b>
+    {% if a.environmental %}<p>{{ a.environmental|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td class="prose"><b>Key Learning Outcomes</b>
+    {% if a.learning_outcomes_list %}<ul>{% for o in a.learning_outcomes_list %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+  <tr><td class="prose"><b>Subject/Course mapped</b>
+    {% if a.courses_rows %}
+    <table class="k11-grid iv-inner"><thead><tr><th style="width:50%">Name of the Course</th><th style="width:22%">Course Code</th><th style="width:28%">Year/Semester</th></tr></thead>
+      {% for r in a.courses_rows %}<tr><td>{{ r.0 }}</td><td>{{ r.1 }}</td><td>{{ r.2 }}</td></tr>{% endfor %}
+    </table>
+    {% else %}<p class="empty">Not entered</p>{% endif %}</td></tr>
+</table>
+
+<p class="bold lead iv-label">Learning Outcome to PO/PSO mapping</p>
+<table class="k11-grid iv-matrix">
+  <thead>
+    <tr><th rowspan="2" style="width:23%">Learning Outcome</th><th colspan="14">Program Outcomes (POs)</th></tr>
+    <tr>{% for n in "123456789"|make_list %}<th>{{ n }}</th>{% endfor %}<th>10</th><th>11</th><th>12</th><th>PSO1</th><th>PSO1</th></tr>
+  </thead>
+  {% for r in a.lo_matrix_rows %}
+  <tr><td>{{ forloop.counter }}. {{ r.0 }}</td>{% for c in r|slice:"1:" %}<td class="center">{{ c }}</td>{% endfor %}</tr>
+  {% empty %}
+  {% for n in "1234"|make_list %}<tr><td>{{ n }}</td>{% for c in "12345678901234"|make_list %}<td></td>{% endfor %}</tr>{% endfor %}
+  {% endfor %}
+</table>
+<p class="table-note">Mapping entries as recorded by the department; no numeric scale is implied. The two "PSO1" columns are printed as in the source format (pending college correction).</p>
+
+<p class="bold lead iv-label">Gap Fulfilment in Academics</p>
+<p class="lead">Industrial visits can be used to bridge several academic gaps.</p>
+<table class="k11-grid">
+  <thead><tr><th style="width:45%">Academic Gap</th><th>Industrial Visit Solution</th></tr></thead>
+  {% for r in a.gaps_rows %}<tr><td>{{ r.0 }}</td><td>{{ r.1 }}</td></tr>
+  {% empty %}<tr><td>&nbsp;</td><td></td></tr>{% endfor %}
+</table>
+
+<div class="keep">
+<p class="bold iv-label">Suggestions:</p>
+{% if a.suggestions %}<p>{{ a.suggestions|linebreaksbr }}</p>{% else %}<p class="empty">None recorded</p>{% endif %}
+</div>
+<div class="keep">
+<p class="bold iv-label">Conclusion:</p>
+{% if a.conclusion %}<p>{{ a.conclusion|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+<div class="keep">
+<p class="bold iv-label">Faculty Coordinator Remarks:</p>
+{% if a.coordinator_remarks %}<p>{{ a.coordinator_remarks|linebreaksbr }}</p>{% else %}<p class="empty">None recorded</p>{% endif %}
+<div class="signoff"><div>Faculty Coordinator Name &amp; Signature: <span class="val">{% if a.coordinator_name %}{{ a.coordinator_name }} {% endif %}____________________</span></div></div>
+</div>
+
+<div class="keep">
+<p class="bold iv-label">Annexures:</p>
+<p class="lead">The following supporting documents may be attached (files are kept in the portal's Evidence tab, not in this PDF):</p>
+<ul>{% for item, val in a.annexures_items %}<li>{{ item }}{% if val %} — <b>Maintained: {{ val }}</b>{% endif %}</li>{% endfor %}</ul>
+</div>
+
+<div class="iv-feedback">
+<p class="bold lead iv-label">Industrial Visit Feedback Form (KRA 19b) — consolidated summary</p>
+<p class="consolidated-note">Completed student feedback forms: {% if a.feedback_responses != "" %}{{ a.feedback_responses }}{% else %}not entered{% endif %} (uploaded separately as evidence). Values are consolidated by the department, not an individual response.</p>
+{% if a.feedback_ratings %}
+<table class="survey ratings">
+  <thead><tr><th style="width:6%">S No.</th><th style="width:37%">Tick Any<br>Grading from 1 to 5</th>
+    <th style="width:7%">Poor<br>(1)</th><th style="width:9%">Satisfactory<br>(2)</th><th style="width:7%">Good<br>(3)</th>
+    <th style="width:8%">Very Good<br>(4)</th><th style="width:9%">Excellent<br>(5)</th><th style="width:17%" class="avg">Consolidated Average (1–5)</th></tr></thead>
+  {% for n, item, value in a.feedback_ratings_items %}
+  <tr><td class="center">{{ n }}</td><td>{{ item }}</td><td></td><td></td><td></td><td></td><td></td>
+    <td class="center avg">{% if value != "" %}<b>{{ value }}</b>{% else %}<span class="empty">—</span>{% endif %}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+<table class="survey box keep">
+  <tr><th class="left">Consolidated feedback summary:</th></tr>
+  <tr><td class="tall">{% if a.feedback_summary %}{{ a.feedback_summary|linebreaksbr }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+</table>
+</div>
+</section>
+{% empty %}
+<h1 class="title iv-title">Industrial Visit Report</h1>
+<p class="empty">No visits have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

@@ -26,7 +26,7 @@ PERIODS = ((7, 9, "July – August"), (9, 11, "September – October"), (11, 1, 
 # KRA number -> (template key, version) available in this release.
 TEMPLATE_FOR_KRA = {33: ("kra33", 1), 20: ("kra20", 1), 7: ("kra7", 1), 32: ("kra32", 1), 11: ("kra11", 1), 23: ("kra23", 1),
                     1: ("kra1", 1), 2: ("kra2", 1), 3: ("kra3", 1), 36: ("kra36", 1), 37: ("kra37", 1),
-                    8: ("kra8", 1), 9: ("kra9", 1), 10: ("kra10", 1)}
+                    8: ("kra8", 1), 9: ("kra9", 1), 10: ("kra10", 1), 19: ("kra19", 1)}
 
 
 def period_bounds(start_year, index):
