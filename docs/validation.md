@@ -93,3 +93,14 @@ Generated with `python backend/manage.py render_sample` into `.work/renders/kra{
 Font audit across all 16 sample PDFs (every page): only Tinos embedded.
 
 Not covered: real college data volumes, Devanagari names, printing on physical paper, institutional sign-off of the D-029–D-031 adaptations.
+
+---
+
+# KRA 11 validation (2026-10-17)
+
+- `python backend/manage.py test tests.test_kra11` → **Ran 10 tests, OK**: mapping idempotent (13 assignments → `kra11`, targets unchanged after re-seed); exact draft round trip; preview content incl. Unicode names; strict validation lists all required fields and does **not** require evidence or optional fields; completed ≤ enrolled; 1-decimal hours ("30.25" rejected at submit, not rounded); module table min 1 row; non-numeric hours block save; 20 courses accepted, 21 rejected; source wording present and "VAC/Add-on" absent; shared workflow (submit → reject after close with 72 h grant → resubmit → approve; Nil; PDF Tinos-only on all pages).
+- Full regression (shared rendering touched): `python backend/manage.py test tests` → **Ran 82 tests, OK**.
+- Frontend unchanged → no rebuild needed. Browser check (built-in browser, ECE demo): KRA 11 opens with course tabs and "+ Add course"; typed values autosaved ("Saved"), survived reload and appeared in the live preview.
+- Samples (`python backend/manage.py render_sample --kra 11`) in `.work/renders/kra11/`: normal (2 courses × 4 modules) 8 pages; long (6 courses × 40 modules, long text) 55 pages; empty 4 pages; Nil 1 page. Visual review against the source: header/footer geometry identical to KRA 33 style; header table, fixed intro/objectives, course row, syllabus, outcomes, assessment, impact, feedback, signature box and supporting-documents page follow the source order; syllabus header repeats across pages; no split or clipped rows. Fixed during review: the narrow "Mode Offline/Online/Hybrid" column broke words letter-by-letter → explicit column widths.
+- Regression samples for KRAs 33/20/7/32 re-rendered: page counts unchanged (3/21/3/1, 1/51/1/1, 3/4/3/1, 1/51/1/1); all 20 sample PDFs embed only Tinos.
+- Not verified: real course data, printing.

@@ -88,3 +88,36 @@ def kra32_payload(rows=4, long_text=False):
             row["item_details"] = "2 synthetic oscilloscopes" + (" with accessories and manuals" * 4 if long_text else "")
         out.append(row)
     return {"activities": [{"contributions": out}]}
+
+
+KRA11_DOCS = ["Approval/permission for conducting the course", "Course proposal/concept note", "Course syllabus/content",
+              "Academic calendar/activity schedule", "Course timetable", "Resource person/faculty details",
+              "Expert profile/CV, wherever applicable", "Attendance records", "Registration/enrolment records",
+              "Assessment records", "Result/score sheet", "Student feedback", "Sample certificates",
+              "Photographs with date and caption", "Geo-tagged photographs, wherever applicable", "Course completion report",
+              "List of students who completed the course", "Any other relevant supporting document"]
+
+
+def kra11_course(i=1, modules=4, long_text=False):
+    extra = " covering synthetic worked examples and practice sets" * (4 if long_text else 0)
+    return {
+        "year_semester": "1st Year / Odd Semester", "faculty_coordinators": f"Test Coordinator {i}, Zoë Ñúñez",
+        "hod": "Test Head of Department", "additional_objectives": "Synthetic extra objective" if i == 1 else "",
+        "course_name": f"Synthetic Bridge Course {i}: Mathematics Foundations", "duration_hours": "30",
+        "mode": ["Offline", "Online", "Hybrid"][i % 3], "resource_person": "Test Resource Person",
+        "students_enrolled": 120, "students_completed": 112,
+        "modules": [{"topic": f"Synthetic topic {m + 1}{extra}", "hours": "7.5"} for m in range(modules)],
+        "learning_outcomes": "Synthetic outcome one\nSynthetic outcome two" + ("\nSynthetic long outcome" * 10 if long_text else ""),
+        "assessment_method": "Synthetic quiz and assignment", "min_attendance": "75%", "passing_criteria": "40% aggregate",
+        "certificate_authority": "Test Department", "certificates_issued": 110,
+        "impact_indicators": ["Improvement in technical/professional skills", "Successful completion/certification rate"],
+        "impact_details": "Synthetic impact note." * (30 if long_text else 1),
+        "feedback_score": "4.35", "suggestions": "Synthetic suggestion A\nSynthetic suggestion B",
+        "prepared_name": "Test Coordinator", "prepared_designation": "Assistant Professor", "prepared_date": "2026-10-05",
+        "approved_name": "", "approved_designation": "", "approved_date": "",
+        "supporting_documents": {d: ("Yes" if n % 5 else "No") for n, d in enumerate(KRA11_DOCS)},
+    }
+
+
+def kra11_payload(courses=2, modules=4, long_text=False):
+    return {"activities": [kra11_course(i + 1, modules, long_text) for i in range(courses)]}

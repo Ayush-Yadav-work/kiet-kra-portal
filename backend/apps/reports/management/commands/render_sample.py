@@ -23,6 +23,8 @@ CASES = {
          "long": lambda: fx.kra20_payload(rows=100, long_text=True)},
     7: {"normal": lambda: fx.kra7_payload(), "long": lambda: fx.kra7_payload(long_text=True)},
     32: {"normal": lambda: fx.kra32_payload(rows=4), "long": lambda: fx.kra32_payload(rows=100, long_text=True)},
+    11: {"normal": lambda: fx.kra11_payload(courses=2, modules=4),
+         "long": lambda: fx.kra11_payload(courses=6, modules=40, long_text=True)},
 }
 
 

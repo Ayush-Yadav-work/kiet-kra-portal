@@ -1,0 +1,98 @@
+{% extends "reports/base.html" %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Course {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title">Report on Bridge Courses Conducted</h1>
+<p class="center bold sub">KIET Deemed to be University, Ghaziabad</p>
+
+<table class="k11-head">
+  <tr><th>Name of the Department</th><td>{{ snap.department.name }}</td></tr>
+  <tr><th>Academic Session / Year/ Semester</th><td>{{ snap.year }}{% if a.year_semester %} / {{ a.year_semester }}{% endif %}</td></tr>
+  <tr><th>Faculty Coordinator(s)</th><td>{{ a.faculty_coordinators }}</td></tr>
+  <tr><th>Head of the Department</th><td>{{ a.hod }}</td></tr>
+  <tr><td colspan="2" class="prose">
+    <p class="bold">Introduction - KIET Deemed to be University is committed to providing students with opportunities for holistic development and enhancing their employability, professional competencies, interdisciplinary knowledge and lifelong learning skills.</p>
+    <p>In addition to the prescribed curriculum, the University offers <b>Bridge Courses</b> to provide students with exposure to emerging technologies, industry practices, professional skills, interdisciplinary learning and global learning resources.</p>
+    <ul><li>These courses are designed to complement the regular curriculum and contribute to the development of graduate attributes, employability skills and overall student development</li></ul>
+  </td></tr>
+  <tr><td colspan="2" class="prose">
+    <p class="bold">Objectives of Bridge Courses - The major objectives of the Bridge Courses are:</p>
+    <ol>
+      <li>To bridge the gap in students’ prerequisite knowledge and skills.</li>
+      <li>To strengthen foundational concepts required for the regular curriculum.</li>
+      <li>To bring students with diverse backgrounds to a common learning level.</li>
+      <li>To facilitate a smooth transition into the academic programme.</li>
+      {% for o in a.additional_objectives_list %}<li>{{ o }}</li>{% endfor %}
+    </ol>
+  </td></tr>
+</table>
+
+<p class="bold lead k11-label">Detail of Bridge Courses:</p>
+<table class="k11-grid k11-courses">
+  <thead><tr><th style="width:8%">S. No.</th><th style="width:22%">Course Name</th><th style="width:11%">Duration (Hours)</th><th style="width:13%">Mode<br>Offline/<br>Online/<br>Hybrid</th><th style="width:18%">Resource Person</th><th style="width:14%">No. of Students Enrolled</th><th style="width:14%">No. of Students Completed</th></tr></thead>
+  <tr><td class="center">1</td><td>{{ a.course_name }}</td><td class="center">{{ a.duration_hours }}</td><td class="center">{{ a.mode }}</td><td>{{ a.resource_person }}</td><td class="center">{{ a.students_enrolled }}</td><td class="center">{{ a.students_completed }}</td></tr>
+</table>
+
+<p class="bold lead k11-label">Course Content/Syllabus</p>
+<table class="k11-grid">
+  <thead><tr><th style="width:12%">Module</th><th style="width:58%">Topic</th><th>No. of Hours</th></tr></thead>
+  {% for row in a.modules_rows %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ row.0 }}</td><td class="center">{{ row.1 }}</td></tr>
+  {% empty %}
+  {% for n in "1234"|make_list %}<tr><td class="center">{{ n }}</td><td></td><td></td></tr>{% endfor %}
+  {% endfor %}
+</table>
+
+<p class="bold lead k11-label">Learning Outcomes: - After successful completion of the course, students will be able to:</p>
+{% if a.learning_outcomes_list %}<ol>{% for o in a.learning_outcomes_list %}<li>{{ o }}</li>{% endfor %}</ol>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<p class="bold lead k11-label">Assessment and Certification</p>
+<table class="k11-grid k11-small">
+  <thead><tr><th style="width:50%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Assessment Method</td><td>{{ a.assessment_method }}</td></tr>
+  <tr><td>Minimum Attendance Requirement</td><td>{{ a.min_attendance }}</td></tr>
+  <tr><td>Passing/Completion Criteria</td><td>{{ a.passing_criteria }}</td></tr>
+  <tr><td>Certificate Issuing Authority</td><td>{{ a.certificate_authority }}</td></tr>
+  <tr><td>Number of Certificates Issued</td><td>{{ a.certificates_issued }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">OUTCOME AND IMPACT</p>
+<p class="bold lead k11-label">Suggested Impact Indicators</p>
+<ul>{% for o in fields.impact_indicators.options %}<li>{{ o }}{% if o in a.impact_indicators_list %} <b>— observed</b>{% endif %}</li>{% endfor %}</ul>
+</div>
+{% if a.impact_details %}<p>{{ a.impact_details|linebreaksbr }}</p>{% endif %}
+
+<p class="bold k11-label">Student Feedback Summary: - &nbsp;Overall Feedback Score: {% if a.feedback_score != "" %}<u>{{ a.feedback_score }}</u>{% else %}__________{% endif %} / 5</p>
+<div class="keep">
+<p class="bold lead k11-label">Major Suggestions Received:</p>
+{% if a.suggestions_list %}<ol class="plain">{% for s in a.suggestions_list %}<li>{{ s }}</li>{% endfor %}</ol>
+{% else %}<p class="lines">1. __________________________________________<br>2. __________________________________________<br>3. __________________________________________</p>{% endif %}
+</div>
+
+<table class="k11-sign">
+  <tr>
+    <td><b>Prepared By:</b><br>Name: {% if a.prepared_name %}{{ a.prepared_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.prepared_designation %}{{ a.prepared_designation }}{% else %}________________________{% endif %}<br>
+      Signature: ___________________________<br>
+      Date: {% if a.prepared_date_display %}{{ a.prepared_date_display }}{% else %}_______________________________{% endif %}</td>
+    <td><b>Approved By:</b><br>Name: {% if a.approved_name %}{{ a.approved_name }}{% else %}______________________________{% endif %}<br>
+      Designation: {% if a.approved_designation %}{{ a.approved_designation }}{% else %}________________________{% endif %}<br>
+      Signature: ___________________________<br>
+      Date: {% if a.approved_date_display %}{{ a.approved_date_display }}{% else %}_______________________________{% endif %}</td>
+  </tr>
+</table>
+
+<div class="k11-docs">
+<p class="bold lead k11-label">List of Supporting Documents: - The following documents shall be maintained for each Bridge Course:</p>
+<ul>{% for item, val in a.supporting_documents_items %}<li>{{ item }}{% if val %} — <b>Maintained: {{ val }}</b>{% endif %}</li>{% endfor %}</ul>
+</div>
+</section>
+{% empty %}
+<h1 class="title">Report on Bridge Courses Conducted</h1>
+<p class="empty">No courses have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

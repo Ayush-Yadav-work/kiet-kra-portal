@@ -188,7 +188,7 @@ def build_context(submission, revision=None, draft=None):
             c["label_html"] = mark_safe(escape(c["label"]).replace("/", "/<wbr>"))
     activities = [_prepare_activity(schema, a, snap) for a in (src["payload"] or {}).get("activities", [])]
     if schema["activity"].get("max", 1) > 1:
-        count = ("Events in this report", len(activities))
+        count = (f'{schema["activity"]["label"]}s in this report', len(activities))
     else:
         table = next((f for f in fields.values() if f["type"] == "table"), None)
         count = ("Records in this report", sum(len(a.get(table["id"] + "_rows", [])) for a in activities)) if table else None
