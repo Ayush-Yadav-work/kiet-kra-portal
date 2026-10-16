@@ -1,0 +1,5 @@
+{# Source page 3 supporting-documents list with the Dean's Yes/No answers. Inputs: a, doc_unit. #}
+<div class="k11-docs">
+<p class="bold lead k11-label">List of Supporting Documents: - The following documents shall be maintained for each {{ doc_unit }}:</p>
+<ul>{% for item, val in a.supporting_documents_items %}<li>{{ item }}{% if val %} — <b>Maintained: {{ val }}</b>{% endif %}</li>{% endfor %}</ul>
+</div>

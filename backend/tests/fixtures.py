@@ -121,3 +121,39 @@ def kra11_course(i=1, modules=4, long_text=False):
 
 def kra11_payload(courses=2, modules=4, long_text=False):
     return {"activities": [kra11_course(i + 1, modules, long_text) for i in range(courses)]}
+
+
+KRA23_DOCS = ["Approval/permission for conducting the course", "Proposal/concept note", "Course syllabus/content",
+              "Academic calendar/activity schedule", "Timetable", "Resource person/faculty details",
+              "Expert profile/CV, wherever applicable", "Attendance records", "Registration/enrolment records",
+              "Assessment records", "Result/score sheet", "Student feedback", "Sample certificates",
+              "Photographs with date and caption", "Geo-tagged photographs, wherever applicable", "Course completion report",
+              "List of students who completed the course", "Any other relevant supporting document"]
+
+
+def kra23_programme(i=1, programs=2, modules=4, long_text=False):
+    extra = " with synthetic case studies and pitch practice" * (4 if long_text else 0)
+    return {
+        "programme_title": f"Synthetic Entrepreneurship Bootcamp {i}", "year_semester": "3rd Year / Odd Semester",
+        "faculty_coordinators": f"Test Coordinator {i}, Śarmā Łukasz", "hod": "Test Head of Department",
+        "objectives": ["To develop an entrepreneurial mind-set among students.",
+                       "To enhance entrepreneurial and employability skills."],
+        "other_objectives": "Synthetic additional objective" if i == 1 else "",
+        "programs": [{"program_name": f"Synthetic Module Batch {p + 1}{extra}", "duration_hours": "12.5",
+                      "mode": ["Offline", "Online", "Hybrid"][p % 3], "resource_agency": "Example Incubation Agency",
+                      "students_enrolled": 60, "students_completed": 55} for p in range(programs)],
+        "modules": [{"topic": f"Synthetic topic {m + 1}{extra}", "hours": "3"} for m in range(modules)],
+        "learning_outcomes": "Synthetic outcome one\nSynthetic outcome two" + ("\nSynthetic long outcome" * 10 if long_text else ""),
+        "assessment_method": "Synthetic business-plan pitch", "min_attendance": "80%", "passing_criteria": "Pitch submitted",
+        "certificate_authority": "Test Incubation Cell", "certificates_issued": 52,
+        "impact_indicators": ["Improvement in employability skills"],
+        "impact_details": "Synthetic impact note." * (30 if long_text else 1),
+        "feedback_score": "4.6", "suggestions": "Synthetic suggestion A",
+        "prepared_name": "Test Coordinator", "prepared_designation": "Associate Professor", "prepared_date": "2026-10-08",
+        "approved_name": "", "approved_designation": "", "approved_date": "",
+        "supporting_documents": {d: ("Yes" if n % 4 else "No") for n, d in enumerate(KRA23_DOCS)},
+    }
+
+
+def kra23_payload(programmes=1, programs=2, modules=4, long_text=False):
+    return {"activities": [kra23_programme(i + 1, programs, modules, long_text) for i in range(programmes)]}

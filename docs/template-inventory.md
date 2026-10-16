@@ -78,7 +78,7 @@ All files opened and rendered successfully; none were unreadable. No duplicate s
 | 20 | #16 | A | S.No, year, faculty, employee ID, dept, designation, industry, training title, start/end, duration, mode, certificate no., mentor, outcome | — | 3-page horizontal split; Phase 3 pilot for wide tables; keep "more than a week" wording |
 | 21 | #17 | A | Source = students qualifying GATE/GPAT (name, year, level, exam, link) | Link | **Mismatch**: workbook KRA 21 = competitive training *conducted*. Adapt to training records; exam data optional |
 | 22 | #18 | S | S.No, year, date, title, type, domain, target programme, resource person, organisation, duration, students, faculty, outcome | — | 2-page split |
-| 23 | #19 | S | Course-family structure with "Programme" wording and entrepreneurship objectives | 17 items | Supporting-docs list says "VAC/Add-on Course" (copied) |
+| 23 | #19 | S — **implemented** (`kra23_v1`) | Dept, programme title, session/year/semester, coordinators, HoD; "Objectives of the Programme" (7 entrepreneurship/employability bullets); Detail of Program rows (name, hours, mode, resource person/agency, enrolled, completed); syllabus modules; learning outcomes; assessment/certification; impact indicators; feedback score /5; suggestions; Prepared/Approved | 18-item supporting-documents list (differs from KRA 11: "Proposal/concept note", "Timetable") | Supporting-docs heading said "VAC/Add-on Course" (copied) — corrected to "Skill Development Programme" (D-035) |
 | 24 | #20 | A | Placed/HE student, programme, employer/institution, package/programme admitted | — | Conditional placement vs higher-education fields |
 | 25, 26 | #21 | S | Student, event, date, team/individual, level, position, organising institution | — | Keep "team award counted as one" wording |
 | 27–30 | #21 (title only) | A | Source table is awards-only; event-organising variants designed (event, date, level, participants…) | — | **Mismatch** for 27–30 |
@@ -106,4 +106,5 @@ Supplied summary templates referenced by the workbook Instructions sheet but **n
 | 7 | `kra7_v1` (survey style) | Implemented, pending review | 3 |
 | 32 | `kra32_v1` (sheet, A4 landscape) | Implemented, pending review | 3 |
 | 11 | `kra11_v1` (report style, repeatable courses) | Implemented, pending review | 4 (bounded) |
-| All other 40 | — | Template pending | 4 |
+| 23 | `kra23_v1` (report style, repeatable programmes + program rows) | Implemented, pending review | 4 (bounded) |
+| All other 39 | — | Template pending | 4 |
