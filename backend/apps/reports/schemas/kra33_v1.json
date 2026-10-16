@@ -1,0 +1,119 @@
+{
+  "key": "kra33",
+  "version": 1,
+  "title": "ACTIVITY REPORT Alumni Chapter / Alumni Meet and Alumni Engagement in University Activities/Events",
+  "source": "reference/templates/KRA 33 Alumni Events organized.docx.pdf",
+  "source_checksum": "57e2110cd4a4c0d55ff4ba6d0402d5635b8a2979db7f4708197fa1042508bc47",
+  "page": {"format": "Letter", "landscape": false},
+  "activity": {"label": "Event", "min": 1, "max": 20},
+  "sections": [
+    {
+      "id": "basic", "title": "1. Basic Details",
+      "fields": [
+        {"id": "chapter_name", "label": "Name of Alumni Chapter / Association", "type": "text", "required": true, "max_length": 200},
+        {"id": "event_name", "label": "Name of Activity/Event", "type": "text", "required": true, "max_length": 250},
+        {"id": "activity_type", "label": "Type of Activity", "type": "select", "required": true,
+         "options": ["Alumni Chapter", "Alumni Meet", "Alumni Interaction", "Alumni Engagement"]},
+        {"id": "date", "label": "Date", "type": "date", "required": true},
+        {"id": "time", "label": "Time", "type": "text", "required": true, "max_length": 60, "placeholder": "e.g. 10:00 AM – 1:00 PM"},
+        {"id": "venue_mode", "label": "Venue/Mode", "type": "text", "required": true, "max_length": 200},
+        {"id": "organized_by", "label": "Organized By", "type": "text", "required": true, "max_length": 200},
+        {"id": "alumni_coordinator", "label": "Alumni Coordinator", "type": "text", "required": true, "max_length": 150},
+        {"id": "faculty_coordinator", "label": "Faculty Coordinator", "type": "text", "required": true, "max_length": 150},
+        {"id": "alumni_count", "label": "Number of Alumni Participants", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "student_count", "label": "Number of Students Participants", "type": "integer", "required": true, "min": 0, "max": 100000}
+      ]
+    },
+    {
+      "id": "objective", "title": "2. Objective of the Activity",
+      "fields": [
+        {"id": "objective", "label": "Objective of the Activity", "type": "longtext", "required": true, "max_length": 4000,
+         "guidance": "Source wording: The activity was organized to strengthen the relationship between the University and its alumni and to provide a platform for meaningful interaction, networking and engagement. Edit to describe this event."}
+      ]
+    },
+    {
+      "id": "description", "title": "3. Brief Description of the Activity",
+      "fields": [
+        {"id": "description", "label": "Brief Description of the Activity", "type": "longtext", "required": true, "max_length": 8000,
+         "guidance": "Source pattern: The [Name of Alumni Chapter/Association] organized [Name of Event] on [Date] at [Venue]. … The programme included [Alumni Interaction / Networking Session / Expert Talk / Mentoring / Career Guidance / Panel Discussion / Cultural Programme / Institutional Visit / Student Interaction]."}
+      ]
+    },
+    {
+      "id": "major", "title": "4. Major Activities Conducted",
+      "fields": [
+        {"id": "major_activities", "label": "Major Activities Conducted", "type": "multiselect", "required": true,
+         "options": ["Alumni–student interaction", "Career guidance and mentoring", "Industry experience sharing",
+                     "Expert talks and technical sessions", "Alumni networking", "Interaction with faculty members",
+                     "Entrepreneurship and startup discussions", "Guidance for higher education and competitive examinations",
+                     "Support for student projects/internships", "Participation in University events",
+                     "Recognition of distinguished alumni", "Alumni chapter/network development"]},
+        {"id": "major_other", "label": "Other activities (one per line)", "type": "longtext", "required": false, "max_length": 2000}
+      ]
+    },
+    {
+      "id": "engagement", "title": "5. Alumni Engagement in University Activities",
+      "fields": [
+        {"id": "engagements", "label": "Alumni Engagement", "type": "table", "required": true, "min_rows": 1, "max_rows": 100,
+         "columns": [
+           {"id": "alumni_name", "label": "Alumni Name", "type": "text", "required": true, "max_length": 150, "width": "18%"},
+           {"id": "batch_programme", "label": "Batch/ Programme", "type": "text", "required": true, "max_length": 80, "width": "12%"},
+           {"id": "organization", "label": "Organization/ Designation", "type": "text", "required": true, "max_length": 200, "width": "18%"},
+           {"id": "nature", "label": "Nature of Engagement", "type": "text", "required": true, "max_length": 120, "width": "17%",
+            "suggestions": ["Mentoring", "Expert Talk", "Career Guidance"]},
+           {"id": "date_activity", "label": "Date/ Activity", "type": "text", "required": true, "max_length": 120, "width": "12%"},
+           {"id": "students_benefited", "label": "Students Benefited", "type": "integer", "required": true, "min": 0, "max": 100000, "width": "12%"}
+         ]}
+      ]
+    },
+    {
+      "id": "participation", "title": "6. Participation Details",
+      "fields": [
+        {"id": "p_alumni", "label": "Alumni Participants", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "p_students", "label": "Students Participants", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "p_faculty", "label": "Faculty Participants", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "p_external", "label": "External/Industry Participants", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "p_total", "label": "Total Participants", "type": "integer", "required": true, "min": 0, "max": 400000,
+         "help": "Entered as counted; the portal does not calculate it."}
+      ]
+    },
+    {
+      "id": "outcomes", "title": "7. Outcomes of the Activity",
+      "fields": [
+        {"id": "outcomes", "label": "Outcomes (one per line)", "type": "longtext", "required": true, "max_length": 6000, "render": "numbered",
+         "guidance": "Source lists outcomes such as: Strengthened the relationship between the University and its alumni; Provided students with opportunities for professional interaction and mentoring. Enter only outcomes that actually resulted."}
+      ]
+    },
+    {
+      "id": "feedback", "title": "8. Feedback and Impact",
+      "fields": [
+        {"id": "feedback", "label": "Feedback and Impact", "type": "longtext", "required": true, "max_length": 6000,
+         "guidance": "Summarise feedback actually collected from participating alumni and students and its impact."}
+      ]
+    },
+    {
+      "id": "documentary", "title": "9. Documentary Evidence",
+      "intro": "The following records are maintained for the activity:",
+      "fields": [
+        {"id": "doc_checklist", "label": "Documentary Evidence", "type": "checklist", "required": true,
+         "help": "Yes/No as maintained for this event. Upload the files themselves in the Evidence tab.",
+         "items": ["Alumni Association/Chapter Details", "Activity Approval", "Event Notice/Invitation", "Event Brochure/Poster",
+                   "Alumni Registration List", "Attendance Sheet", "Alumni Profile/Details", "Photographs", "Activity Report",
+                   "Feedback", "Certificates/Recognition", "Website/News Coverage", "Outcome/Impact Evidence"]}
+      ]
+    },
+    {
+      "id": "signoff", "title": "Sign-off",
+      "fields": [
+        {"id": "coordinator_name", "label": "Faculty/Alumni Coordinator (name)", "type": "text", "required": false, "max_length": 150},
+        {"id": "report_date", "label": "Date", "type": "date", "required": false}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Alumni Association/Chapter Details", "Activity Approval", "Event Notice/Invitation", "Event Brochure/Poster",
+                   "Alumni Registration List", "Attendance Sheet", "Alumni Profile/Details", "Photographs", "Activity Report",
+                   "Feedback", "Certificates/Recognition", "Website/News Coverage", "Outcome/Impact Evidence", "Other"],
+    "required": ["Event Notice/Invitation", "Attendance Sheet", "Photographs"],
+    "note": "Proposed minimum set (docs/decisions.md D-013), pending college review. Nil submissions need no event evidence."
+  }
+}

@@ -1,0 +1,6 @@
+# Local development + tests (Windows/Linux). Not needed on the production server.
+-r backend/requirements.txt
+-r renderer/requirements.txt
+openpyxl==3.1.5        # scripts/extract_seed.py
+pymupdf==1.28.2        # PDF text/visual checks in tests and scripts/compare_pdf.py
+pgserver==0.1.4        # local PostgreSQL binaries for scripts/devdb.py (D-001)
