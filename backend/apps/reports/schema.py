@@ -158,7 +158,7 @@ def _check_field(f, v, path, strict, errors):
             for c in cols.values():
                 cv, cp = row.get(c["id"], ""), f"{path}.{i}.{c['id']}"
                 if not applicable(c, row):
-                    if not _blank(cv) and strict:
+                    if not _blank(cv) and strict and not c.get("keep_inactive"):  # keep_inactive: kept in draft, ignored
                         errors[cp] = [f"Not applicable for this {cols[c['when']['field']]['label'].lower()}; leave blank."]
                     continue
                 _check_scalar(c, cv, cp, errors, strict)

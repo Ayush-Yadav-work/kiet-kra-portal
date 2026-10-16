@@ -132,3 +132,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 18** — *+ Add
 ## KRAs 15, 22, 31, 38 review (table reports)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean, add records with *+ Add record*: **KRA 15** — switch Category to Faculty to see Programme/Batch become not applicable (NA in the PDF) and enter an Employee ID; leave Registration/DPIIT blank. **KRA 22** — type/domain accept any text (suggestions are the source samples). **KRA 31** — try teams > participants, then *Submit*. **KRA 38** — try an end date before the start date; note the title's percentage is not computed. Samples: `.work/renders/kra{15,22,31,38}/{normal,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 15 --kra 22 --kra 31 --kra 38`). Decisions: D-044 to D-047.
+
+## KRAs 4, 5, 6 and 24 review
+
+Run `manage.py seed_catalogue`, restart Django (frontend changed: rebuild for production). As a Dean: **KRAs 4–6** — *+ Add programme*; answer Yes and add completion records; switch a programme to No and check the preview shows NA and no students (values return when switched back). Each KRA keeps its own data. **KRA 24** — add records; switch a Placement record to Higher Education: the employer/package fields show "NA (entered value kept, not used)", the preview shows only the institution/programme, and switching back restores them. Samples: `.work/renders/kra{4,5,6,24}/{normal,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 4 --kra 5 --kra 6 --kra 24`). Decisions: D-048, D-049.

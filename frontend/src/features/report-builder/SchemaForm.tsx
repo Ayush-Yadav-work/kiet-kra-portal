@@ -67,12 +67,12 @@ function ConditionalCell({ c, rowName, ctx }: { c: Field; rowName: string; ctx: 
   const ctrl = useWatch({ control: ctx.control, name: `${rowName}.${c.when!.field}` as never }) as unknown as string
   const applies = c.when!.in.includes(ctrl)
   useEffect(() => {
-    if (!applies && !ctx.disabled) {
+    if (!applies && !ctx.disabled && !c.keep_inactive) { // keep_inactive: saved value kept, ignored on submit (D-049)
       const cur = ctx.getValues(name as never) as unknown
       if (cur !== '' && cur !== undefined && cur !== null) ctx.setValue(name as never, '' as never, { shouldDirty: true })
     }
-  }, [applies, name, ctx])
-  if (!applies) return <input className="input" value="NA" disabled readOnly aria-label={`${c.label}: not applicable`} />
+  }, [applies, name, ctx, c.keep_inactive])
+  if (!applies) return <input className="input" value={c.keep_inactive && ctx.getValues(name as never) ? 'NA (entered value kept, not used)' : 'NA'} disabled readOnly aria-label={`${c.label}: not applicable`} />
   return <Scalar f={c} name={name} ctx={ctx} />
 }
 

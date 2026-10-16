@@ -1,0 +1,24 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 24 (D-049): the source's five combined columns; each cell prints only the values of the record's category
+(the other category's kept values are NA in the records and never printed).{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+<h1 class="title">Percentage of placement of outgoing students and students progressing to higher education</h1>
+<table class="records">
+  <thead><tr><th style="width:4%">Sl. No.</th><th style="width:27%">Name of student placed / enrolling into higher education and contact details</th>
+    <th style="width:11%">Placement/Progressed to Higher Education</th><th style="width:11%">Program graduated from</th>
+    <th style="width:24%">Name of the employer with contact details (in case of placement) / Name of institution joined (in case of progression to higher education)</th>
+    <th style="width:23%">Pay package at appointment (In INR per annum) (applicable for students who got placement) / Name of program admitted to (applicable for students who progressed to higher education)</th></tr></thead>
+  <tbody>
+  {% for a in activities %}{% for r in a.records_records %}
+  <tr><td class="center">{{ forloop.counter }}</td><td>{{ r.student_name }}{% if r.contact %}<br>{{ r.contact }}{% endif %}</td><td>{{ r.category }}</td><td>{{ r.programme }}</td>
+    {% if r.category == "Placement" %}<td>{{ r.employer }}{% if r.employer_contact %}<br>{{ r.employer_contact }}{% endif %}</td><td>{% if r.package_inr %}INR {{ r.package_inr }}{% endif %}</td>
+    {% elif r.category == "Higher Education" %}<td>{{ r.institution }}</td><td>{{ r.admitted_programme }}</td>
+    {% else %}<td></td><td></td>{% endif %}</tr>
+  {% empty %}<tr><td class="center">1</td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+  {% empty %}<tr><td class="center">1</td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+  </tbody>
+</table>
+<p class="table-note">Higher-education records are listed as in the source; they are not counted as placements. No percentage is calculated by the portal.</p>
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

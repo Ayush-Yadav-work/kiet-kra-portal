@@ -534,3 +534,76 @@ PREPARERS = {"survey": survey_parts}
 BUILDERS = {VARIANTS[k]["key"]: (lambda k=k: course_family_schema(k)) for k in VARIANTS}
 BUILDERS.update({FDP_VARIANTS[k]["key"]: (lambda k=k: fdp_stp_schema(k)) for k in FDP_VARIANTS})
 BUILDERS.update({f"kra{k}": (lambda k=k: survey_schema(k)) for k in (8, 9, 10)})
+
+
+# KRAs 4–6: "KRA 4-6 Template" (one programme-component table) split per KRA and adapted to student completion (D-048).
+FP_SOURCE = ("reference/templates/KRA 4-6 Template.xlsx - Field Projects.pdf",
+             "14a3c257b8b60e0074d0804a979df9297e93f6ceaca8b5b7010e8eef88440621")
+FP_VARIANTS = {
+    4: {"type": "Field project", "plural": "field projects", "title_label": "Field project title",
+        "partner_label": "Field site / Organization", "eg": "e.g. Rural water-quality survey (field project)"},
+    5: {"type": "Research project", "plural": "research projects", "title_label": "Research project title",
+        "partner_label": "Supervisor / Guide", "eg": "e.g. Minor research project in signal processing"},
+    6: {"type": "Internship", "plural": "internships", "title_label": "Internship title / role",
+        "partner_label": "Organization", "eg": "e.g. Summer Industrial Internship"},
+}
+FP_EVIDENCE = ["Programme Structure/Syllabus showing the component", "Student List", "Completion Certificates", "Project/Internship Reports",
+               "Evaluation/Marks Record", "Other"]
+
+
+def field_project_schema(kra):
+    v = FP_VARIANTS[kra]
+    yes = {"field": "has_component", "in": ["Yes"]}
+    return copy.deepcopy({
+        "key": f"kra{kra}", "version": 1, "title": f"Students who completed {v['plural']} (KRA {kra})",
+        "family": {"name": "field_projects", "kra": kra, **v},
+        "renderer": "reports/field_projects_v1.html",
+        "source": FP_SOURCE[0], "source_checksum": FP_SOURCE[1],
+        "page": {"format": "A4", "landscape": True, "style": "sheet"},
+        "activity": {"label": "Programme", "min": 1, "max": 20},
+        "sections": [
+            {"id": "programme", "title": f"Programme (one row of the source table) — {v['type']} component",
+             "intro": f"Add one section per programme. The source table's component columns are kept for the {v['type'].lower()} "
+                      f"component only; KRA {kra} also lists the students who completed it this period (the workbook counts students, "
+                      "not programmes). Component fields apply only when the answer is Yes; values entered before switching to No are "
+                      "kept in the draft but not submitted or printed.",
+             "fields": [
+                 {"id": "programme_name", "label": "Name of the Programmes offered by the HEI", "type": "text", "required": True, "max_length": 200,
+                  "placeholder": "e.g. B.Tech (Electronics and Communication Engineering)"},
+                 {"id": "programme_code", "label": "Programme Code", "type": "text", "required": True, "max_length": 40},
+                 {"id": "has_component", "label": f"Whether the program has components of {v['type']} (Yes/ NO)", "type": "select",
+                  "required": True, "options": ["Yes", "No"]},
+                 {"id": "component_name", "label": f"If yes, name of the component ({v['type']})", "type": "text", "required": True,
+                  "max_length": 200, "when": yes, "placeholder": v["eg"]},
+                 {"id": "course_code", "label": "Course code of the component", "type": "text", "required": True, "max_length": 40, "when": yes},
+                 {"id": "students_undertaking", "label": f"Number of students undertaking the {v['plural']}", "type": "integer",
+                  "required": True, "min": 0, "max": 100000, "when": yes},
+                 {"id": "document_link", "label": "Link to the relevant document", "type": "text", "required": False, "max_length": 300,
+                  "when": yes, "help": "Name the Evidence-tab item(s) or paste a Google Drive link; files stay in the Evidence tab."},
+             ]},
+            {"id": "completions", "title": f"Students who completed the {v['type'].lower()} (KRA {kra} adaptation)",
+             "intro": "One row per student who completed this component in the reporting period. The portal counts nothing; "
+                      "enter the achievement yourself.",
+             "fields": [
+                 {"id": "completions", "label": "Student completion records", "type": "table", "required": False, "max_rows": 100,
+                  "editor": "cards", "when": yes,
+                  "columns": [
+                      {"id": "student_name", "label": "Name of the Student", "type": "text", "required": True, "max_length": 150, "width": "18%"},
+                      {"id": "roll_no", "label": "Roll No./ Enrolment No.", "type": "text", "required": True, "max_length": 40, "width": "11%"},
+                      {"id": "title", "label": v["title_label"], "type": "text", "required": True, "max_length": 250, "width": "21%"},
+                      {"id": "partner", "label": v["partner_label"], "type": "text", "required": True, "max_length": 200, "width": "17%"},
+                      {"id": "start_date", "label": "Start Date", "type": "date", "required": True, "width": "8.5%"},
+                      {"id": "completion_date", "label": "Completion Date", "type": "date", "required": True, "width": "8.5%"},
+                      {"id": "document_ref", "label": "Certificate / Report reference", "type": "text", "required": False,
+                       "max_length": 120, "width": "12.5%"},
+                  ],
+                  "row_rules": [{"type": "date_order", "a": "start_date", "b": "completion_date",
+                                 "message": "Completion date cannot be before the start date."}]},
+             ]},
+        ],
+        "evidence": {"categories": FP_EVIDENCE, "required": [],
+                     "note": f"The source's 'Link to the relevant document' column points here. No minimum set has been agreed (docs/decisions.md D-048)."},
+    })
+
+
+BUILDERS.update({f"kra{k}": (lambda k=k: field_project_schema(k)) for k in FP_VARIANTS})

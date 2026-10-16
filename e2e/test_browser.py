@@ -455,5 +455,61 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_kra4_5_6_and_24_forms(self):
+        """KRAs 4–6: programme field edited, saved, reloaded, previewed and exported per KRA. KRA 24: switching a record to
+        Higher Education in the form keeps the placement values (saved, reloaded) but leaves them out of the preview."""
+        from tests.fixtures import fp_payload, kra24_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+
+        def load(n, payload):
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            return sid
+
+        frame = p.frame_locator("iframe[title='Report preview']")
+        for n in (4, 5, 6):
+            sid = load(n, fp_payload(n, 2, 3))
+            value = f"Synthetic programme KRA {n} {int(time.time())}"
+            p.locator("[name='activities.0.programme_name']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator("[name='activities.0.programme_name']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            expect(frame.get_by_text(f"KRA {n}: {['Field project', 'Research project', 'Internship'][n - 4]} component")).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
+        payload = kra24_payload(2)
+        employer = payload["activities"][0]["records"][0]["employer"]
+        sid = load(24, payload)
+        expect(frame.get_by_text(employer)).to_be_visible(timeout=10000)
+        p.locator("[name='activities.0.records.0.category']").select_option("Higher Education")
+        expect(p.get_by_label("Name of the employer (placement): not applicable").first).to_have_value("NA (entered value kept, not used)")
+        p.locator("[name='activities.0.records.0.institution']").fill("Example University E2E (synthetic)")
+        p.locator("[name='activities.0.records.0.admitted_programme']").fill("M.Tech E2E")
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        p.reload()
+        p.wait_for_load_state("networkidle")
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        row = d["payload"]["activities"][0]["records"][0]
+        self.assertEqual((row["category"], row["employer"]), ("Higher Education", employer))  # kept, not erased
+        expect(frame.get_by_text("Example University E2E (synthetic)")).to_be_visible(timeout=10000)
+        expect(frame.get_by_text(employer)).to_have_count(0)
+        p.locator("[name='activities.0.records.0.category']").select_option("Placement")
+        expect(p.locator("[name='activities.0.records.0.employer']")).to_have_value(employer)
+        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+        self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

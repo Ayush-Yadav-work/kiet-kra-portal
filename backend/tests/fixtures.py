@@ -423,3 +423,36 @@ def kra38_programme(i=1, long_text=False):
 
 def kra38_payload(rows=3, long_text=False):
     return {"activities": [{"records": [kra38_programme(i + 1, long_text) for i in range(rows)]}]}
+
+
+def fp_programme(kra, i=1, students=3, has_component="Yes", long_text=False):
+    extra = " with an extended synthetic description for layout testing" if long_text else ""
+    return {"programme_name": f"Synthetic B.Tech Programme {i}" + extra, "programme_code": f"SYN{100 + i}", "has_component": has_component,
+            "component_name": f"Synthetic KRA {kra} component {i}" if has_component == "Yes" else "",
+            "course_code": f"TST{kra}{i:02d}" if has_component == "Yes" else "",
+            "students_undertaking": students + 2 if has_component == "Yes" else "",
+            "document_link": "Evidence: Student List; Completion Certificates" if has_component == "Yes" else "",
+            "completions": [{"student_name": f"Test Student {i}.{s + 1} Zoë", "roll_no": f"SYN{kra}{i:02d}{s:03d}",
+                             "title": f"Synthetic KRA {kra} work {s + 1}" + extra, "partner": "Example Organization (synthetic)",
+                             "start_date": "2026-07-01", "completion_date": "2026-09-15",
+                             "document_ref": "" if s % 3 == 2 else f"CERT-{kra}-{i}-{s + 1}"} for s in range(students)]
+            if has_component == "Yes" else []}
+
+
+def fp_payload(kra, programmes=2, students=3, long_text=False):
+    return {"activities": [fp_programme(kra, i + 1, students, "No" if i == 1 else "Yes", long_text) for i in range(programmes)]}
+
+
+def kra24_student(i=1, long_text=False):
+    placed = i % 3 != 0
+    return {"student_name": f"Test Graduate {i} Zoë", "contact": f"+91 90000 {i:05d}, graduate{i}@example.invalid",
+            "category": "Placement" if placed else "Higher Education", "programme": "B.Tech ECE",
+            "employer": (f"Example Employer {i} Pvt Ltd (synthetic)" + (", Embedded Systems Business Unit" if long_text else "")) if placed else "",
+            "employer_contact": "hr@example.invalid" if placed and i % 2 else "",
+            "package_inr": ("650000" if i % 2 else "725000.50") if placed else "",
+            "institution": "" if placed else f"Example University {i} (synthetic)",
+            "admitted_programme": "" if placed else "M.Tech VLSI Design" + (" (Research track, two-year programme)" if long_text else "")}
+
+
+def kra24_payload(rows=6, long_text=False):
+    return {"activities": [{"records": [kra24_student(i + 1, long_text) for i in range(rows)]}]}
