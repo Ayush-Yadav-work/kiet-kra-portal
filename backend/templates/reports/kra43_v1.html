@@ -1,0 +1,66 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 43 (D-053): project-created conference-organizing format. Indexing prints exactly the entered status;
+nothing is derived from the conference title. No percentage is calculated.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Conference {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">Scopus Conference Organized by the Department</h1>
+<p class="center fdp-sub">Project-created report format — the supplied KRA 43 template (journal papers) does not match this KRA</p>
+
+<p class="bold k11-label">1. Conference details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Academic Year / Reporting Period</td><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
+  <tr><td>Name of the conference</td><td>{{ a.conference_name }}</td></tr>
+  <tr><td>Dates</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
+  <tr><td>Organized by</td><td>{{ a.organizers }}</td></tr>
+  <tr><td>Co-organizers / partners / sponsors</td><td>{{ a.partners|default:"—" }}</td></tr>
+  <tr><td>Venue / Mode</td><td>{{ a.venue }}{% if a.venue and a.mode %} / {% endif %}{{ a.mode }}</td></tr>
+  <tr><td>Convener / coordinator(s)</td><td>{{ a.coordinators }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Participation and papers</p>
+<table class="k11-grid mou-kv">
+  <tr><td style="width:38%">Registered participants/delegates</td><td>{{ a.delegates }}</td></tr>
+  <tr><td>Participating institutions</td><td>{% if a.institutions != "" %}{{ a.institutions }}{% else %}—{% endif %}</td></tr>
+  <tr><td>Papers submitted</td><td>{% if a.papers_submitted != "" %}{{ a.papers_submitted }}{% else %}—{% endif %}</td></tr>
+  <tr><td>Papers accepted</td><td>{{ a.papers_accepted }}{% if a.kiet_accepted != "" %} (KIET-affiliated: {{ a.kiet_accepted }}){% endif %}</td></tr>
+  <tr><td>Papers published</td><td>{{ a.papers_published }}{% if a.kiet_published != "" %} (KIET-affiliated: {{ a.kiet_published }}){% endif %}</td></tr>
+</table>
+<p class="table-note">Workbook condition: 20% papers of accepted and published papers should be from KIET University. Counts as entered by the department; no percentage is calculated by the portal.</p>
+</div>
+
+<div class="keep">
+<p class="bold k11-label">3. Proceedings and indexing</p>
+<table class="k11-grid mou-kv">
+  <tr><td style="width:38%">Proceedings publication status</td><td>{{ a.publication_status }}</td></tr>
+  <tr><td>Publisher / proceedings series</td><td>{{ a.publisher|default:"—" }}</td></tr>
+  <tr><td>ISBN / ISSN</td><td>{{ a.isbn_issn|default:"—" }}</td></tr>
+  <tr><td>Scopus indexing status</td><td><b>{{ a.indexing_status }}</b>{% if a.indexing_status == "Verified in Scopus" and a.indexing_reference %}<br>Reference: {{ a.indexing_reference }}{% endif %}</td></tr>
+</table>
+</div>
+
+<p class="bold k11-label">4. Brief report</p>
+{% if a.brief_report %}<p>{{ a.brief_report|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+<div class="keep"><p class="bold k11-label">Outcomes</p>
+{% if a.outcomes_list %}<ul>{% for o in a.outcomes_list %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+
+<div class="keep">
+<p class="bold k11-label">5. Documentary evidence</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:12%">Sl. No.</th><th>Evidence</th><th style="width:20%">Maintained</th></tr></thead>
+  {% for item, val in a.doc_checklist_items %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td class="center">{{ val|default:"—" }}</td></tr>{% endfor %}
+</table>
+<p class="table-note">Files are kept in the portal's Evidence tab, not in this PDF.</p>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">Scopus Conference Organized by the Department</h1>
+<p class="empty">No conferences have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

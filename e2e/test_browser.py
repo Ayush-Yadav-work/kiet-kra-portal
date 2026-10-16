@@ -578,5 +578,45 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_kra43_44_45_reports(self):
+        """KRAs 43–45: two synthetic events stored; on event 2 a field is edited in the form (43 conference name, 44 theme,
+        45 event name); saved, reloaded, previewed and exported. KRA 43: switching indexing to "Verified in Scopus" shows the
+        reference field and submission requires it."""
+        from tests.fixtures import kra43_payload, kra44_payload, kra45_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        cases = {43: (kra43_payload(2), "conference_name", "Conference 2"), 44: (kra44_payload(2), "theme", "Activity 2"),
+                 45: (kra45_payload(2), "event_name", "Event 2")}
+        for n, (payload, field, tab) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            p.get_by_role("tab", name=re.compile(tab)).click()
+            value = f"Synthetic {field} {n} {int(time.time())}"
+            p.locator(f"[name='activities.1.{field}']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            p.get_by_role("tab", name=re.compile(tab)).click()
+            expect(p.locator(f"[name='activities.1.{field}']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+            if n == 43:  # event 2 is "Planned / applied for"; verified needs a reference at submission
+                p.locator("[name='activities.1.indexing_status']").select_option("Verified in Scopus")
+                p.get_by_role("button", name="Save draft").click()
+                expect(p.get_by_role("status")).to_contain_text("Saved")
+                status, body = api(p, "POST", f"/submissions/{sid}/validate/")
+                self.assertIn("activities.1.indexing_reference", body["field_errors"])
+                expect(frame.get_by_text("Verified in Scopus").first).to_be_visible(timeout=10000)
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

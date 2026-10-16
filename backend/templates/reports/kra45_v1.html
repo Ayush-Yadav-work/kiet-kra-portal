@@ -1,0 +1,65 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 45 flagship event report (D-055): source pages 1–3 per event; the paste-in pages (brochure, photographs,
+certificates, attendance, feedback) become checklist rows pointing to evidence, never embedded. "MBU" label neutralised.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Event {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<p class="center bold fdp-sub">KIET / Event Report</p>
+<h1 class="title fdp-title">Report for (National &amp;International Flagship Event) organized / participated</h1>
+
+<table class="k11-grid mou-kv">
+  <tr><td style="width:36%">Organized / participated</td><td>{{ a.role }}</td></tr>
+  <tr><td>Name of the Faculty</td><td>{{ a.faculty_name }}</td></tr>
+  <tr><td>School &amp; Department</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Designation</td><td>{{ a.designation }}</td></tr>
+  <tr><td>Mode of Event</td><td>{{ a.mode }}</td></tr>
+  <tr><td>Name of the Event</td><td>{{ a.event_name }}</td></tr>
+  <tr><td>Level</td><td>{{ a.level }}</td></tr>
+  <tr><td>UN SDGs Mapped with Event Team</td><td>{% if a.sdgs_list %}{{ a.sdgs_list|join:", " }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+  <tr><td>Venue</td><td>{{ a.venue }}</td></tr>
+  <tr><td>No. of Days</td><td>{{ a.days }}</td></tr>
+  <tr><td>Dates</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
+  <tr><td>Funded by</td><td>{{ a.funded_by }}</td></tr>
+  <tr><td>Details of Collaboration if any</td><td>{{ a.collaboration|default:"—" }}</td></tr>
+  <tr><td>No. of Participants</td><td>{{ a.participants }}</td></tr>
+  <tr><td>Registration charges (if any)</td><td>{{ a.registration_charges|default:"—" }}</td></tr>
+</table>
+
+<p class="bold k11-label">Resource Person(s) Details:</p>
+<table class="k11-grid k11-courses rp-table">
+  <thead><tr><th style="width:5%">S. No.</th>{% for c in fields.resource_persons.columns %}<th style="width:{{ c.width }}">{{ c.label }}</th>{% endfor %}</tr></thead>
+  {% for r in a.resource_persons_records %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ r.name }}</td><td>{{ r.designation }}</td><td>{{ r.department }}</td>
+    <td>{{ r.institution }}</td><td>{{ r.city }}</td><td>{{ r.state }}</td><td>{{ r.country }}</td></tr>
+  {% empty %}<tr><td colspan="8" class="empty">No resource persons recorded.</td></tr>{% endfor %}
+</table>
+
+<p class="bold k11-label">Brief Report</p>
+{% if a.brief_report %}<p>{{ a.brief_report|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+<div class="keep"><p class="bold k11-label">Outcome :</p>
+<p>Focusing &amp; Choices: {% if a.focus_list %}{{ a.focus_list|join:", " }}{% else %}<span class="empty">Not entered</span>{% endif %}</p>
+{% if a.outcome %}<p>{{ a.outcome|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+<div class="keep"><p class="bold k11-label">Brief how this event / activity is in line with Sustainable Development Goals (SDGs) attributed:</p>
+{% if a.sdg_alignment %}<p>{{ a.sdg_alignment|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+<div class="keep"><p class="bold k11-label">Remarks and Feedback on the Event : (Summary of the Feedback - As per IQAC format)</p>
+{% if a.feedback %}<p>{{ a.feedback|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}</div>
+<div class="keep"><p class="bold k11-label">Implementation/follow-up plan (if any) :</p>
+{% if a.follow_up_plan %}<p>{{ a.follow_up_plan|linebreaksbr }}</p>{% else %}<p>—</p>{% endif %}</div>
+
+<div class="keep">
+<p class="bold k11-label">Submission Check List and enclosures</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:10%">Sl. No.</th><th>Document</th><th style="width:20%">Maintained</th></tr></thead>
+  {% for item, val in a.checklist_items %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td class="center">{{ val|default:"—" }}</td></tr>{% endfor %}
+</table>
+<p class="table-note">Enclosures are separate Evidence-tab files, not part of this PDF.</p>
+<table class="k11-sign awd-sign"><tr><td>Signature of the Faculty<br>________________</td><td>HoD<br>________________</td><td>Dean<br>________________</td></tr></table>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">Report for (National &amp;International Flagship Event) organized / participated</h1>
+<p class="empty">No events have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

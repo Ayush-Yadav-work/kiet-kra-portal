@@ -1,0 +1,88 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 44 BOOT Camp & Peer Learning report (D-054): source sections 1–6 and sign-off per activity; source
+paragraphs are form guidance only; evidence status answered Yes/No instead of the pre-printed "Available".{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Activity {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<p class="center bold fdp-sub">KIET Deemed to be University, Ghaziabad</p>
+<h1 class="title fdp-title">EVENT REPORT- BOOT Camp &amp; Peer Learning Activity</h1>
+
+<p class="bold k11-label">1. General Information</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Name of Institution</td><td>Krishna Institute of Engineering &amp; Technology (KIET), Ghaziabad, Delhi-NCR, Uttar Pradesh</td></tr>
+  <tr><td>Name of Activity</td><td>{{ a.activity_name }}</td></tr>
+  <tr><td>Activity ID</td><td>{{ a.activity_id|default:"—" }}</td></tr>
+  <tr><td>Type of Activity</td><td>{{ a.activity_type }}</td></tr>
+  <tr><td>Academic Year</td><td>{{ snap.year }}</td></tr>
+  <tr><td>Theme/Title</td><td>{{ a.theme }}</td></tr>
+  <tr><td>Date(s)</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
+  <tr><td>Duration</td><td>{{ a.duration }}</td></tr>
+  <tr><td>Venue/Mode</td><td>{{ a.venue }}{% if a.venue and a.mode %} / {% endif %}{{ a.mode }}</td></tr>
+  <tr><td>Organizing Department/Cell</td><td>{{ a.organizer }}</td></tr>
+  <tr><td>Faculty Coordinator</td><td>{{ a.faculty_coordinator }}</td></tr>
+  <tr><td>Student Coordinator(s)</td><td>{{ a.student_coordinators|default:"—" }}</td></tr>
+  <tr><td>Resource Person/Mentor</td><td>{{ a.mentors|default:"—" }}</td></tr>
+</table>
+
+<p class="bold k11-label">2. Introduction</p>
+{% if a.introduction %}<p>{{ a.introduction|linebreaksbr }}</p>{% else %}<p class="empty">Not entered</p>{% endif %}
+
+<div class="keep">
+<p class="bold k11-label">3. Objectives</p>
+{% if a.objectives_list or a.other_objectives_list %}<p>The major objectives of the activity were:</p>
+<ol>{% for o in a.objectives_list %}<li>{{ o }}</li>{% endfor %}{% for o in a.other_objectives_list %}<li>{{ o }}</li>{% endfor %}</ol>
+{% else %}<p class="empty">Not entered</p>{% endif %}
+</div>
+
+<div class="keep">
+<p class="bold k11-label">4. Activity Details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Date</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
+  <tr><td>Time</td><td>{{ a.time|default:"—" }}</td></tr>
+  <tr><td>Venue</td><td>{{ a.venue }}</td></tr>
+  <tr><td>Mode</td><td>{{ a.mode }}</td></tr>
+  <tr><td>Target Group</td><td>{{ a.target_group }}</td></tr>
+  <tr><td>Programme/Branch</td><td>{{ a.programme }}</td></tr>
+  <tr><td>Semester/Year</td><td>{{ a.semester }}</td></tr>
+  <tr><td>No. of Students Registered</td><td>{{ a.registered }}</td></tr>
+  <tr><td>No. of Students Participated</td><td>{{ a.participated }}</td></tr>
+  <tr><td>No. of Student Mentors</td><td>{{ a.student_mentors }}</td></tr>
+  <tr><td>No. of Faculty Mentors</td><td>{{ a.faculty_mentors }}</td></tr>
+  <tr><td>No. of Sessions</td><td>{{ a.sessions }}</td></tr>
+  <tr><td>Duration</td><td>{{ a.duration }}</td></tr>
+</table>
+</div>
+
+<p class="bold k11-label">5. BOOT Camp / Peer Learning Structure</p>
+<p>The activity was organized through a structured learning model comprising:</p>
+<div class="phase"><p class="bold">Phase I – Orientation</p>{% if a.phase_1 %}<p>{{ a.phase_1|linebreaksbr }}</p>{% else %}<p class="empty">Not described</p>{% endif %}</div>
+<div class="phase"><p class="bold">Phase II – Team Formation</p>{% if a.phase_2 %}<p>{{ a.phase_2|linebreaksbr }}</p>{% else %}<p class="empty">Not described</p>{% endif %}</div>
+<div class="phase"><p class="bold">Phase III – Learning &amp; Hands-on Activities</p>{% if a.phase_3 %}<p>{{ a.phase_3|linebreaksbr }}</p>{% else %}<p class="empty">Not described</p>{% endif %}</div>
+<div class="phase"><p class="bold">Phase IV – Peer Interaction</p>{% if a.phase_4 %}<p>{{ a.phase_4|linebreaksbr }}</p>{% else %}<p class="empty">Not described</p>{% endif %}</div>
+<div class="phase"><p class="bold">Phase V – Evaluation/Demonstration</p>{% if a.phase_5 %}<p>{{ a.phase_5|linebreaksbr }}</p>{% else %}<p class="empty">Not described</p>{% endif %}</div>
+<div class="phase"><p class="bold">Phase VI – Feedback &amp; Reflection</p>{% if a.phase_6 %}<p>{{ a.phase_6|linebreaksbr }}</p>{% else %}<p class="empty">Not described</p>{% endif %}</div>
+
+<div class="keep">
+<p class="bold k11-label">6. Documentary Evidence</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:12%">Sl. No.</th><th>Evidence/Document</th><th style="width:22%">Status (Available)</th></tr></thead>
+  {% for item, val in a.doc_checklist_items %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td class="center">{{ val|default:"—" }}</td></tr>{% endfor %}
+</table>
+<p class="table-note">Yes/No as entered by the department; files are kept in the portal's Evidence tab, not in this PDF.</p>
+<table class="k11-sign">
+  <tr><td><b>Faculty Coordinator</b><br>Name: {{ a.faculty_coordinator|default:"______________________" }}<br>
+      Designation: {% if a.coordinator_designation %}{{ a.coordinator_designation }}{% else %}__________________{% endif %}<br>Signature: ____________________</td>
+    <td><b>Head of Department/Dean</b><br>Name: {% if a.hod_name %}{{ a.hod_name }}{% else %}______________________{% endif %}<br>Signature: ____________________</td></tr>
+</table>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">EVENT REPORT- BOOT Camp &amp; Peer Learning Activity</h1>
+<p class="empty">No activities have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

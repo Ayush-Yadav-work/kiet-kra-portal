@@ -510,3 +510,61 @@ def event_record(kra, i=1, long_text=False):
 
 def event_payload(kra, events=2, long_text=False):
     return {"activities": [event_record(kra, i + 1, long_text) for i in range(events)]}
+
+
+def kra43_conference(i=1, long_text=False):
+    para = " Synthetic narrative sentence for layout testing." * (25 if long_text else 2)
+    verified = i % 2 == 1
+    return {"conference_name": f"Synthetic International Conference on Embedded Systems {i}", "start_date": "2026-09-10", "end_date": "2026-09-11",
+            "organizers": "ECE Department (synthetic)", "partners": "" if i % 2 else "Example Society (synthetic)", "venue": "KIET Campus (synthetic)",
+            "mode": "Hybrid", "coordinators": "Test Convener, Test Coordinator", "delegates": 180 + i, "institutions": 25, "papers_submitted": 140,
+            "papers_accepted": 60, "papers_published": 48 if verified else 0, "kiet_accepted": 12, "kiet_published": 10 if verified else 0,
+            "publication_status": "Published" if verified else "Not yet published", "publisher": "Example Publisher (synthetic)",
+            "isbn_issn": "978-0-000-00000-0", "indexing_status": "Verified in Scopus" if verified else "Planned / applied for",
+            "indexing_reference": "https://www.scopus.com/sourceid/000000 (synthetic)" if verified else "",
+            "brief_report": "Synthetic brief report." + para, "outcomes": "Synthetic outcome one\nSynthetic outcome two",
+            "doc_checklist": {"Approval letter": "Yes", "List of accepted papers": "Yes", "Scopus indexing evidence": "Yes" if verified else "No"}}
+
+
+def kra43_payload(conferences=1, long_text=False):
+    return {"activities": [kra43_conference(i + 1, long_text) for i in range(conferences)]}
+
+
+def kra44_activity(i=1, long_text=False):
+    para = " Synthetic narrative sentence for layout testing." * (20 if long_text else 1)
+    return {"activity_name": f"Synthetic Embedded Boot Camp {i}", "activity_id": "" if i % 2 == 0 else f"SYN-BC-{i:02d}",
+            "activity_type": ["BOOT Camp", "Peer Learning", "Combined"][i % 3], "theme": "Synthetic IoT prototyping",
+            "start_date": "2026-09-14", "end_date": "2026-09-16", "duration": "3 days", "venue": "Lab 204 (synthetic)", "mode": "Offline",
+            "organizer": "ECE Department (synthetic)", "faculty_coordinator": "Test Faculty Coordinator", "student_coordinators": "Test Student Zoë",
+            "mentors": "Test Mentor A", "introduction": "Synthetic introduction written by the department." + para,
+            "objectives": ["To promote experiential and hands-on learning.", "To encourage peer-to-peer knowledge sharing."],
+            "other_objectives": "", "time": "10:00 AM – 4:00 PM", "target_group": "Second-year students", "programme": "B.Tech ECE",
+            "semester": "III", "registered": 60, "participated": 54, "student_mentors": 6, "faculty_mentors": 2, "sessions": 6,
+            "phase_1": "Synthetic orientation held." + para, "phase_2": "Synthetic teams of five formed.", "phase_3": "Synthetic hands-on work." + para,
+            "phase_4": "" if i % 2 == 0 else "Synthetic peer sessions.", "phase_5": "Synthetic demos.", "phase_6": "Synthetic feedback collected.",
+            "doc_checklist": {"Activity Approval": "Yes", "Attendance Sheet": "Yes", "Certificates, if issued": "No"},
+            "coordinator_designation": "Assistant Professor", "hod_name": ""}
+
+
+def kra44_payload(activities=1, long_text=False):
+    return {"activities": [kra44_activity(i + 1, long_text) for i in range(activities)]}
+
+
+def kra45_event(i=1, long_text=False, resource_persons=2):
+    para = " Synthetic narrative sentence for layout testing." * (30 if long_text else 2)
+    return {"role": "Organized", "faculty_name": f"Test Faculty {i} Łukasz", "designation": "Associate Professor", "mode": "Hybrid",
+            "event_name": f"Synthetic National Flagship Symposium {i}", "level": "National" if i % 2 else "International",
+            "sdgs": ["Quality education (SDG 4)", "Industry, innovation and infrastructure (SDG 9)"], "venue": "KIET Auditorium (synthetic)",
+            "days": 2, "start_date": "2026-09-18", "end_date": "2026-09-19", "funded_by": "Management", "collaboration": "",
+            "participants": 240 + i, "registration_charges": "" if i % 2 else "INR 500",
+            "resource_persons": [{"name": f"Test Speaker {i}.{r + 1}", "designation": "Professor", "department": "ECE",
+                                  "institution": "Example Institute (synthetic)", "city": "Example City", "state": "Example State",
+                                  "country": "India"} for r in range(resource_persons)],
+            "brief_report": "Synthetic brief report." + para, "focus": ["Academic Related", "SDG"], "outcome": "Synthetic outcome." + para[:300],
+            "sdg_alignment": "Synthetic SDG alignment statement.", "feedback": "Synthetic feedback summary.",
+            "follow_up_plan": "" if i % 2 else "Synthetic follow-up plan.",
+            "checklist": {"Approval Letter": "Yes", "Event Brochure & Invitation": "Yes", "Budget & Statement of Expenditure": "No"}}
+
+
+def kra45_payload(events=1, long_text=False, resource_persons=2):
+    return {"activities": [kra45_event(i + 1, long_text, resource_persons) for i in range(events)]}
