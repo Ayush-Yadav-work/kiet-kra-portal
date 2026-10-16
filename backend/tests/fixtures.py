@@ -367,3 +367,59 @@ def kra13iab_membership(i=1, contributions=3, meetings=2, long_text=False):
 
 def kra13iab_payload(members=1, contributions=3, meetings=2, long_text=False):
     return {"activities": [kra13iab_membership(i + 1, contributions, meetings, long_text) for i in range(members)]}
+
+
+def kra15_entrepreneur(i=1, long_text=False):
+    category = ["Student", "Alumni", "Faculty"][i % 3]
+    student = category != "Faculty"
+    return {"name": f"Test Entrepreneur {i} Zoë", "category": category, "member_id": f"SYN{2200 + i}" if student else f"T{1000 + i}",
+            "programme": "B.Tech ECE" if student else "", "batch": "2022–2026" if student else "", "gender": ["Female", "Male", "Other"][i % 3],
+            "enterprise": f"Synthetic Ventures {i}" + (" Private Limited for embedded and IoT product engineering" if long_text else ""),
+            "sector": "IoT / Embedded" + (" systems for agriculture and healthcare" if long_text else ""),
+            "founder_role": "Founder" if i % 2 else "Co-Founder", "year_established": 2024 + i % 3,
+            "registration_no": "" if i % 4 == 0 else f"SYN-DPIIT{i:05d}", "status": "Active" if i % 5 else "Closed",
+            "evidence_available": "Yes" if i % 4 else "No"}
+
+
+def kra15_payload(rows=3, long_text=False):
+    return {"activities": [{"records": [kra15_entrepreneur(i + 1, long_text) for i in range(rows)]}]}
+
+
+def kra22_activity(i=1, long_text=False):
+    return {"date": f"2026-09-{1 + i % 28:02d}", "title": f"Synthetic career session {i}" + (" on emerging roles in semiconductor design" if long_text else ""),
+            "activity_type": ["Counselling", "Expert Talk", "Workshop (synthetic)"][i % 3],
+            "career_domain": ["IT/Software", "Higher Studies", "Core Engineering"][i % 3], "target_programme": "B.Tech ECE",
+            "resource_person": f"Test Counsellor {i}", "organization": "Example Careers Pvt Ltd (synthetic)", "duration": "2 hours",
+            "students": 60 + i, "faculty": i % 4,
+            "outcome": "Synthetic outcome: students mapped career options." + (" Synthetic follow-up actions recorded." * 10 if long_text else "")}
+
+
+def kra22_payload(rows=3, long_text=False):
+    return {"activities": [{"records": [kra22_activity(i + 1, long_text) for i in range(rows)]}]}
+
+
+def kra31_event(i=1, long_text=False):
+    return {"event_id": "" if i % 3 == 0 else f"SYN-EV-{i:02d}", "name": f"Synthetic Hack {i}" + (" for smart mobility and clean energy solutions" if long_text else ""),
+            "event_type": "Hackathon" if i % 2 else "Ideathon", "level": "National" if i % 2 else "State",
+            "date": f"2026-09-{1 + i % 28:02d}", "duration": "24 hours", "organizer": "ECE Department / Innovation Cell (synthetic)",
+            "co_organizer": "" if i % 4 == 0 else "Example Partner Foundation (synthetic)", "teams": 20 + i, "participants": 80 + 4 * i,
+            "institutions": 5 + i % 7, "mentors": "6" if i % 2 else "Test Mentor A, Test Mentor B",
+            "outcome": "Synthetic outcome: prototypes shortlisted." + (" Synthetic incubation follow-up noted." * 8 if long_text else "")}
+
+
+def kra31_payload(rows=3, long_text=False):
+    return {"activities": [{"records": [kra31_event(i + 1, long_text) for i in range(rows)]}]}
+
+
+KRA38_TYPES = ["Professional Development Programmes", "Orientation/Induction Programmes", "Refresher Course", "Short Term Course"]
+
+
+def kra38_programme(i=1, long_text=False):
+    return {"faculty_name": f"Test Faculty {i} Łukasz" + (" Venkataraghavan Subramanian" if long_text else ""),
+            "programme_type": KRA38_TYPES[i % 4], "duration_days": 5, "start_date": f"2026-08-{1 + i % 20:02d}",
+            "end_date": f"2026-08-{5 + i % 20:02d}",
+            "institution": "Example Institute of Technology (synthetic)" + (", Centre for Continuing Education and Faculty Development" if long_text else "")}
+
+
+def kra38_payload(rows=3, long_text=False):
+    return {"activities": [{"records": [kra38_programme(i + 1, long_text) for i in range(rows)]}]}

@@ -419,5 +419,41 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_kra15_22_31_38_table_reports_save_reload_preview_export(self):
+        """Table batch: for KRAs 15, 22, 31 and 38 a complete synthetic draft is stored, one card cell edited in the form, saved,
+        reloaded, previewed (one table, value visible) and exported."""
+        from tests.fixtures import kra15_payload, kra22_payload, kra31_payload, kra38_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        cases = {15: (kra15_payload(3), "enterprise", "Entrepreneurs (Faculty / Alumni / Student)"),
+                 22: (kra22_payload(3), "title", "Career Counselling Activities Conducted"),
+                 31: (kra31_payload(3), "name", "Hackathons / Ideathons Organized"),
+                 38: (kra38_payload(3), "faculty_name", "Name of the Organising Institution")}
+        for n, (payload, column, marker) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            value = f"Synthetic browser value KRA {n} {int(time.time())}"
+            box = p.locator(f"[name='activities.0.records.1.{column}']")
+            box.fill(value)
+            expect(box).to_have_value(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator(f"[name='activities.0.records.1.{column}']")).to_have_value(value)
+            frame = p.frame_locator("iframe[title='Report preview']")
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            expect(frame.get_by_text(marker).first).to_be_visible()
+            expect(frame.locator("table.records")).to_have_count(1)
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

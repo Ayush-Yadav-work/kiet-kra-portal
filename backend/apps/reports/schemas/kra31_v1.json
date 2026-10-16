@@ -1,0 +1,45 @@
+{
+  "key": "kra31",
+  "version": 1,
+  "title": "No of Hackathon or ideathon Organized (State Level/National Level)",
+  "sheet_title": "Hackathons / Ideathons Organized (State Level / National Level)",
+  "renderer": "reports/records_sheet_v1.html",
+  "source": "reference/templates/KRA 31 No of Hackathon or ideathon Organized.xlsx - Sheet1.pdf",
+  "source_checksum": "0cb3914e6fa18b5e9993f27acdf373e22135e7f2b1db7f757845347d8468b186",
+  "page": {"format": "A4", "landscape": true, "style": "sheet"},
+  "activity": {"label": "Report", "min": 1, "max": 1},
+  "sections": [
+    {
+      "id": "records", "title": "Hackathons and ideathons organized",
+      "intro": "One record per hackathon or ideathon organized. Academic Year is filled from this report. Source IDs such as \"HCK-25-01\" are examples only — enter your own reference, if any.",
+      "fields": [
+        {"id": "records", "label": "Event records", "type": "table", "required": true, "min_rows": 1, "max_rows": 100, "editor": "cards",
+         "columns": [
+           {"id": "academic_year", "label": "Academic Year", "type": "auto", "source": "year", "width": "5%"},
+           {"id": "event_id", "label": "Event ID", "type": "text", "required": false, "max_length": 40, "width": "6%",
+            "help": "Institution/department reference, if one is used."},
+           {"id": "name", "label": "Name of Hackathon/Ideathon", "type": "text", "required": true, "max_length": 250, "width": "9%"},
+           {"id": "event_type", "label": "Type", "type": "select", "required": true, "options": ["Hackathon", "Ideathon"], "width": "5.5%"},
+           {"id": "level", "label": "Level", "type": "select", "required": true, "options": ["State", "National"], "width": "5%"},
+           {"id": "date", "label": "Date", "type": "date", "required": true, "width": "5.5%", "help": "Start date of the event."},
+           {"id": "duration", "label": "Duration", "type": "text", "required": true, "max_length": 60, "width": "5%", "placeholder": "e.g. 24 hours / 2 days"},
+           {"id": "organizer", "label": "Organizing Department/Cell", "type": "text", "required": true, "max_length": 200, "width": "8%"},
+           {"id": "co_organizer", "label": "Co-Organizer/Partner", "type": "text", "required": false, "max_length": 200, "width": "7%",
+            "help": "Leave blank if there was none."},
+           {"id": "teams", "label": "No. of Teams", "type": "integer", "required": true, "min": 0, "max": 100000, "width": "4.5%"},
+           {"id": "participants", "label": "No. of Participants", "type": "integer", "required": true, "min": 0, "max": 1000000, "width": "6.5%"},
+           {"id": "institutions", "label": "No. of Institutions", "type": "integer", "required": true, "min": 0, "max": 100000, "width": "6.5%"},
+           {"id": "mentors", "label": "Industry /Expert Mentors", "type": "text", "required": false, "max_length": 300, "width": "7%",
+            "help": "Names or number of industry/expert mentors; leave blank if none."},
+           {"id": "outcome", "label": "Outcome", "type": "longtext", "required": true, "max_length": 1000, "width": "20.5%"}
+         ],
+         "row_rules": [{"type": "lte", "a": "teams", "b": "participants", "message": "No. of Teams cannot exceed No. of Participants."}]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Event Notice/Brochure", "Registration/Participant List", "Photographs", "Result/Winners List", "Event Report", "Other"],
+    "required": [],
+    "note": "The source lists no evidence; no minimum set has been agreed (docs/decisions.md D-046)."
+  }
+}

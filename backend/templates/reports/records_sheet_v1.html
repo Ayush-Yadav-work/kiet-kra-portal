@@ -1,0 +1,13 @@
+{% extends "reports/base.html" %}
+{% comment %}Shared single-table spreadsheet report (KRAs 15, 22, 31, 38; D-044): the schema gives the printed title
+(sheet_title) and one table field "records"; split source exports are repaired onto one table with a repeating header.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+<h1 class="title">{{ schema.sheet_title }}</h1>
+{% for a in activities %}
+{% include "reports/_records_table.html" with spec=fields.records rows=a.records_rows %}
+{% empty %}
+<p class="empty">No records have been added yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}
