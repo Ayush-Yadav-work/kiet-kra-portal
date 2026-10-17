@@ -65,6 +65,8 @@ function Shell({ children }: { children: ReactNode }) {
           <span className="text-sm text-slate-600">{user.role === 'VC' ? 'Vice Chancellor' : `Dean — ${user.department?.name}`}</span>
           <nav className="ml-auto flex items-center gap-3 text-sm">
             {user.role === 'VC' && <Link className="underline" to="/vc/reopen-requests">Reopening requests</Link>}
+            {user.role === 'VC' && <Link className="underline" to="/vc/assignments">Assignments</Link>}
+            {user.role === 'VC' && <Link className="underline" to="/vc/kras">KRAs</Link>}
             <span className="text-slate-600">{user.name}</span>
             <Link className="underline" to="/change-password">Change password</Link>
             <button className="btn-secondary" onClick={() => logout()}>Sign out</button>

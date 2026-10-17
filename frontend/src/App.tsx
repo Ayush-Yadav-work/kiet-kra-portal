@@ -5,6 +5,8 @@ import LoginPage from './auth/LoginPage'
 import { RequireRole } from './components/ui'
 import DeanDashboard from './features/dean/DeanDashboard'
 import WorkspaceRoute from './features/report-builder/Workspace'
+import AdminAssignments from './features/vc/AdminAssignments'
+import AdminKRAs from './features/vc/AdminKRAs'
 import ReopenQueue from './features/vc/ReopenQueue'
 import ReviewPage from './features/vc/ReviewPage'
 import VCDashboard from './features/vc/VCDashboard'
@@ -41,6 +43,8 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: <VCDashboard /> },
       { path: 'review/:submissionId', element: <ReviewPage /> },
       { path: 'reopen-requests', element: <ReopenQueue /> },
+      { path: 'assignments', element: <AdminAssignments /> },
+      { path: 'kras', element: <AdminKRAs /> },
       { index: true, element: <Navigate to="dashboard" replace /> },
     ],
   },

@@ -52,6 +52,8 @@ class KRA(models.Model):
     nba_ref = models.CharField(max_length=20, blank=True)
     naac_ref = models.CharField(max_length=20, blank=True)
     active = models.BooleanField(default=True)
+    # Report layout used to prefill new draft assignments; KRAs 1–45 take it from their assignments (D-065).
+    default_template = models.ForeignKey("TemplateVersion", null=True, blank=True, on_delete=models.PROTECT, related_name="+")
 
     class Meta:
         ordering = ["number"]
@@ -97,3 +99,24 @@ class AnnualAssignment(models.Model):
             if old.template_version_id and old.template_version_id != self.template_version_id:
                 raise ValidationError("Template version cannot change once assigned.")
         super().save(*args, **kwargs)
+
+
+class DraftAssignment(models.Model):
+    """VC staging row for a future year's department/KRA assignment (Phase 5A, D-065). Deans never see drafts; finalizing a
+    year creates the operational AnnualAssignment and freezes the draft (finalized_assignment set)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="+")
+    kra = models.ForeignKey(KRA, on_delete=models.PROTECT, related_name="+")
+    year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="draft_assignments")
+    target_text = models.TextField()  # exact text, never parsed
+    template_version = models.ForeignKey(TemplateVersion, on_delete=models.PROTECT, related_name="+")
+    copied_from = models.ForeignKey(AnnualAssignment, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    finalized_assignment = models.OneToOneField(AnnualAssignment, null=True, blank=True, on_delete=models.PROTECT, related_name="draft")
+    created_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["kra__number", "department__code"]
+        constraints = [models.UniqueConstraint(fields=["department", "kra", "year"], name="unique_draft_assignment")]

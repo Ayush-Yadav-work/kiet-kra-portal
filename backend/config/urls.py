@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.urls import include, path
 
 from apps.accounts import views as auth
+from apps.catalogue import admin_views as adm
 from apps.catalogue import views as cat
 from apps.evidence import views as ev
 from apps.submissions import views as sub
@@ -40,6 +41,14 @@ api = [
     path(f"reopen-requests/{UUID}/decision/", sub.ReopenDecisionView.as_view()),
     path("reopen-grants/active/", sub.ActiveGrantsView.as_view()),
     path("progress/", sub.ProgressView.as_view()),
+    # Phase 5A — VC administration (D-065)
+    path("admin/templates/", adm.TemplatesView.as_view()),
+    path("admin/kras/", adm.AdminKRAsView.as_view()),
+    path("admin/years/", adm.AdminYearsView.as_view()),
+    path("admin/years/<str:label>/copy/", adm.CopyYearView.as_view()),
+    path("admin/years/<str:label>/finalize/", adm.FinalizeYearView.as_view()),
+    path("admin/drafts/", adm.DraftsView.as_view()),
+    path(f"admin/drafts/{UUID}/", adm.DraftItemView.as_view()),
 ]
 
 
