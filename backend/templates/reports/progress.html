@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KRA progress — {{ filters.year }} — {{ filters.period }}</title>
+<style>
+{{ font_css|safe }}
+body { font-family: Tinos, serif; font-size: 9pt; color: #000; margin: 0; }
+h1 { font-size: 13pt; text-align: center; margin: 0 0 6pt; }
+.meta { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+.meta td, .meta th { border: 0.75pt solid #000; padding: 2pt 4pt; text-align: left; }
+.meta th { background: #f2f2f2; width: 14%; }
+table.rows { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.rows th, table.rows td { border: 0.75pt solid #000; padding: 2pt 3pt; vertical-align: top; overflow-wrap: anywhere; }
+table.rows thead { display: table-header-group; }
+table.rows thead th { background: #e8e8e8; font-weight: bold; }
+table.rows tr { break-inside: avoid; }
+.note { font-size: 7.5pt; color: #555; }
+.draft { color: #8a5a00; }
+.empty { color: #777; font-style: italic; }
+</style>
+</head>
+<body>
+<h1>KRA Progress Report</h1>
+<table class="meta">
+  <tr><th>Academic year</th><td>{{ filters.year }}</td><th>Reporting period</th><td>{{ filters.period }}</td><th>Generated</th><td>{{ generated_at|date:"d M Y H:i" }} IST</td></tr>
+  <tr><th>Department</th><td>{{ filters.department }}</td><th>KRA</th><td>{{ filters.kra }}</td><th>Status filter</th><td>{{ filters.status }}{% if filters.search %} · text: “{{ filters.search }}”{% endif %}</td></tr>
+  <tr><th>Status counts</th><td colspan="5">{% for label, n in count_list %}{{ label }}: <b>{{ n }}</b>{% if not forloop.last %} · {% endif %}{% endfor %} — rows in this report: <b>{{ total }}</b></td></tr>
+</table>
+<p class="note">Counts cover the year, period, department, KRA and text filters; the status filter selects the rows listed. Targets and achievements are shown exactly as entered; no totals or percentages are calculated. Submitted, Rejected and Approved rows show the achievement of the submitted revision; Draft rows show unsubmitted text. Report formats are pending institutional acceptance.</p>
+<table class="rows">
+  <thead><tr><th style="width:4%">S. No.</th><th style="width:7%">Dept.</th><th style="width:25%">KRA</th><th style="width:18%">Annual target</th>
+    <th style="width:26%">Achievement (this period)</th><th style="width:9%">Status</th><th style="width:11%">Submitted</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr><td>{{ forloop.counter }}</td><td>{{ r.department }}</td><td>{{ r.kra_text }}</td><td style="white-space:pre-wrap">{{ r.target_text }}</td>
+    <td>{% if r.achievement_text %}<span style="white-space:pre-wrap">{{ r.achievement_text }}</span>{% else %}<span class="empty">—</span>{% endif %}
+      {% if r.is_nil %}<br><b>Nil report</b>{% endif %}
+      {% if r.achievement_source == "draft" %}<br><span class="note draft">Unsubmitted draft — not reviewed</span>{% endif %}
+      {% if r.changed_since_submission %}<br><span class="note draft">Edited after submission; not resubmitted</span>{% endif %}</td>
+    <td>{{ r.status_label }}</td>
+    <td>{% if r.revision_sequence %}Revision {{ r.revision_sequence }}<br>{{ r.submitted_at|date:"d M Y" }}{% else %}—{% endif %}</td></tr>
+  {% empty %}
+  <tr><td colspan="7" class="empty">No assignments match these filters.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</body>
+</html>

@@ -251,6 +251,20 @@ def pdf_parts(ctx):
     }
 
 
+def progress_pdf_parts(ctx):
+    """Renderer parts for the VC progress PDF (D-068): A4 landscape, branded sheet header, repeating table header."""
+    a = assets()
+    regular, bold = a["font_css"].splitlines()[:2]
+    m = STYLES["sheet"]["margins"]
+    html = render_to_string("reports/progress.html", {**ctx, "font_css": a["font_css"]})
+    footer = (f'<style>{regular}</style><div style="width:100%;font-family:Tinos,serif;font-size:9pt;color:#555;padding:0 {m["right"]} 18pt {m["left"]};'
+              'display:flex;justify-content:space-between;">'
+              f'<span>KRA progress — generated {escape(ctx["generated_at"].strftime("%d %b %Y %H:%M"))} IST — confidential (VC)</span>'
+              '<span>Page <span class="pageNumber"></span> | <span class="totalPages"></span></span></div>')
+    return {"html": html, "header": f"<style>{regular}{bold}</style>" + header_html("sheet", a["logo_uri"], for_pdf=True),
+            "footer": footer, "format": "A4", "landscape": True, "margin": m}
+
+
 def content_hash(parts):
     blob = json.dumps({**parts, "renderer": settings.RENDERER_VERSION}, sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { Decision, Grant, SubmissionDetail } from '../../api/types'
 import { ErrorBox } from '../../components/ui'
@@ -60,12 +60,14 @@ function DecisionForm({ d, onDone }: { d: SubmissionDetail; onDone: () => void }
 }
 
 function Review({ d, reload }: { d: SubmissionDetail; reload: () => void }) {
+  const back = (useLocation().state as { back?: string } | null)?.back ?? '/vc/dashboard'  // keeps the progress filters
+  const rev = d.current_revision
   const [tab, setTab] = useState<'report' | 'evidence' | 'achievement' | 'history'>('report')
   const [history, setHistory] = useState<History | null>(null)
   useEffect(() => { api<History>(`/submissions/${d.id}/history/`).then(setHistory).catch(() => {}) }, [d.id])
   return (
     <div>
-      <Link className="text-sm underline" to="/vc/dashboard">← Dashboard</Link>
+      <Link className="text-sm underline" to={back}>← Progress</Link>
       <WorkspaceHeader d={d} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
@@ -78,8 +80,19 @@ function Review({ d, reload }: { d: SubmissionDetail; reload: () => void }) {
           {tab === 'report' && (d.current_revision
             ? <Preview submissionId={d.id} revision={d.current_revision.id} />
             : <p className="card text-sm">Not submitted yet.</p>)}
-          {tab === 'evidence' && <EvidenceTab submissionId={d.id} canEdit={false} />}
-          {tab === 'achievement' && <AchievementTab detail={d} values={{ achievement_text: d.achievement_text, remarks: d.remarks }} disabled errors={{}} />}
+          {tab === 'evidence' && (rev ? (
+            <div className="card text-sm">
+              <p className="mb-2 font-medium">Evidence at submission (revision {rev.sequence})</p>
+              {rev.evidence.length === 0 ? <p className="text-slate-600">No evidence was attached.</p> : (
+                <ul className="space-y-1">{rev.evidence.map((e) => <li key={e.id}><b>{e.category}</b> — {e.label}{' · '}
+                  {e.drive_url ? <a className="underline" href={e.drive_url} target="_blank" rel="noopener noreferrer">Drive link</a>
+                    : <a className="underline" href={`/api/v1/evidence/${e.id}/download/`}>{e.original_filename || 'Download'}</a>}</li>)}</ul>)}
+            </div>) : <EvidenceTab submissionId={d.id} canEdit={false} />)}
+          {tab === 'achievement' && (
+            <div>
+              <p className="mb-2 text-sm text-slate-600">{rev ? `As submitted in revision ${rev.sequence}${rev.is_nil ? ' (Nil report)' : ''}.` : 'Not submitted yet — unreviewed draft values.'}</p>
+              <AchievementTab detail={d} values={rev ? { achievement_text: rev.achievement_text, remarks: rev.remarks } : { achievement_text: d.achievement_text, remarks: d.remarks }} disabled errors={{}} />
+            </div>)}
           {tab === 'history' && history && (
             <div className="card space-y-3 text-sm">
               {history.revisions.length === 0 && <p>No revisions yet.</p>}

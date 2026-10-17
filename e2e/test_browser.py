@@ -893,5 +893,52 @@ class BrowserTests(unittest.TestCase):
         mine = [r for r in rows["results"] if r["kra"]["number"] == int(kra)]
         self.assertEqual([(r["department"]["code"], r["target_text"]) for r in mine], [("ECE", "Synthetic 2028-29 target: 1 Per Year")])
 
+    def test_phase5b_progress_filters_review_and_export(self):
+        """Phase 5B: an ECE draft achievement appears under Department=ECE / Status=Draft marked as unsubmitted; the review
+        page's back link keeps the filters; Export PDF downloads all filtered rows; Deans are refused."""
+        import pymupdf
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 20)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        note = f"Synthetic progress check {int(time.time())}"
+        status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "achievement_text": note})
+        self.assertEqual(status, 200, body)
+        self.assertEqual(api(p, "GET", "/progress/?year=2026-27&period=1")[0], 403)
+        r = p.request.get(f"{BASE}/api/v1/progress/export/?year=2026-27&period=1")
+        self.assertEqual(r.status, 403)
+
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900}, accept_downloads=True)
+        v = vc.new_page()
+        login(v, "vc", "demo.vc")
+        v.wait_for_url("**/vc/dashboard")
+        v.get_by_label("Department").select_option("ECE")
+        v.get_by_label("Status").select_option("DRAFT")
+        row = v.get_by_role("row", name=re.compile(note))
+        expect(row).to_contain_text("Unsubmitted draft")
+        filtered_url = v.url
+        self.assertIn("department=ECE", filtered_url)
+        row.get_by_role("link", name="View & history").click()
+        v.get_by_role("tab", name="Achievement").click()
+        expect(v.get_by_text("Not submitted yet — unreviewed draft values.")).to_be_visible()
+        v.get_by_role("link", name="← Progress").click()
+        expect(v.get_by_role("row", name=re.compile(note))).to_be_visible()
+        self.assertEqual(v.url, filtered_url)  # filters preserved
+
+        v.get_by_label("Status").select_option("")  # all statuses for ECE: more rows than one page
+        expect(v.get_by_text(re.compile(r"^45 rows$"))).to_be_visible()
+        with v.expect_download() as dl:
+            v.get_by_role("button", name=re.compile("Export PDF")).click()
+        path = dl.value.path()
+        doc = pymupdf.open(path)
+        text = " ".join(pg.get_text() for pg in doc).replace("\n", " ")
+        self.assertIn(note, text)
+        self.assertIn("rows in this report: 45", text)
+        self.assertIn("Unsubmitted draft", text)
+        self.assertTrue(dl.value.suggested_filename.startswith("KRA_progress_2026-27_P"))
+        vc.close()
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)
