@@ -46,7 +46,9 @@ export default function VCDashboard() {
     if (!period) return
     const q = filterQuery()
     setData(null); setError('')
-    api<Progress>(`/progress/?${q}`).then(setData).catch((e) => setError(e instanceof ApiError ? e.message : 'Failed to load'))
+    let live = true  // a slower earlier response must not overwrite the current filters' result (Phase 6A)
+    api<Progress>(`/progress/?${q}`).then((d) => live && setData(d)).catch((e) => live && setError(e instanceof ApiError ? e.message : 'Failed to load'))
+    return () => { live = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, period])
 

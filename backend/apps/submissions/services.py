@@ -220,8 +220,8 @@ def request_reopen(user, assignment, period, reason, request=None):
                                                         defaults={"created_by": user})
         sub = _locked(sub.pk)
         at = now()
-        if sub.period.is_open(at):
-            raise ApiError(409, "period_open", "The period is still open; no reopening is needed.")
+        if at < sub.period.closes_at:  # open or not yet started: only a closed period can be reopened (Phase 6A)
+            raise ApiError(409, "period_open", "Only a closed reporting period can be reopened; no reopening is needed now.")
         if sub.status not in EDITABLE_STATUSES:
             raise ApiError(409, "not_editable", "Submitted or approved reports cannot be reopened by request.")
         if active_grant(sub, at):

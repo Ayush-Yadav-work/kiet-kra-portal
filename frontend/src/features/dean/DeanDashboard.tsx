@@ -11,7 +11,9 @@ const YEARS = ['2026-27', '2027-28', '2028-29']
 export function usePeriods(year: string) {
   const [periods, setPeriods] = useState<Period[]>([])
   useEffect(() => {
-    api<{ results: Period[] }>(`/periods/?year=${year}`).then((r) => setPeriods(r.results)).catch(() => setPeriods([]))
+    let live = true  // ignore a slower response for a previously selected year
+    api<{ results: Period[] }>(`/periods/?year=${year}`).then((r) => live && setPeriods(r.results)).catch(() => live && setPeriods([]))
+    return () => { live = false }
   }, [year])
   return periods
 }
@@ -67,9 +69,11 @@ export default function DeanDashboard() {
   useEffect(() => {
     if (!periodId) return
     setRows(null)
+    let live = true  // ignore a slower response for a previously selected period
     api<{ results: Row[] }>(`/assignments/?year=${year}&period=${periodId}`)
-      .then((r) => setRows(r.results))
-      .catch((e) => setError(e instanceof ApiError ? e.message : 'Failed to load'))
+      .then((r) => live && setRows(r.results))
+      .catch((e) => live && setError(e instanceof ApiError ? e.message : 'Failed to load'))
+    return () => { live = false }
   }, [year, periodId])
 
   const rejected = rows?.filter((r) => r.submission.display_status === 'REJECTED') ?? []

@@ -166,7 +166,16 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] Submitted vs unsubmitted achievements distinguished; Nil shown beside status; exact text, no totals
 - [x] Progress PDF of all filtered rows via the internal renderer; VC-only, read-only, not cached
 - [x] Review reads the submitted revision (achievement, remarks, Nil, evidence manifest); filters kept when returning
-- Phase 4 institutional acceptance of report formats still pending. Committed on phase2-kra33-pilot.
+- Phase 4 institutional acceptance of report formats still pending. Committed (c88a191).
+
+## Phase 6A — permissions and workflow-integrity hardening ✅ (automated checks; not college acceptance)
+- [x] Route-wide permission sweep: anonymous refused on every protected route; Deans refused on every VC-only route (list pinned in the test); VC refused on Dean-only actions
+- [x] Nested scope: another department's revision via own submission (preview/export), period of another year, foreign assignment reopen request, reopen-request lists; private files not reachable by any URL except the guarded download
+- [x] Deadlines (IST): submit at exact close refused / 1 µs before accepted; request grant exactly 72 h, refused at expiry, scoped to one department/KRA/period
+- [x] Status transition matrix; reasons required; submitted/approved reports locked against stale tabs (save, submit, evidence add/remove); historical revision PDFs keep their own labels and content
+- [x] Real concurrent requests on PostgreSQL: duplicate submit, autosave vs submit, evidence upload/removal vs submit, competing VC approve/reject, double reopen decision, double C2 request
+- [x] Fixed: reopen request accepted for a period that had not started; report export cacheable; stale dashboard responses overwrote newer filters; backend tests wrote uploads to the working private storage (D-069)
+- Open: earlier test runs left files in the working `.work/private` (252 evidence, 1,455 generated on 2026-10-17); not cleaned (owner decision). Uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
@@ -174,4 +183,6 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - OpenAPI document (a hand-written reference is in `docs/api.md`) and frontend component tests. Browser tests (`e2e/`) cover 22 flows.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
+- Phase 6 remainder: accessibility/mobile checks, dependency and production-config checks, measured load/concurrency through Gunicorn, team walkthrough and owner sign-off.
+- Policy questions (6A, unresolved — not changed in code): may a Dean request reopening for a period of an **ended academic year**? (currently allowed; VC decides); is VC review allowed at any time after the deadline? (currently yes, no review window); should approving a reopen request be refused if the report is no longer Draft/Rejected? (cannot currently arise: requests need Draft/Rejected and a closed period).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.
