@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import type { User } from '../api/types'
 import { homeFor, useAuth } from './AuthContext'
+import { LoginLayout } from './LoginPage'
 
 export default function ChangePassword() {
   const { user, setUser } = useAuth()
@@ -28,21 +29,20 @@ export default function ChangePassword() {
     } finally { setBusy(false) }
   }
 
-  const fe = (k: string) => errors[k]?.map((m) => <p key={m} className="text-xs text-red-700 mt-1">{m}</p>)
+  const fe = (k: string) => errors[k]?.map((m) => <p key={m} id={`${k}-err`} className="mt-1 text-sm text-err">{m}</p>)
+  const desc = (k: string) => (errors[k] ? `${k}-err` : undefined)
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <form className="card w-full max-w-sm space-y-3" onSubmit={submit}>
-        <h1 className="text-xl font-semibold">Change password</h1>
-        {user.must_change_password && <p className="text-sm text-amber-800">You must set a new password before continuing.</p>}
-        <div><label className="label" htmlFor="cur">Current password</label><input id="cur" type="password" className="input" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />{fe('current_password')}</div>
-        <div><label className="label" htmlFor="new">New password (min 10 characters)</label><input id="new" type="password" className="input" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />{fe('new_password')}</div>
-        <div><label className="label" htmlFor="conf">Confirm new password</label><input id="conf" type="password" className="input" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />{fe('confirm')}</div>
-        {msg && <p role="alert" className="text-sm text-red-700">{msg}</p>}
-        <div className="flex gap-2">
+    <LoginLayout title="Change password" subtitle={user.must_change_password ? 'You must set a new password before continuing.' : `Signed in as ${user.name}.`}>
+      <form className="grid w-full gap-3.5 text-left" onSubmit={submit}>
+        <div><label className="label" htmlFor="cur">Current password</label><input id="cur" type="password" className="input" autoComplete="current-password" value={current} aria-invalid={!!errors.current_password} aria-describedby={desc('current_password')} onChange={(e) => setCurrent(e.target.value)} />{fe('current_password')}</div>
+        <div><label className="label" htmlFor="new">New password (min 10 characters)</label><input id="new" type="password" className="input" autoComplete="new-password" value={next} aria-invalid={!!errors.new_password} aria-describedby={desc('new_password')} onChange={(e) => setNext(e.target.value)} />{fe('new_password')}</div>
+        <div><label className="label" htmlFor="conf">Confirm new password</label><input id="conf" type="password" className="input" autoComplete="new-password" value={confirm} aria-invalid={!!errors.confirm} aria-describedby={desc('confirm')} onChange={(e) => setConfirm(e.target.value)} />{fe('confirm')}</div>
+        {msg && <p role="alert" className="text-sm text-err"><b>Error:</b> {msg}</p>}
+        <div className="flex flex-wrap gap-2">
           <button className="btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Change password'}</button>
           {!user.must_change_password && <button type="button" className="btn-secondary" onClick={() => nav(homeFor(user))}>Cancel</button>}
         </div>
       </form>
-    </main>
+    </LoginLayout>
   )
 }

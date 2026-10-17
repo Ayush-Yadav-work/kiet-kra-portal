@@ -196,6 +196,21 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Follow-up: inactive-field note corrected (values are retained in draft and revision, not checked for submission, not printed); contrast measured from computed colours — fixed input borders 1.49→4.76, placeholders 3.41→4.76, unselected-tab error marker →6.42 (D-072); per-KRA acceptance rows (1–45) with scripted vs human checks
 - Pending (human): real 200% browser zoom (not available in automated Chromium), screen-reader pass, real-device phone check, walkthrough and institutional review of all 45 formats. Open: KRA 9 / KRAs 4–6 template intros still say "not submitted" (needs a new template version). Follow-up uncommitted.
 
+## UI-0 — inventory and visual direction (UI/UX plan `docs/ui-ux-implementation-plan.md`) ✅ revision 3 (owner reference images, campus background) approved by the owner 2026-10-17
+- [x] Plan placed at `docs/ui-ux-implementation-plan.md` and linked from the main plan
+- [x] Frontend inventory (routes, shell, login, dashboards, styles, icons, logo, tooling) → `docs/ui-ux-review.md`
+- [x] Static previews `docs/ui-preview/login.html`, `docs/ui-preview/dean-dashboard.html` (not part of the app or its bundle); screenshots of proposed and current screens in `.work/ui-review/` (synthetic data)
+- [x] Checks: no console errors, no horizontal overflow at 1440/375 px, 0 measured contrast failures (lowest 4.14 for control borders on the canvas)
+- Open: owner answers to `docs/ui-ux-review.md` §6 (logo asset, navigation, font, icons, counts, muted colour, landing copy) before UI-1. No live UI changed. Uncommitted.
+
+## UI-1 — shared components, shell and login (UI/UX plan) ✅ accepted by the owner (2026-10-17)
+- [x] Design tokens in `frontend/src/index.css` (`@theme`), shared buttons (primary, secondary, quiet, danger; 40 px; disabled state), inputs (16 px, ≥3:1 boundary), labels, cards, status badges, error box, global 3 px focus outline
+- [x] Horizontal header (logo, product name, existing destinations only, initials, name/role, Sign out); single row from 1280 px, links wrap below on smaller screens
+- [x] Approved login: campus photograph + overlay, card with logo, Dean/Vice Chancellor selector linking to the existing `/dean/login` and `/vc/login`, username login, show-password toggle, errors only when returned; `/` shows the same card with the selector; change-password page uses the same layout
+- [x] Local assets: `frontend/src/assets/kiet-logo.png` (original), `frontend/src/assets/login-background.jpg` (owner photo, JPEG 412 KB)
+- [x] Checks: `tsc -b` + `npm run build` OK; isolated browser suite 26/26 OK (run twice, the second after the final header change); 0 overflow / 0 contrast failures on login, landing, change-password, Dean and VC dashboards at 1440 and 375 px; header measured at 375–1600 px
+- Not changed: dashboard content (UI-2), workspace/review (UI-3), report preview/PDF templates, APIs, auth.
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).

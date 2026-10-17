@@ -1,28 +1,30 @@
 import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react'
-import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import type { DisplayStatus, Role } from '../api/types'
 import { homeFor, useAuth } from '../auth/AuthContext'
+import logo from '../assets/kiet-logo.png'
+import { Icon, type IconName } from './icons'
 
 const STATUS: Record<DisplayStatus, [string, string]> = {
-  NOT_SUBMITTED: ['Not submitted', 'bg-slate-100 text-slate-700'],
-  DRAFT: ['Draft', 'bg-amber-100 text-amber-900'],
-  SUBMITTED: ['Submitted', 'bg-blue-100 text-blue-900'],
-  REJECTED: ['Rejected', 'bg-red-100 text-red-900'],
-  APPROVED: ['Approved', 'bg-green-100 text-green-900'],
+  NOT_SUBMITTED: ['Not submitted', 'bg-neutral-bg text-neutral'],
+  DRAFT: ['Draft', 'bg-warn-bg text-warn'],
+  SUBMITTED: ['Submitted', 'bg-info-bg text-info'],
+  REJECTED: ['Rejected', 'bg-err-bg text-err'],
+  APPROVED: ['Approved', 'bg-ok-bg text-ok'],
 }
 export const statusLabel = (s: DisplayStatus) => STATUS[s][0]
 
 export function StatusBadge({ status }: { status: DisplayStatus }) {
-  const [label, cls] = STATUS[status] ?? [status, 'bg-slate-100']
-  return <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
+  const [label, cls] = STATUS[status] ?? [status, 'bg-neutral-bg text-neutral']
+  return <span className={`inline-block whitespace-nowrap rounded-full px-3 py-0.5 text-[13px] font-semibold ${cls}`}>{label}</span>
 }
 
 export function ErrorBox({ error }: { error?: string | null }) {
-  return error ? <p role="alert" className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-800">{error}</p> : null
+  return error ? <p role="alert" className="rounded-lg border-l-4 border-err bg-err-bg px-3 py-2 text-sm text-[#7F1D1D]">{error}</p> : null
 }
 
 export function Loading() {
-  return <p className="p-4 text-sm text-slate-500" aria-live="polite">Loading…</p>
+  return <p className="p-4 text-sm text-muted" aria-live="polite">Loading…</p>
 }
 
 /** Countdown from server-provided expiry and server time; the browser only displays it (C9). */
@@ -65,26 +67,42 @@ export function tabKeys(e: KeyboardEvent<HTMLElement>) {
   t.focus(); t.click()
 }
 
+const NAV: Record<Role, { to: string; label: string; icon: IconName }[]> = {
+  DEAN: [{ to: '/dean/dashboard', label: 'Dashboard', icon: 'home' }],
+  VC: [{ to: '/vc/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/vc/reopen-requests', label: 'Reopening requests', icon: 'list' },
+       { to: '/vc/assignments', label: 'Assignments', icon: 'list' }, { to: '/vc/kras', label: 'KRAs', icon: 'list' }],
+}
+const initials = (name: string) => name.replace(/^(Dr|Prof|Mr|Ms|Mrs)\.?\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
+
+/** Approved UI-0 header: logo, product name, existing destinations only, user and Sign out; on phones the links wrap below. */
 function Shell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
   if (!user) return null
+  const links = [...NAV[user.role], { to: '/change-password', label: 'Change password', icon: 'lock' as IconName }]
+  const roleLine = user.role === 'VC' ? 'Vice Chancellor' : `Dean, ${user.department?.code ?? ''}`
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-2">
-          <Link to={homeFor(user)} className="font-semibold text-blue-900">KIET KRA Portal</Link>
-          <span className="text-sm text-slate-600">{user.role === 'VC' ? 'Vice Chancellor' : `Dean — ${user.department?.name}`}</span>
-          <nav className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-            {user.role === 'VC' && <Link className="underline" to="/vc/reopen-requests">Reopening requests</Link>}
-            {user.role === 'VC' && <Link className="underline" to="/vc/assignments">Assignments</Link>}
-            {user.role === 'VC' && <Link className="underline" to="/vc/kras">KRAs</Link>}
-            <span className="text-slate-600">{user.name}</span>
-            <Link className="underline" to="/change-password">Change password</Link>
-            <button className="btn-secondary" onClick={() => logout()}>Sign out</button>
+      <header className="border-b border-line bg-white">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-7 gap-y-2 px-4 py-2 md:px-7 xl:min-h-[72px] xl:flex-nowrap xl:py-0">
+          <Link to={homeFor(user)} aria-label="KIET KRA Reporting Portal — home" className="shrink-0"><img src={logo} width={974} height={360} alt="" className="h-auto w-28 md:w-[150px]" /></Link>
+          <span className={`hidden whitespace-nowrap border-l border-line pl-6 text-xl font-bold text-heading ${user.role === 'VC' ? '2xl:inline' : 'lg:inline'}`}>KRA Reporting Portal</span>
+          <nav aria-label="Main" className="order-3 flex w-full flex-wrap gap-x-1 self-stretch xl:order-none xl:ml-2 xl:w-auto xl:flex-nowrap">
+            {links.map((l) => (
+              <NavLink key={l.to} to={l.to} end
+                className={({ isActive }) => `flex min-h-11 items-center gap-2 whitespace-nowrap border-b-[3px] px-3 text-[15px] ${isActive ? 'border-accent font-semibold text-action' : 'border-transparent font-medium text-heading hover:text-action'}`}>
+                <Icon name={l.icon} />{l.label}
+              </NavLink>
+            ))}
           </nav>
+          <div className="ml-auto flex items-center gap-3.5">
+            <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-bold text-white md:h-10 md:w-10">{initials(user.name)}</span>
+            <span className="hidden leading-tight sm:block"><b className="block text-heading">{user.name}</b><span className="text-sm text-muted">{roleLine}</span></span>
+            <span aria-hidden="true" className="hidden h-8 w-px bg-line sm:block" />
+            <button className="btn-secondary min-h-9 px-3.5 text-sm" onClick={() => logout()}>Sign out</button>
+          </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl p-4">{children}</main>
+      <main className="mx-auto max-w-[1400px] p-4 md:px-7 md:py-6">{children}</main>
     </div>
   )
 }
