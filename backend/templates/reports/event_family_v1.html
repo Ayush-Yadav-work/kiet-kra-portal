@@ -16,15 +16,19 @@ details/participation/narratives/evidence with the KRA-specific detail rows from
   <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
   <tr><td>Academic Year / Reporting Period</td><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
   <tr><td>Title of the event</td><td>{{ a.event_title }}</td></tr>
-  <tr><td>Category</td><td>{{ a.category }}</td></tr>
+  {% if fam.kra <= 30 %}<tr><td>Category</td><td>{{ a.category }}</td></tr>{% endif %}
   {% if fam.kra == 27 %}<tr><td>Sport(s) / game(s)</td><td>{{ a.sport }}</td></tr>
   <tr><td>Competition format</td><td>{{ a.competition_format|default:"—" }}</td></tr>
   <tr><td>Number of teams</td><td>{% if a.teams != "" %}{{ a.teams }}{% else %}—{% endif %}</td></tr>
   {% elif fam.kra == 28 %}<tr><td>Cultural activity / art form(s)</td><td>{{ a.cultural_activity }}</td></tr>
   {% elif fam.kra == 29 %}<tr><td>Technical / academic theme</td><td>{{ a.theme }}</td></tr>
   <tr><td>Sub-events / tracks</td><td>{% if a.sub_events %}{{ a.sub_events|linebreaksbr }}{% else %}—{% endif %}</td></tr>
-  {% else %}<tr><td>Name of the club / forum</td><td>{{ a.club_name }}</td></tr>
-  <tr><td>Semester</td><td>{{ a.semester }}</td></tr>{% endif %}
+  {% elif fam.kra == 30 %}<tr><td>Name of the club / forum</td><td>{{ a.club_name }}</td></tr>
+  <tr><td>Semester</td><td>{{ a.semester }}</td></tr>
+  {% elif fam.kra == 41 %}<tr><td>Diversity addressed</td><td>{% if a.inclusion_themes_list %}{{ a.inclusion_themes_list|join:", " }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+  <tr><td>Inclusion theme</td><td>{{ a.theme_details }}</td></tr>
+  {% else %}<tr><td>Constitutional obligations addressed</td><td>{% if a.constitutional_aspects_list %}{{ a.constitutional_aspects_list|join:", " }}{% else %}<span class="empty">Not entered</span>{% endif %}</td></tr>
+  <tr><td>Topics covered</td><td>{{ a.topics }}</td></tr>{% endif %}
   <tr><td>Dates</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
   <tr><td>Venue / Mode</td><td>{{ a.venue }}{% if a.venue and a.mode %} / {% endif %}{{ a.mode }}</td></tr>
   <tr><td>Organized by</td><td>{{ a.organizer }}</td></tr>

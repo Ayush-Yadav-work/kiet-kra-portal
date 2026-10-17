@@ -1,0 +1,78 @@
+{
+  "key": "kra40",
+  "version": 1,
+  "title": "Gender Audit and Measures for the Promotion of Gender Equity",
+  "source": "none — project-created format (no template supplied; the Instructions cell names an unrelated file; plan 5.3, D-062)",
+  "source_checksum": "",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Audit", "min": 1, "max": 10},
+  "rules": [{"type": "ref_in", "table": "actions", "column": "finding_ref", "source": "findings", "key": "ref",
+             "message": "Use the Ref of a finding listed for this audit."}],
+  "sections": [
+    {
+      "id": "audit", "title": "1. Gender audit",
+      "intro": "Project-created format awaiting institutional review. One section per gender audit. An audit done in an earlier period can be reported again to record follow-up progress — no new audit is needed each period. Record aggregate observations only: no individual complaints or case details.",
+      "fields": [
+        {"id": "audit_title", "label": "Audit title", "type": "text", "required": true, "max_length": 250},
+        {"id": "reporting_basis", "label": "Reported in this period as", "type": "select", "required": true,
+         "options": ["Audit conducted in this period", "Follow-up of an earlier audit"]},
+        {"id": "audit_date", "label": "Date of audit (or report date)", "type": "date", "required": true},
+        {"id": "audit_scope", "label": "Scope of the audit", "type": "longtext", "required": true, "max_length": 2000},
+        {"id": "audit_team", "label": "Audit team / committee (names, roles)", "type": "longtext", "required": true, "max_length": 1500},
+        {"id": "audit_reference", "label": "Audit report reference (optional)", "type": "text", "required": false, "max_length": 150}
+      ]
+    },
+    {
+      "id": "findings", "title": "2. Findings and recommendations",
+      "fields": [
+        {"id": "findings", "label": "Findings", "type": "table", "required": true, "min_rows": 1, "max_rows": 30, "editor": "cards",
+         "columns": [
+           {"id": "ref", "label": "Ref", "type": "text", "required": true, "max_length": 10, "placeholder": "e.g. F1", "width": "8%"},
+           {"id": "finding", "label": "Finding", "type": "longtext", "required": true, "max_length": 1000, "width": "46%"},
+           {"id": "recommendation", "label": "Recommendation", "type": "longtext", "required": true, "max_length": 1000, "width": "46%"}
+         ]}
+      ]
+    },
+    {
+      "id": "actions", "title": "3. Follow-up actions",
+      "intro": "Each action names the finding it addresses (its Ref). Status is what is true now — nothing is assumed complete.",
+      "fields": [
+        {"id": "actions", "label": "Actions", "type": "table", "required": false, "max_rows": 50, "editor": "cards",
+         "columns": [
+           {"id": "finding_ref", "label": "Finding Ref", "type": "text", "required": true, "max_length": 10, "width": "8%"},
+           {"id": "action", "label": "Action", "type": "longtext", "required": true, "max_length": 800, "width": "28%"},
+           {"id": "responsible", "label": "Responsible person(s)", "type": "text", "required": true, "max_length": 200, "width": "16%"},
+           {"id": "target_date", "label": "Target date (if set)", "type": "date", "required": false, "width": "11%"},
+           {"id": "status", "label": "Status", "type": "select", "required": true, "options": ["Planned", "Ongoing", "Completed"], "width": "10%"},
+           {"id": "progress", "label": "Progress this period", "type": "longtext", "required": true, "max_length": 800, "width": "27%"}
+         ]}
+      ]
+    },
+    {
+      "id": "equity", "title": "4. Gender-equity measures and activities",
+      "fields": [
+        {"id": "equity_activities", "label": "Equity activities conducted", "type": "table", "required": false, "max_rows": 30, "editor": "cards",
+         "columns": [
+           {"id": "title", "label": "Activity / measure", "type": "text", "required": true, "max_length": 250, "width": "30%"},
+           {"id": "date", "label": "Date", "type": "date", "required": true, "width": "13%"},
+           {"id": "participants", "label": "Participants", "type": "integer", "required": false, "min": 0, "max": 100000, "width": "11%"},
+           {"id": "outcome", "label": "Outcome observed", "type": "longtext", "required": true, "max_length": 800, "width": "41%"}
+         ]},
+        {"id": "outcomes", "label": "Overall outcomes observed this period (one per line)", "type": "longtext", "required": true, "max_length": 2000,
+         "help": "Describe what was actually observed; write \"None yet\" if nothing can be reported."}
+      ]
+    },
+    {
+      "id": "documents", "title": "5. Evidence", "intro": "Yes/No as maintained; upload files in the Evidence tab (not added to the PDF).",
+      "fields": [
+        {"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": false,
+         "items": ["Audit committee constitution", "Gender audit report", "Action-taken report", "Equity activity reports", "Photographs"]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Audit committee constitution", "Gender audit report", "Action-taken report", "Equity activity reports", "Photographs", "Other"],
+    "required": [],
+    "note": "Proposed categories awaiting institutional review; no minimum set agreed (docs/decisions.md D-062)."
+  }
+}

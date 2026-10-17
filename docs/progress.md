@@ -135,11 +135,21 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] KRA 14 Yukthi registrations with student teams (D-058); KRA 16 innovation ambassadors (D-059)
 - [x] KRAs 34/35 faculty financial support: sanctioned vs paid INR, multiple payments, Rs. 5,000 condition printed without aggregation (D-060)
 - [x] Mappings idempotent, targets unchanged; frontend unchanged; verification box kept with the report end (D-061)
-- Open: D-058–D-061 institutional review. Committed on phase2-kra33-pilot.
+- Open: D-058–D-061 institutional review. Committed (41885d4).
+
+## Phase 4 (bounded) — KRAs 40, 41, 42 (project-created) ✅ (pending review)
+- [x] KRA 40 gender audit: findings with linked follow-up actions (Planned/Ongoing/Completed), follow-up without a new audit (D-062)
+- [x] KRAs 41/42 via the event family, KRA 27–30 output unchanged (D-063)
+- [x] Coverage reconciled: 45/45 KRAs mapped, implemented and tested; browser smoke now covers all 45 (KRAs 11/23 added) (D-064)
+
+## Phase 4 review gate — open
+- Implemented and tested: 45/45. Institutionally accepted: 0/45 (all formats await college review; see **college** items in decisions.md).
+- Exit criterion "no unreviewed report exports" is NOT met until that review happens. Phase 5 not started.
+- Committed on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 3 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Institutional review of all 45 report formats (Phase 4 exit gate).
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).

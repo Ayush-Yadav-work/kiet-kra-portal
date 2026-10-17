@@ -758,5 +758,76 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_kra40_41_42_project_formats(self):
+        """KRA 40: a follow-up action's progress edited; an action pointing to a missing finding is refused at validation.
+        KRAs 41/42: the KRA-specific detail edited on event 2. Each saved, reloaded, previewed and exported."""
+        from tests.fixtures import event_payload, kra40_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        cases = {40: (kra40_payload(1), "activities.0.actions.1.progress", None),
+                 41: (event_payload(41, 2), "activities.1.theme_details", "Event 2"),
+                 42: (event_payload(42, 2), "activities.1.topics", "Event 2")}
+        for n, (payload, field, tab) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            if tab:
+                p.get_by_role("tab", name=re.compile(tab)).click()
+            value = f"Synthetic value KRA {n} {int(time.time())}"
+            p.locator(f"[name='{field}']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            if tab:
+                p.get_by_role("tab", name=re.compile(tab)).click()
+            expect(p.locator(f"[name='{field}']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+            if n == 40:
+                p.locator("[name='activities.0.actions.0.finding_ref']").fill("F9")
+                p.get_by_role("button", name="Save draft").click()
+                expect(p.get_by_role("status")).to_contain_text("Saved")  # the draft keeps an unmatched reference
+                _, v = api(p, "POST", f"/submissions/{sid}/validate/")
+                self.assertIn("activities.0.actions.0.finding_ref", v["field_errors"])
+
+    def test_kra11_23_save_reload_preview_export(self):
+        """KRAs 11 and 23 (previously checked by hand only): a field of course/programme 2 edited, saved, reloaded, previewed
+        and exported."""
+        from tests.fixtures import kra11_payload, kra23_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        cases = {11: (kra11_payload(2), "activities.1.faculty_coordinators", "Course 2"),
+                 23: (kra23_payload(2), "activities.1.programme_title", "Programme 2")}
+        for n, (payload, field, tab) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.get_by_role("tab", name=re.compile(tab)).click()
+            value = f"Synthetic value KRA {n} {int(time.time())}"
+            p.locator(f"[name='{field}']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            p.get_by_role("tab", name=re.compile(tab)).click()
+            expect(p.locator(f"[name='{field}']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)
