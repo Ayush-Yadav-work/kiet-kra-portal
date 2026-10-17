@@ -105,6 +105,13 @@ def _check_rules(rules, obj, path, errors):
     for rule in rules or []:
         if not applies(rule.get("when"), obj):
             continue
+        if rule["type"] == "ref_in":  # each table row's reference must name a row of another table in the same record
+            keys = {r.get(rule["key"]) for r in obj.get(rule["source"]) or [] if isinstance(r, dict) and not _blank(r.get(rule["key"]))}
+            for i, r in enumerate(obj.get(rule["table"]) or []):
+                p = f"{path}{rule['table']}.{i}.{rule['column']}"
+                if isinstance(r, dict) and not _blank(r.get(rule["column"])) and p not in errors and r[rule["column"]] not in keys:
+                    errors[p] = [rule["message"]]
+            continue
         a, b = obj.get(rule["a"]), obj.get(rule["b"])
         if _blank(a) or _blank(b) or f"{path}{rule['a']}" in errors or f"{path}{rule['b']}" in errors:
             continue

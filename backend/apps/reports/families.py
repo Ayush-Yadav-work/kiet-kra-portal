@@ -700,7 +700,8 @@ def event_schema(kra):
                       "no event template was supplied for this KRA.",
              "fields": [
                  {"id": "event_title", "label": "Title of the event", "type": "text", "required": True, "max_length": 250},
-                 {"id": "category", "label": "Category", "type": "select", "required": True, "options": v["categories"]},
+                 *([{"id": "category", "label": "Category", "type": "select", "required": True, "options": v["categories"]}]
+                   if v.get("categories") else []),
                  *v["fields"],
                  {"id": "start_date", "label": "Start date", "type": "date", "required": True},
                  {"id": "end_date", "label": "End date", "type": "date", "required": True},
@@ -733,15 +734,33 @@ def event_schema(kra):
                 {"id": "feedback", "label": "Feedback summary", "type": "longtext", "required": True, "max_length": 2000,
                  "help": "Write \"Not collected\" if no feedback was taken."}]},
             {"id": "documents", "title": "7. Documentary evidence", "intro": "Yes/No as maintained; upload files in the Evidence tab.",
-             "fields": [{"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": False, "items": EVENT_DOCS}]},
+             "fields": [{"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": False, "items": v.get("docs", EVENT_DOCS)}]},
             {"id": "signoff", "title": "Sign-off", "fields": [
                 {"id": "reported_by", "label": "Report prepared by (name, optional)", "type": "text", "required": False, "max_length": 150},
                 {"id": "report_date", "label": "Report date (optional)", "type": "date", "required": False}]},
         ],
-        "evidence": {"categories": EVENT_DOCS + ["Other"], "required": [],
-                     "note": "No minimum set has been agreed for KRAs 27–30 (docs/decisions.md D-052); the KRA 33 set (D-013) is not applied here."},
+        "evidence": {"categories": v.get("docs", EVENT_DOCS) + ["Other"], "required": [],
+                     "note": v.get("evidence_note", "No minimum set has been agreed for KRAs 27–30 (docs/decisions.md D-052); the KRA 33 set (D-013) is not applied here.")},
     })
 
+
+# KRAs 41–42 (project-created, D-063): same event format, no category select, their own evidence items.
+EVENT_VARIANTS.update({
+    41: {"title": "Inclusive Environment Activity Report",
+         "fields": [{"id": "inclusion_themes", "label": "Diversity addressed (tolerance and harmony towards)", "type": "multiselect",
+                     "required": True, "options": ["Cultural", "Regional", "Linguistic", "Communal", "Socio-economic", "Other diversity"]},
+                    {"id": "theme_details", "label": "Inclusion theme (details)", "type": "text", "required": True, "max_length": 250}],
+         "docs": ["Event Approval", "Notice/Circular/Brochure", "Attendance Sheet", "Photographs", "Feedback", "Event Report"],
+         "evidence_note": "Proposed categories awaiting institutional review; no minimum set agreed (docs/decisions.md D-063)."},
+    42: {"title": "Constitutional Obligations Sensitization Activity Report",
+         "fields": [{"id": "constitutional_aspects", "label": "Constitutional obligations addressed", "type": "multiselect", "required": True,
+                     "options": ["Values", "Rights", "Duties", "Responsibilities of citizens"]},
+                    {"id": "topics", "label": "Topics covered (e.g. Preamble, Fundamental Rights / Duties)", "type": "text", "required": True,
+                     "max_length": 300}],
+         "docs": ["Event Approval", "Notice/Circular/Brochure", "Attendance Sheet", "Resource Person Profile", "Photographs", "Feedback",
+                  "Event Report"],
+         "evidence_note": "Proposed categories awaiting institutional review; no minimum set agreed (docs/decisions.md D-063)."},
+})
 
 BUILDERS.update({f"kra{k}": (lambda k=k: event_schema(k)) for k in EVENT_VARIANTS})
 

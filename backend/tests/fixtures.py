@@ -490,13 +490,15 @@ def award_payload(kra, rows=4, long_text=False):
 EVENT_EXTRA = {27: {"sport": "Synthetic Football", "competition_format": "Knockout", "teams": 12},
                28: {"cultural_activity": "Synthetic music and dance"},
                29: {"theme": "Synthetic embedded systems", "sub_events": "Synthetic hackathon\nSynthetic paper presentation"},
-               30: {"club_name": "Synthetic Robotics Club", "semester": "Odd"}}
+               30: {"club_name": "Synthetic Robotics Club", "semester": "Odd"},
+               41: {"inclusion_themes": ["Cultural", "Linguistic"], "theme_details": "Synthetic unity-in-diversity festival"},
+               42: {"constitutional_aspects": ["Values", "Duties"], "topics": "Synthetic reading of the Preamble and Fundamental Duties"}}
 EVENT_CATEGORIES = {27: "Sports competition", 28: "Cultural event", 29: "Technical fest", 30: "Club activity"}
 
 
 def event_record(kra, i=1, long_text=False):
     para = " Synthetic narrative sentence for layout testing." * (25 if long_text else 2)
-    return {"event_title": f"Synthetic KRA {kra} event {i}", "category": EVENT_CATEGORIES[kra], **EVENT_EXTRA[kra],
+    return {"event_title": f"Synthetic KRA {kra} event {i}", **({"category": EVENT_CATEGORIES[kra]} if kra in EVENT_CATEGORIES else {}), **EVENT_EXTRA[kra],
             "start_date": f"2026-09-{10 + i % 15:02d}", "end_date": f"2026-09-{11 + i % 15:02d}", "venue": "Main Auditorium (synthetic)",
             "mode": "Offline", "organizer": "ECE Department (synthetic)", "coordinators": "Test Faculty A, Test Faculty B",
             "student_coordinators": "" if i % 2 else "Test Student Zoë", "collaborators": "", "resource_persons": "Test Judge 1\nTest Judge 2",
@@ -649,3 +651,22 @@ def support_record(kra, i=1, payments=2, long_text=False):
 
 def support_payload(kra, records=1, payments=2, long_text=False):
     return {"activities": [support_record(kra, i + 1, payments, long_text) for i in range(records)]}
+
+
+def kra40_audit(i=1, findings=2, long_text=False):
+    extra = " Synthetic extended text for layout testing." * (10 if long_text else 0)
+    statuses = ["Planned", "Ongoing", "Completed"]
+    return {"audit_title": f"Synthetic gender audit {i}", "reporting_basis": "Audit conducted in this period" if i == 1 else "Follow-up of an earlier audit",
+            "audit_date": "2026-09-08" if i == 1 else "2025-11-20", "audit_scope": "Synthetic scope: facilities, committees, curriculum." + extra,
+            "audit_team": "Test Chair\nTest Member A\nTest Member B", "audit_reference": "" if i % 2 == 0 else f"SYN/GA/{i:02d}",
+            "findings": [{"ref": f"F{f + 1}", "finding": f"Synthetic finding {i}.{f + 1}." + extra,
+                          "recommendation": f"Synthetic recommendation {i}.{f + 1}." + extra} for f in range(findings)],
+            "actions": [{"finding_ref": f"F{f + 1}", "action": f"Synthetic action for F{f + 1}." + extra[:200], "responsible": "Test Coordinator",
+                         "target_date": "" if f % 2 else "2026-12-31", "status": statuses[f % 3], "progress": "Synthetic progress note."}
+                        for f in range(findings)],
+            "equity_activities": [{"title": "Synthetic equity workshop", "date": "2026-09-15", "participants": 60, "outcome": "Synthetic outcome observed."}],
+            "outcomes": "Synthetic outcome one", "doc_checklist": {"Gender audit report": "Yes", "Action-taken report": "No"}}
+
+
+def kra40_payload(audits=1, findings=2, long_text=False):
+    return {"activities": [kra40_audit(i + 1, findings, long_text) for i in range(audits)]}

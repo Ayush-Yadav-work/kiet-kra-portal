@@ -156,3 +156,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 21** — add tr
 ## KRAs 14, 16, 34, 35 review (project-created formats)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 14** — add a registration and its student team (Submit refuses an empty team). **KRA 16** — add an ambassador; certificate fields may stay blank. **KRAs 34/35** — enter the sanctioned amount and several payments in rupees (e.g. `3000.50`, `1499.99`): each smaller payment is accepted, sanctioned and paid amounts print separately and nothing is totalled; 35 accepts a blank valid-to for life membership. Samples: `.work/renders/kra{14,16,34,35}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 14 --kra 16 --kra 34 --kra 35`). Decisions: D-058 to D-061.
+
+## KRAs 40, 41, 42 review (project-created formats) and Phase 4 gate
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 40** — add an audit, findings with Refs (F1, F2) and actions naming those Refs; try an action Ref that does not exist, then *Submit* (refused); choose "Follow-up of an earlier audit" to report progress without a new audit. **KRAs 41/42** — add activities and tick the diversity / constitutional dimensions addressed. Samples: `.work/renders/kra{40,41,42}/{normal,multi,long,empty,nil}.pdf`. Decisions: D-062 to D-064. All 45 KRAs are implemented and tested; the Phase 4 gate stays open until the college reviews every format.
