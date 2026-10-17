@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { api, ApiError } from '../../api/client'
 import { ErrorBox, Loading } from '../../components/ui'
 
-// Phase 5A (D-065): VC-only draft assignments for years that have not started; finalized assignments are read-only.
-type Year = { label: string; locked: boolean; finalized_assignments: number; drafts_pending: number; drafts_finalized: number }
+// Phase 5A (D-065, D-066): VC-only draft assignments for the current and future years; finalized assignments are read-only.
+type Year = { label: string; locked: boolean; current: boolean; finalized_assignments: number; drafts_pending: number; drafts_finalized: number }
 type Tpl = { key: string; version: number; title: string; problem: string | null }
 type Draft = { id: string; department: { code: string; name: string }; kra: { number: number; activity_text: string }; target_text: string
   template: { key: string; version: number; title: string }; copied_from_year: string | null; finalized: boolean }
@@ -124,7 +124,7 @@ export default function AdminAssignments() {
       <div className="card flex flex-wrap items-end gap-3">
         <label className="text-sm">Academic year
           <select aria-label="Academic year" className="input" value={year} onChange={(e) => { setYear(e.target.value); setConflicts([]); setMessage(''); setReview(false) }}>
-            {years.map((y) => <option key={y.label} value={y.label}>{y.label}{y.locked ? ' (in progress / past — locked)' : ''}</option>)}
+            {years.map((y) => <option key={y.label} value={y.label}>{y.label}{y.locked ? ' (ended — read-only)' : y.current ? ' (current year)' : ''}</option>)}
           </select></label>
         <label className="text-sm">Department
           <select aria-label="Department" className="input" value={dept} onChange={(e) => setDept(e.target.value)}>
@@ -138,6 +138,7 @@ export default function AdminAssignments() {
       {current && !current.locked && (
         <div className="card space-y-2">
           <h2 className="font-semibold">Prepare {year}</h2>
+          {current.current && <p className="text-sm text-slate-600">Current year: only department/KRA pairs without an assignment can be added. Deans see them at once; reporting periods that have already closed stay closed.</p>}
           <div className="flex flex-wrap gap-2">
             {earlier.length ? earlier.map((y) => <button key={y.label} className="btn-secondary" disabled={busy} onClick={() => copyFrom(y.label)}>Copy {y.label} assignments into drafts</button>)
               : <p className="text-sm text-slate-600">No earlier year with finalized assignments to copy.</p>}

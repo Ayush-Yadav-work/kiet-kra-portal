@@ -5,7 +5,7 @@ from apps.audit.models import AuditEvent
 from apps.catalogue.models import KRA, AcademicYear, AnnualAssignment, DraftAssignment, TemplateVersion
 from tests.base import PortalTestCase, frozen, ist
 
-NOW = ist(2026, 10, 1)  # 2026-27 under way (locked); 2027-28 and 2028-29 not started
+NOW = ist(2026, 10, 1)  # 2026-27 is the current year (P1 closed, P2 open); 2027-28 and 2028-29 not started
 
 
 class Phase5ATests(PortalTestCase):
@@ -52,7 +52,7 @@ class Phase5ATests(PortalTestCase):
         self.assertEqual((again.json()["created"], len(again.json()["conflicts"])), (0, 585))
         self.assertEqual(again.json()["conflicts"][0]["reason"], "draft exists")
         self.assertEqual(list(AnnualAssignment.objects.filter(year__label="2026-27").order_by("pk").values_list("pk", "target_text", "template_version_id")), before)
-        self.assertEqual(self.copy(target="2026-27", source="2026-27").status_code, 409)  # current year locked
+        self.assertEqual(self.copy(target="2026-27", source="2026-27").status_code, 400)  # source must be earlier
         self.assertEqual(self.copy(target="2027-28", source="2028-29").status_code, 400)  # must copy from an earlier year
 
     def test_draft_edit_then_finalize_then_immutable(self):
@@ -63,7 +63,7 @@ class Phase5ATests(PortalTestCase):
         self.assertEqual((r.status_code, r.json()["target_text"]), (200, target))  # exact string, not parsed
         self.assertEqual(self.call(self.v, "patch", f"/admin/drafts/{d.id}/", {"target_text": "   "}).status_code, 400)
         years = {y["label"]: y for y in self.call(self.v, "get", "/admin/years/").json()}
-        self.assertEqual((years["2027-28"]["drafts_pending"], years["2026-27"]["locked"], years["2027-28"]["locked"]), (585, True, False))
+        self.assertEqual((years["2027-28"]["drafts_pending"], years["2026-27"]["locked"], years["2026-27"]["current"]), (585, False, True))
         stale = self.call(self.v, "post", "/admin/years/2027-28/finalize/", {"expected_pending": 584})
         self.assertEqual((stale.status_code, stale.json()["code"]), (409, "stale"))
         self.assertFalse(AnnualAssignment.objects.filter(year__label="2027-28").exists())
@@ -136,3 +136,66 @@ class Phase5ATests(PortalTestCase):
         with frozen(ist(2026, 10, 1)):
             sid = self.open_draft(self.d, self.asg_a, self.p2)
             self.assertEqual(self.detail(self.d, sid)["assignment"]["target_text"], self.asg_a.target_text)
+
+    def _new_kra(self):
+        r = self.call(self.v, "post", "/admin/kras/", {"title": "Synthetic current-year activity", "template_key": "kra41",
+                                                      "template_version": 1, "confirm_layout": True})
+        self.assertEqual(r.status_code, 201, r.content)
+        return r.json()["number"]
+
+    def test_current_year_new_pair_finalizes_existing_stay_fixed(self):
+        n = self._new_kra()
+        existing = AnnualAssignment.objects.get(department=self.cse, kra__number=33, year__label="2026-27")
+        original = existing.target_text
+        r = self.call(self.v, "post", "/admin/drafts/", {"year": "2026-27", "department": "CSE", "kra": 33, "target_text": "changed"})
+        self.assertEqual((r.status_code, r.json()["code"]), (409, "conflict"))  # an existing current-year target cannot be replaced
+        r = self.call(self.v, "post", "/admin/drafts/", {"year": "2026-27", "department": "CSE", "kra": n, "target_text": "2 Per Year"})
+        self.assertEqual(r.status_code, 201, r.content)
+        ok = self.call(self.v, "post", "/admin/years/2026-27/finalize/", {"expected_pending": 1})
+        self.assertEqual((ok.status_code, ok.json()["finalized"]), (200, 1))
+        new = AnnualAssignment.objects.get(department=self.cse, kra__number=n, year__label="2026-27")
+        self.assertEqual(new.target_text, "2 Per Year")
+        existing.refresh_from_db()
+        self.assertEqual(AnnualAssignment.objects.filter(year__label="2026-27").count(), 586)
+        self.assertEqual(existing.target_text, original)
+        rows = self.call(self.d, "get", "/assignments/?year=2026-27").json()["results"]  # visible to the CSE Dean at once
+        self.assertIn(n, [x["kra"]["number"] for x in rows])
+        ece = self.call(self.client_for(self.dean_b), "get", "/assignments/?year=2026-27").json()["results"]
+        self.assertNotIn(n, [x["kra"]["number"] for x in ece])  # other departments unaffected
+
+    def test_new_current_year_assignment_respects_deadlines(self):
+        n = self._new_kra()
+        self.call(self.v, "post", "/admin/drafts/", {"year": "2026-27", "department": "CSE", "kra": n, "target_text": "1"})
+        self.call(self.v, "post", "/admin/years/2026-27/finalize/", {"expected_pending": 1})
+        a = AnnualAssignment.objects.get(department=self.cse, kra__number=n, year__label="2026-27")
+        closed = self.call(self.d, "post", f"/assignments/{a.id}/periods/{self.p1.id}/", {})
+        self.assertEqual((closed.status_code, closed.json()["code"]), (409, "window_closed"))  # no backdated report
+        info = self.call(self.d, "get", f"/assignments/{a.id}/periods/{self.p1.id}/").json()
+        self.assertEqual((info["submission_id"], info["can_request_reopen"]), (None, True))  # only via the normal reopening path
+        self.assertEqual(self.call(self.d, "post", f"/assignments/{a.id}/periods/{self.p2.id}/", {}).status_code, 201)
+        self.assertFalse(a.submissions.filter(period=self.p1).exists())
+
+    def test_elapsed_year_read_only(self):
+        self.copy()
+        draft = DraftAssignment.objects.filter(year__label="2027-28").first()
+        with frozen(ist(2027, 9, 1)):  # 2026-27 has ended; 2027-28 is current
+            r = self.v.post("/api/v1/admin/drafts/", {"year": "2026-27", "department": "CSE", "kra": 1, "target_text": "x"}, format="json")
+            self.assertEqual((r.status_code, r.json()["code"]), (409, "year_locked"))
+            r = self.v.post("/api/v1/admin/years/2026-27/finalize/", {"expected_pending": 0}, format="json")
+            self.assertEqual(r.status_code, 409)
+            years = {y["label"]: y for y in self.v.get("/api/v1/admin/years/").json()}
+            self.assertEqual((years["2026-27"]["locked"], years["2027-28"]["current"]), (True, True))
+            r = self.v.patch(f"/api/v1/admin/drafts/{draft.id}/", {"target_text": "Edited in the current year"}, format="json")
+            self.assertEqual(r.status_code, 200)  # current-year drafts stay editable
+        with frozen(ist(2028, 9, 1)):  # 2027-28 has ended too
+            r = self.v.patch(f"/api/v1/admin/drafts/{draft.id}/", {"target_text": "late"}, format="json")
+            self.assertEqual((r.status_code, r.json()["code"]), (409, "year_locked"))
+
+    def test_next_year_copy_from_current_year(self):
+        n = self._new_kra()
+        self.call(self.v, "post", "/admin/drafts/", {"year": "2027-28", "department": "CSE", "kra": n, "target_text": "1"})
+        self.call(self.v, "post", "/admin/years/2027-28/finalize/", {"expected_pending": 1})
+        with frozen(ist(2027, 9, 1)):  # 2027-28 is now the current year
+            r = self.v.post("/api/v1/admin/years/2028-29/copy/", {"source_year": "2027-28"}, format="json")
+        self.assertEqual((r.status_code, r.json()["created"]), (200, 1))  # next-year copy still works
+

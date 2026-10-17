@@ -27,9 +27,10 @@ def today():
     return timezone.localdate()
 
 
-def year_locked(y):
-    """Assignments of a year that has started are operational and stay as finalized (2026-27 today)."""
-    return y.start_date <= today()
+def year_elapsed(y):
+    """An ended academic year is read-only. The current and future years accept drafts for unassigned pairs; finalized
+    assignments stay immutable in every year (D-066)."""
+    return y.end_date < today()
 
 
 def template_problem(tv):
@@ -80,8 +81,8 @@ def clean_target(value):
 def open_year(label, lock=False):
     qs = AcademicYear.objects.select_for_update() if lock else AcademicYear.objects
     y = get_or_404(qs, label=label)
-    if year_locked(y):
-        raise err("year_locked", f"{y.label} has started; its assignments are fixed and cannot be drafted, copied or finalized.",
+    if year_elapsed(y):
+        raise err("year_locked", f"{y.label} has ended; its assignments are read-only.",
                        status=409)
     return y
 
@@ -142,7 +143,8 @@ class AdminYearsView(APIView):
         out = []
         for y in AcademicYear.objects.order_by("label"):
             drafts = DraftAssignment.objects.filter(year=y)
-            out.append({"label": y.label, "start_date": y.start_date, "locked": year_locked(y),
+            out.append({"label": y.label, "start_date": y.start_date, "end_date": y.end_date, "locked": year_elapsed(y),
+                        "current": y.start_date <= today() <= y.end_date,
                         "finalized_assignments": AnnualAssignment.objects.filter(year=y).count(),
                         "drafts_pending": drafts.filter(finalized_assignment__isnull=True).count(),
                         "drafts_finalized": drafts.filter(finalized_assignment__isnull=False).count()})
@@ -187,8 +189,8 @@ class DraftItemView(APIView):
         draft = get_or_404(drafts_qs().select_for_update(of=("self",)) if lock else drafts_qs(), pk=pk)
         if draft.finalized_assignment_id:
             raise err("finalized", "This assignment is finalized; its target and template can no longer change.", status=409)
-        if year_locked(draft.year):
-            raise err("year_locked", f"{draft.year.label} has started; drafts can no longer change.", status=409)
+        if year_elapsed(draft.year):
+            raise err("year_locked", f"{draft.year.label} has ended; drafts can no longer change.", status=409)
         return draft
 
     def patch(self, request, pk):
@@ -214,8 +216,8 @@ class DraftItemView(APIView):
 
 
 class CopyYearView(APIView):
-    """Copy a year's finalized assignments into drafts for a later year. Never overwrites: existing drafts or finalized
-    assignments are reported as conflicts and left unchanged."""
+    """Copy a year's finalized assignments into drafts for a later, not-ended year. Never overwrites: existing drafts or
+    finalized assignments are reported as conflicts and left unchanged."""
 
     permission_classes = [IsVC]
 
