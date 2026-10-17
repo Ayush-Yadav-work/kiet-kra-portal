@@ -1,0 +1,49 @@
+{
+  "key": "kra14",
+  "version": 1,
+  "title": "Yukthi Registrations — Faculty with Students",
+  "source": "none — project-created format (no template supplied; plan 5.3, D-058)",
+  "source_checksum": "",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Registration", "min": 1, "max": 20},
+  "sections": [
+    {
+      "id": "registration", "title": "1. Registration details",
+      "intro": "Project-created format awaiting institutional review. One section per Yukthi registration made by faculty with students. Department, academic year and reporting period are filled from this report.",
+      "fields": [
+        {"id": "project_title", "label": "Project / idea title", "type": "text", "required": true, "max_length": 250},
+        {"id": "registration_id", "label": "Yukthi registration ID", "type": "text", "required": true, "max_length": 80},
+        {"id": "registration_date", "label": "Registration date", "type": "date", "required": true},
+        {"id": "faculty_coordinator", "label": "Faculty coordinator (name, designation)", "type": "text", "required": true, "max_length": 200},
+        {"id": "innovation_area", "label": "Innovation area / domain", "type": "text", "required": true, "max_length": 200},
+        {"id": "status", "label": "Current status", "type": "text", "required": true, "max_length": 100,
+         "placeholder": "e.g. Registered / Under evaluation", "help": "As shown on the portal; no status list has been agreed."}
+      ]
+    },
+    {
+      "id": "team", "title": "2. Student team",
+      "fields": [
+        {"id": "students", "label": "Student team members", "type": "table", "required": true, "min_rows": 1, "max_rows": 20,
+         "columns": [
+           {"id": "name", "label": "Name of the student", "type": "text", "required": true, "max_length": 150, "width": "40%"},
+           {"id": "roll_no", "label": "Roll No./ Enrolment No.", "type": "text", "required": true, "max_length": 40, "width": "25%"},
+           {"id": "programme", "label": "Programme / Year", "type": "text", "required": false, "max_length": 80, "width": "30%"}
+         ]}
+      ]
+    },
+    {
+      "id": "documents", "title": "3. Evidence",
+      "intro": "Yes/No as maintained; upload files in the Evidence tab (not added to the PDF).",
+      "fields": [
+        {"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": false,
+         "items": ["Yukthi registration confirmation", "Project abstract / idea document", "Team details", "Status update / screenshot"]},
+        {"id": "evidence_refs", "label": "Evidence references (optional)", "type": "text", "required": false, "max_length": 300}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Yukthi registration confirmation", "Project abstract / idea document", "Team details", "Status update / screenshot", "Other"],
+    "required": [],
+    "note": "Proposed categories awaiting institutional review; no minimum set agreed (docs/decisions.md D-058)."
+  }
+}

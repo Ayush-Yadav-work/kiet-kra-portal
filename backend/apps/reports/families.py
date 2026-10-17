@@ -744,3 +744,79 @@ def event_schema(kra):
 
 
 BUILDERS.update({f"kra{k}": (lambda k=k: event_schema(k)) for k in EVENT_VARIANTS})
+
+
+# KRAs 34–35: project-created faculty financial-support formats (no templates supplied; plan 5.3, D-060).
+INR = lambda fid, label, required=True, **kw: {"id": fid, "label": label, "type": "decimal", "required": required, "min": 0,
+                                                  "max": 100000000, "decimal_places": 2, **kw}
+SUPPORT_VARIANTS = {
+    34: {"title": "Financial Support to Attend Conferences / Workshops", "label": "Support", "item": "event",
+         "fields": [
+             {"id": "event_type", "label": "Type", "type": "select", "required": True, "options": ["Conference", "Workshop"]},
+             {"id": "event_title", "label": "Name of the conference / workshop", "type": "text", "required": True, "max_length": 300},
+             {"id": "organizer", "label": "Organized by", "type": "text", "required": True, "max_length": 250},
+             {"id": "venue_mode", "label": "Venue / mode", "type": "text", "required": True, "max_length": 200},
+             {"id": "start_date", "label": "Start date", "type": "date", "required": True},
+             {"id": "end_date", "label": "End date", "type": "date", "required": True},
+             {"id": "participation", "label": "Participation", "type": "text", "required": True, "max_length": 150,
+              "suggestions": ["Paper presentation", "Attended", "Invited talk", "Session chair"]},
+         ],
+         "sanction": [{"id": "sanction_ref", "label": "Sanction order / reference", "type": "text", "required": True, "max_length": 120},
+                      {"id": "sanction_date", "label": "Sanction date", "type": "date", "required": True},
+                      INR("sanctioned_inr", "Sanctioned amount (INR)")],
+         "rules": [{"type": "date_order", "a": "start_date", "b": "end_date", "message": "End date cannot be before the start date."}],
+         "evidence": ["Sanction order", "Payment / reimbursement proof", "Registration receipt", "Participation certificate", "Event brochure"]},
+    35: {"title": "Financial Support for Membership of Professional Bodies", "label": "Membership", "item": "membership",
+         "fields": [
+             {"id": "professional_body", "label": "Professional body", "type": "text", "required": True, "max_length": 250},
+             {"id": "membership_type", "label": "Membership type", "type": "text", "required": True, "max_length": 80,
+              "suggestions": ["Annual", "Life", "Associate"]},
+             {"id": "membership_no", "label": "Membership number", "type": "text", "required": True, "max_length": 80},
+             {"id": "valid_from", "label": "Valid from", "type": "date", "required": True},
+             {"id": "valid_to", "label": "Valid to", "type": "date", "required": False, "help": "Leave blank for life membership."},
+             INR("fee_inr", "Membership fee (INR)"),
+         ],
+         "sanction": [{"id": "sanction_ref", "label": "Sanction order / reference (if any)", "type": "text", "required": False, "max_length": 120},
+                      INR("sanctioned_inr", "Support sanctioned (INR)")],
+         "rules": [{"type": "date_order", "a": "valid_from", "b": "valid_to", "message": "Valid-to date cannot be before the valid-from date."}],
+         "evidence": ["Sanction order", "Payment / reimbursement proof", "Membership certificate / card", "Fee receipt"]},
+}
+SUPPORT_NOTE = ("Workbook: \"Financial support of Minimum of Rs. 5000/- per year per faculty will be considered.\" Each payment is "
+                "recorded as entered; smaller payments are not rejected, and the portal does not add payments across records or "
+                "periods or decide eligibility.")
+
+
+def faculty_support_schema(kra):
+    v = SUPPORT_VARIANTS[kra]
+    return copy.deepcopy({
+        "key": f"kra{kra}", "version": 1, "title": v["title"],
+        "family": {"name": "faculty_support", "kra": kra, "title": v["title"], "item": v["item"], "note": SUPPORT_NOTE},
+        "renderer": "reports/faculty_support_v1.html",
+        "source": "none — project-created format (no template supplied; plan 5.3, D-060)", "source_checksum": "",
+        "page": {"format": "A4", "landscape": False, "style": "report"},
+        "activity": {"label": v["label"], "min": 1, "max": 20},
+        "rules": v["rules"],
+        "sections": [
+            {"id": "faculty", "title": "1. Faculty",
+             "intro": f"Project-created format awaiting institutional review. One section per faculty {v['item']}. Amounts are in INR "
+                      "(rupees, up to 2 decimals). " + SUPPORT_NOTE,
+             "fields": [{"id": "faculty_name", "label": "Name of the faculty member", "type": "text", "required": True, "max_length": 150},
+                        {"id": "employee_id", "label": "Employee ID", "type": "text", "required": True, "max_length": 40}]},
+            {"id": "details", "title": f"2. {v['item'].capitalize()} details", "fields": v["fields"]},
+            {"id": "sanction", "title": "3. Support sanctioned", "fields": v["sanction"]},
+            {"id": "payments", "title": "4. Payments made",
+             "intro": "One row per payment actually made (instalments or reimbursements). The portal does not total them.",
+             "fields": [{"id": "payments", "label": "Payments", "type": "table", "required": False, "max_rows": 20,
+                         "columns": [{"id": "payment_date", "label": "Payment date", "type": "date", "required": True, "width": "20%"},
+                                     dict(INR("amount_inr", "Amount paid (INR)"), width="25%"),
+                                     {"id": "reference", "label": "Payment / voucher reference", "type": "text", "required": True,
+                                      "max_length": 120, "width": "50%"}]}]},
+            {"id": "documents", "title": "5. Evidence", "intro": "Yes/No as maintained; upload files in the Evidence tab (not added to the PDF).",
+             "fields": [{"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": False, "items": v["evidence"]}]},
+        ],
+        "evidence": {"categories": v["evidence"] + ["Other"], "required": [],
+                     "note": "Proposed categories awaiting institutional review; no minimum set agreed (docs/decisions.md D-060)."},
+    })
+
+
+BUILDERS.update({f"kra{k}": (lambda k=k: faculty_support_schema(k)) for k in SUPPORT_VARIANTS})

@@ -722,5 +722,41 @@ class BrowserTests(unittest.TestCase):
         _, d28 = api(p, "GET", f"/submissions/{open_info(p, asg28['id'], period['id'])}/")
         self.assertNotIn(value, str(d28["payload"]))
 
+    def test_kra14_16_34_35_project_formats(self):
+        """KRAs 14, 16, 34, 35: one field edited per KRA in the form (34/35: a payment amount, stored exactly as typed); saved,
+        reloaded, previewed and exported."""
+        from tests.fixtures import kra14_payload, kra16_payload, support_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        cases = {14: (kra14_payload(1), "activities.0.students.1.name", "Synthetic member {}"),
+                 16: (kra16_payload(1), "activities.0.training", "Synthetic training {}"),
+                 34: (support_payload(34, 1), "activities.0.payments.1.amount_inr", "4321.{:02d}"),
+                 35: (support_payload(35, 1), "activities.0.payments.0.amount_inr", "1234.{:02d}")}
+        for n, (payload, field, pattern) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            value = pattern.format(int(time.time()) % 100)
+            p.locator(f"[name='{field}']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator(f"[name='{field}']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            if n in (34, 35):
+                _, d = api(p, "GET", f"/submissions/{sid}/")
+                row = int(field.split(".")[3])
+                self.assertEqual(d["payload"]["activities"][0]["payments"][row]["amount_inr"], value)  # exact, as typed
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)
