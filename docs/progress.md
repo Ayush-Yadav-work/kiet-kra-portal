@@ -190,9 +190,11 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 
 ## Phase 6C — usability/accessibility and documentation ✅ (automated + scripted checks; not a full accessibility audit)
 - [x] Docs reconciled: README status/setup/tests, progress header, validation summary (historical logs labelled), handover; acceptance checklist `docs/acceptance-checklist.md`
-- [x] Scripted audit of Dean/VC pages (login, dashboards, workspace tabs, KRAs 33/32/9/4/20, review, reopening, assignments, KRAs) at 1280 px, 375 px and 640 px (= 200% zoom)
+- [x] Scripted audit of Dean/VC pages (login, dashboards, workspace tabs, KRAs 33/32/9/4/20, review, reopening, assignments, KRAs) at 1280 px, 375 px and a 640 px viewport (a reflow approximation, not browser zoom)
 - [x] Fixed: tabs without panels or arrow keys; non-tab buttons inside tablists; unnamed table-cell inputs; required markers on not-applicable KRA 32 fields; inactive KRA 9 / KRA 4–6 fields shown as normal inputs; VC header overflow at 375 px; no visible focus on date inputs; colour-only error dots; unassociated fieldset errors; non-modal panel marked as dialog (D-071)
-- Not changed (policy/design): native confirm dialogs kept (accessible, focus returns); no automated contrast/axe tool installed — see `docs/validation.md`. Uncommitted.
+- Not changed (policy/design): native confirm dialogs kept (accessible, focus returns). Committed (b5e5931).
+- [x] Follow-up: inactive-field note corrected (values are retained in draft and revision, not checked for submission, not printed); contrast measured from computed colours — fixed input borders 1.49→4.76, placeholders 3.41→4.76, unselected-tab error marker →6.42 (D-072); per-KRA acceptance rows (1–45) with scripted vs human checks
+- Pending (human): real 200% browser zoom (not available in automated Chromium), screen-reader pass, real-device phone check, walkthrough and institutional review of all 45 formats. Open: KRA 9 / KRAs 4–6 template intros still say "not submitted" (needs a new template version). Follow-up uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
