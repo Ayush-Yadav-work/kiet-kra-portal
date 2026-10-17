@@ -20,6 +20,10 @@ DEMO = (("demo.vc", "VC", None, "Demo Vice-Chancellor"),
 class Command(BaseCommand):
     help = "Create synthetic local demo accounts (DEBUG only)."
 
+    def add_arguments(self, parser):
+        parser.add_argument("--credentials", help="Write credentials here instead of .work/demo-credentials.txt "
+                                                  "(the isolated browser-test database uses its own file).")
+
     def handle(self, *args, **o):
         if not settings.DEBUG:
             raise CommandError("seed_demo is for local development only (DEBUG=1).")
@@ -36,7 +40,7 @@ class Command(BaseCommand):
             user.set_password(password)
             user.save()
             lines.append(f"{role:5} {username:16} {password}")
-        out = Path(settings.PROJECT_ROOT) / ".work" / "demo-credentials.txt"
+        out = Path(o["credentials"]) if o.get("credentials") else Path(settings.PROJECT_ROOT) / ".work" / "demo-credentials.txt"
         out.parent.mkdir(exist_ok=True)
         out.write_text("SYNTHETIC LOCAL DEMO ACCOUNTS — not for production\n" + "\n".join(lines) + "\n")
         self.stdout.write(f"Demo accounts ready; credentials written to {out}")

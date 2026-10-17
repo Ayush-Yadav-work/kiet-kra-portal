@@ -164,3 +164,16 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 40** — add an
 ## Phase 5A review (VC assignments and next-year targets)
 
 Run `python backend/manage.py migrate`, restart Django and Vite. Sign in as the VC: **Assignments** — pick 2027-28, *Copy 2026-27 assignments into drafts* (run it twice to see the conflict list), choose a department, edit a target (any text, kept exactly) and *Save*, *Review and finalize* → the summary by department → *Confirm finalize*; finalized rows become read-only and appear for that department's Dean. 2026-27 is shown read-only (locked). **KRAs** — create a KRA by choosing an installed layout and ticking the confirmation. A Dean opening `/vc/assignments` is redirected, and `/api/v1/admin/...` returns 403. API reference: `docs/api.md`. Decision: D-065.
+
+## Browser tests and cleaning old test data
+
+Browser tests: `python e2e/run_isolated.py` (needs the dev PostgreSQL and `npm install`; uses its own `<db>_e2e` database and ports 8001/5174, then removes them). Do not run `e2e/test_browser.py` directly.
+
+Older runs left Phase 5A records in the working database. Review, then remove only what has test provenance (DEBUG only):
+
+```bash
+python backend/manage.py cleanup_e2e_data
+python backend/manage.py cleanup_e2e_data --execute
+```
+
+The report also lists any copy batch (e.g. `audit event 2089 … 584 unedited draft(s)`); remove it only if you confirm it came from a test run: `python backend/manage.py cleanup_e2e_data --execute --copy-event 2089`. Records it calls ambiguous are never deleted. Decisions: D-066, D-067.

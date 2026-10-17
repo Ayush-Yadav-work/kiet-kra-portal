@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    proxy: { '/api': 'http://127.0.0.1:8000' },
+    // KRA_API_TARGET lets the isolated browser-test run point at its own Django (e2e/run_isolated.py).
+    proxy: { '/api': process.env.KRA_API_TARGET ?? 'http://127.0.0.1:8000' },
   },
 })

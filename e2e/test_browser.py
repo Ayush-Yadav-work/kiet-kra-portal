@@ -1,10 +1,11 @@
-"""Browser regression tests against the running local stack (Vite :5173, Django :8000, renderer :8790).
+"""Browser regression tests. Run them only through the isolated runner, which gives them their own database and servers:
 
-  python e2e/test_browser.py            # needs `manage.py seed_demo`; uses the synthetic demo.dean.ece account
+  python e2e/run_isolated.py            # disposable <db>_e2e database, Django :8001, Vite :5174 (D-067)
 
-They change only demo data (ECE draft rows in the open period). SYNTHETIC values only.
+SYNTHETIC values only; nothing reaches the developer's working database.
 """
 import json
+import os
 import time
 import re
 import sys
@@ -16,8 +17,10 @@ from playwright.sync_api import expect, sync_playwright
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))  # synthetic fixtures
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE = "http://localhost:5173"
-CREDS = dict(re.findall(r"^(?:VC|DEAN)\s+(\S+)\s+(\S+)$", (ROOT / ".work" / "demo-credentials.txt").read_text(), re.M))
+if os.environ.get("KRA_E2E_ISOLATED") != "1":  # the suite writes data: never against the developer's working database
+    sys.exit("Run the browser tests through e2e/run_isolated.py (it uses a separate, disposable database).")
+BASE = os.environ["KRA_E2E_BASE"]
+CREDS = dict(re.findall(r"^(?:VC|DEAN)\s+(\S+)\s+(\S+)$", Path(os.environ["KRA_E2E_CREDENTIALS"]).read_text(), re.M))
 
 
 def login(page, portal, username):
@@ -846,6 +849,7 @@ class BrowserTests(unittest.TestCase):
         login(v, "vc", "demo.vc")
         v.wait_for_url("**/vc/dashboard")
         v.get_by_role("link", name="Assignments").click()
+        expect(v.get_by_role("heading", name="KRA assignments and targets")).to_be_visible()  # the dashboard also has a year picker
         v.get_by_label("Academic year").select_option("2027-28")
         v.get_by_label("Department").select_option("ECE")
         v.get_by_role("button", name="Copy 2026-27 assignments into drafts").click()

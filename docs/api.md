@@ -24,12 +24,17 @@ Every endpoint below is **VC-only** (Deans get 403, anonymous 401/403). Every wr
 | `GET admin/templates/` | — | Installed template versions `{key, version, title, problem, used_by_kras}`; `problem` is non-null when the layout file is missing or the schema is unusable |
 | `GET admin/kras/` | — | All KRAs with `active` and `default_template` (KRAs 1–45: the template of their latest assignment) |
 | `POST admin/kras/` | `{title, nba_ref?, naac_ref?, number?, template_key, template_version, confirm_layout: true}` | 201 + KRA. Stored as `"KRA <n>: <title>"`; number defaults to the next free one. 400 when the template is not installed or unusable, when `confirm_layout` is not `true` (the VC confirms the activity fits that existing layout), or the number is taken. Audit `kra.create` |
-| `GET admin/years/` | — | `{label, start_date, locked, finalized_assignments, drafts_pending, drafts_finalized}`; a year is locked once it has started |
+| `GET admin/years/` | — | `{label, start_date, end_date, locked, current, finalized_assignments, drafts_pending, drafts_finalized}`; `locked` = the year has ended (read-only); the current year accepts new pairs only (D-066) |
 | `GET admin/drafts/?year=&department=` | — | Draft assignments `{id, department, kra, target_text, template, copied_from_year, finalized}` |
-| `POST admin/drafts/` | `{year, department, kra, target_text, template_key?, template_version?}` | 201 + draft (template defaults to the KRA's). 409 `year_locked`, 409 `conflict` when a draft or finalized assignment already exists (never overwritten). Target text stored exactly. Audit `assignment_draft.create` |
+| `POST admin/drafts/` | `{year, department, kra, target_text, template_key?, template_version?}` | 201 + draft (template defaults to the KRA's). 409 `year_locked` (ended year), 409 `conflict` when a draft or finalized assignment already exists (never overwritten). Target text stored exactly. Audit `assignment_draft.create` |
 | `PATCH admin/drafts/<id>/` | `{target_text?, template_key?, template_version?}` | 200. 409 `finalized` once finalized; 409 `year_locked`. Audit `assignment_draft.update` |
 | `DELETE admin/drafts/<id>/` | — | 204 for an unfinalized draft; 409 once finalized. Audit `assignment_draft.delete` |
-| `POST admin/years/<label>/copy/` | `{source_year}` | `{created, conflicts:[{department, kra, reason}]}`. Copies the source year's finalized assignments (active departments/KRAs) into drafts; existing drafts and finalized assignments are reported, never overwritten; repeat calls create nothing. Source must be earlier; target must not have started. Audit `assignments.copy` |
+| `POST admin/years/<label>/copy/` | `{source_year}` | `{created, conflicts:[{department, kra, reason}]}`. Copies the source year's finalized assignments (active departments/KRAs) into drafts; existing drafts and finalized assignments are reported, never overwritten; repeat calls create nothing. Source must be earlier; target must not have ended. Audit `assignments.copy` |
 | `POST admin/years/<label>/finalize/` | `{expected_pending}` | `{finalized}`. One transaction with the year row locked: every pending draft becomes an operational assignment. 409 `nothing_pending` (double click), 409 `stale` (count changed since review), 409 `conflict` (an assignment already exists — nothing finalized). Audit `assignments.finalize` |
 
 There is no endpoint that edits or deletes an operational assignment; the model also rejects target/template changes.
+
+## Development commands (not HTTP)
+
+- `python e2e/run_isolated.py [-k NAME] [--keep]` — browser suite on a disposable database (D-067).
+- `python backend/manage.py cleanup_e2e_data [--execute] [--copy-event ID]` — DEBUG only; report or remove browser-test residue with demonstrable provenance (D-067).
