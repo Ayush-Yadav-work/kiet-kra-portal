@@ -255,14 +255,14 @@ function FieldView({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   )
 }
 
-/** Fields whose `when` does not apply are hidden, never cleared: the server keeps their values but ignores them (D-048, KRA 9). */
+/** Fields whose `when` does not apply are hidden, never cleared: values stay in the draft and revision payload, are skipped by submit validation and are not printed (D-048, KRA 9). */
 function InactiveNote({ section, act }: { section: Field[]; act: Record<string, unknown> | undefined }) {
   const n = section.filter((f) => !applies(f.when, act)).length
   if (!n) return null
   return (
     <p className="rounded bg-slate-50 p-2 text-sm text-slate-700">
       {n === section.length ? 'This section does not apply to your current answers' : `${n} field(s) here do not apply to your current answers`}.
-      {' '}Anything entered earlier is kept in the draft but is not checked, submitted as part of the report or printed.
+      {' '}Values entered earlier are retained (in the draft and in any submitted revision), but are not checked for submission or included in the printed report.
     </p>
   )
 }
@@ -286,7 +286,7 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
             {fields.map((a, i) => (
               <button key={a.id} id={`act-tab-${i}`} type="button" role="tab" aria-selected={open === i} aria-controls={`act-panel-${i}`}
                 tabIndex={open === i ? 0 : -1} onClick={() => setOpen(i)} className={open === i ? 'btn-primary' : 'btn-secondary'}>
-                {label} {i + 1}{Object.keys(ctx.errors).some((k) => k.startsWith(`activities.${i}.`)) && <><span className="text-red-300" aria-hidden> ●</span><span className="sr-only"> (has errors)</span></>}
+                {label} {i + 1}{Object.keys(ctx.errors).some((k) => k.startsWith(`activities.${i}.`)) && <><span className={open === i ? 'text-red-300' : 'text-red-700'} aria-hidden> ●</span><span className="sr-only"> (has errors)</span></>}
               </button>
             ))}
           </div>

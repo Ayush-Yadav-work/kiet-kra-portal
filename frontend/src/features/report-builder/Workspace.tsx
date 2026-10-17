@@ -174,7 +174,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
             <button key={t} id={`ws-tab-${t}`} role="tab" aria-selected={tab === t} aria-controls={`ws-panel-${t}`} tabIndex={tab === t ? 0 : -1}
               className={tab === t ? 'btn-primary' : 'btn-secondary'} onClick={() => switchTab(t)}>
               {t === 'report' ? 'Report' : t === 'evidence' ? 'Evidence' : 'Achievement'}
-              {t === 'evidence' && errors.evidence && <><span className="text-red-300" aria-hidden> ●</span><span className="sr-only"> (needs attention)</span></>}
+              {t === 'evidence' && errors.evidence && <><span className={tab === t ? 'text-red-300' : 'text-red-700'} aria-hidden> ●</span><span className="sr-only"> (needs attention)</span></>}
             </button>
           ))}
         </div>

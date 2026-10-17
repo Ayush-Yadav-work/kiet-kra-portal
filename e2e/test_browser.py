@@ -217,6 +217,9 @@ class BrowserTests(unittest.TestCase):
         answer.select_option("No")
         expect(p.locator("[name='activities.0.component_name']")).to_have_count(0)  # hidden, not cleared
         expect(p.get_by_text("do not apply to your current answers").first).to_be_visible()
+        expect(p.get_by_text("are not checked for submission or included in the printed report").first).to_be_visible()
+        frame = p.frame_locator("iframe[title='Report preview']")
+        expect(frame.locator("body")).not_to_contain_text(name, timeout=10000)  # inactive value kept but not printed
         p.get_by_role("button", name="Save draft").click()
         expect(p.get_by_role("status")).to_contain_text("Saved")
         _, d = api(p, "GET", f"/submissions/{sid}/")
@@ -233,6 +236,36 @@ class BrowserTests(unittest.TestCase):
         box = v.get_by_role("button", name="Sign out").bounding_box()
         self.assertLessEqual(box["x"] + box["width"], 375)
         vc.close()
+
+    def test_phase6c_measured_contrast_of_shared_controls(self):
+        """Phase 6C follow-up: computed colours (alpha composited over the real background) for input borders (3:1),
+        placeholders (4.5:1) and the error marker on an unselected tab (3:1, a graphical indicator with text alternative)."""
+        measure = r"""(sel) => {
+          const cv = document.createElement('canvas'); cv.width = cv.height = 1; const cx = cv.getContext('2d', {willReadFrequently: true});
+          const rgba = c => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+          const over = (t, u) => [0, 1, 2].map(i => t[3] * t[i] + (1 - t[3]) * u[i]);
+          const bgOf = el => { const ch = []; for (let e = el; e; e = e.parentElement) ch.push(rgba(getComputedStyle(e).backgroundColor)); let c = [255, 255, 255]; for (const b of ch.reverse()) c = over(b, c); return c; };
+          const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+          const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+          const el = document.querySelector(sel); const cs = getComputedStyle(el);
+          const pbg = bgOf(el.parentElement), bg = bgOf(el);
+          return {border: ratio(over(rgba(cs.borderTopColor), pbg), pbg), placeholder: ratio(over(rgba(getComputedStyle(el, '::placeholder').color), bg), bg),
+                  color: ratio(over(rgba(cs.color), bg), bg)};
+        }"""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        open_ece_kra(p, 33)
+        m = p.evaluate(measure, "input.input[placeholder]")
+        self.assertGreaterEqual(m["border"], 3.0, m)
+        self.assertGreaterEqual(m["placeholder"], 4.5, m)
+        p.get_by_role("tab", name="Report", exact=True).click()
+        p.get_by_role("button", name=re.compile("^Submit")).click()  # incomplete report: evidence marked as needing attention
+        expect(p.get_by_role("tab", name=re.compile("Evidence.*needs attention"))).to_be_visible()
+        if p.get_by_role("tab", name=re.compile("^Evidence")).get_attribute("aria-selected") == "true":
+            p.get_by_role("tab", name="Report", exact=True).click()
+        dot = p.evaluate(measure, "[role=tab][aria-selected=false] span[aria-hidden]")
+        self.assertGreaterEqual(dot["color"], 3.0, dot)
 
     # ---- Phase 3 templates ----
     def test_kra32_conditional_payment_fields(self):

@@ -29,43 +29,74 @@ Record the date, the people present, and any issue (with KRA, page and steps) at
 - [ ] Error messages are understandable (try submitting an incomplete report and uploading an unsupported file).
 
 ## 5. Review of all 45 report formats (institutional acceptance)
-For each KRA, compare the form and the PDF with the source template/college expectations, and record **Accepted** or the change needed.
-Adapted (21, 39, 43) and project-created (14, 16, 27–30, 34, 35, 40–42) formats need particular attention. Open college decisions
-are marked **college** in `docs/decisions.md` (for example minimum evidence sets, which are proposals until decided).
+For each KRA, compare the form and the PDF with the source template/college expectations and record the result. **Status values:**
+Accepted / Changes needed / Not reviewed. Adapted (21, 39, 43) and project-created formats need particular attention. Open college
+decisions are marked **college** in `docs/decisions.md` (for example minimum evidence sets, which remain proposals until decided).
+Nothing below is pre-filled: automated tests and the owner's pilot acceptance do not count as institutional acceptance.
 
-| KRAs | Accepted | Notes / changes needed |
-|---|---|---|
-| 1, 2, 3 | [ ] | |
-| 4, 5, 6 | [ ] | |
-| 7 | [ ] | |
-| 8, 9, 10 | [ ] | |
-| 11 | [ ] | |
-| 12 | [ ] | |
-| 13 | [ ] | |
-| 14 | [ ] | |
-| 15 | [ ] | |
-| 16 | [ ] | |
-| 17 | [ ] | |
-| 18 | [ ] | |
-| 19 | [ ] | |
-| 20 | [ ] | |
-| 21 | [ ] | |
-| 22 | [ ] | |
-| 23 | [ ] | |
-| 24 | [ ] | |
-| 25, 26 | [ ] | |
-| 27, 28, 29, 30 | [ ] | |
-| 31 | [ ] | |
-| 32 | [ ] | |
-| 33 (pilot; owner-accepted 2026-10-17, institutional review still needed) | [ ] | |
-| 34, 35 | [ ] | |
-| 36, 37 | [ ] | |
-| 38 | [ ] | |
-| 39 | [ ] | |
-| 40, 41, 42 | [ ] | |
-| 43 | [ ] | |
-| 44 | [ ] | |
-| 45 | [ ] | |
+| KRA | Activity (from the workbook) | Format | Institutionally accepted | Status | Reviewer | Date / notes |
+|---|---|---|---|---|---|---|
+| 1 | Number of new courses introduced | Supplied (course family) | [ ] | | | |
+| 2 | Number of value-added courses where the students of the institution ha… | Supplied (course family) | [ ] | | | |
+| 3 | Number of online courses of MOOCs, SWAYAM / e_Pathshala/ NPTE/ Global … | Supplied (course family) | [ ] | | | |
+| 4 | Percentage of Students that have completed the field projects. | Supplied (field projects) | [ ] | | | |
+| 5 | Percentage of Students that have completed research projects. | Supplied (field projects) | [ ] | | | |
+| 6 | Percentage of students that have completed internships. | Supplied (field projects) | [ ] | | | |
+| 7 | Number of Teachers give Structured feedback for curriculum | Supplied (survey) | [ ] | | | |
+| 8 | Number of employers give structured feedback for curriculum. | Supplied (consolidated surveys) | [ ] | | | |
+| 9 | Number of alumni give structured feedback for curriculum. | Supplied (consolidated surveys) | [ ] | | | |
+| 10 | Number of academic experts (outside) give structured feedback for curr… | Supplied (consolidated surveys) | [ ] | | | |
+| 11 | Bridge courses conducted | Supplied | [ ] | | | |
+| 12 | Number of awards received for research/ innovations by Faculty/Student… | Supplied | [ ] | | | |
+| 13 | No. of faculty to become members of industry advisory boards/Think tan… | Supplied | [ ] | | | |
+| 14 | No of Yukthi Registration - Faculty with Students | Project-created | [ ] | | | |
+| 15 | No of Entrepreneur (can be a Faculty/Alumni/ Student) | Supplied | [ ] | | | |
+| 16 | No of innovation ambassadors | Project-created | [ ] | | | |
+| 17 | Training centers / labs established in collaboration with Industries | Supplied | [ ] | | | |
+| 18 | Signed Functional MoU with Industry/Res. Organization | Supplied | [ ] | | | |
+| 19 | No. of industrial visits arranged for students | Supplied | [ ] | | | |
+| 20 | No of faculty to be trained in industry for more than a week | Supplied | [ ] | | | |
+| 21 | Competitive Training (GATE, NET, GMAT etc.,) conducted | Adapted | [ ] | | | |
+| 22 | No. of Career counselling activities conducted | Supplied | [ ] | | | |
+| 23 | Skill development & employability - training organized related to Entr… | Supplied | [ ] | | | |
+| 24 | Students placement in % | Supplied | [ ] | | | |
+| 25 | Number of students won awards/medals for outstanding performance in sp… | Supplied (award sheet) | [ ] | | | |
+| 26 | Number of students won awards/medals for outstanding performance in cu… | Supplied (award sheet) | [ ] | | | |
+| 27 | The institution conducts /organizes sports competitions/Events | Project-created (event family) | [ ] | | | |
+| 28 | The institution conducts /organizes cultural competitions/ Events | Project-created (event family) | [ ] | | | |
+| 29 | The institution conducts /organizes technical fests, Academic fests | Project-created (event family) | [ ] | | | |
+| 30 | The institution conducts /organizes, any other events through active c… | Project-created (event family) | [ ] | | | |
+| 31 | No of Hackathon or ideathon Organized (State Level/National Level) | Supplied | [ ] | | | |
+| 32 | Total Amount of alumni contribution during the to the institution thro… | Supplied | [ ] | | | |
+| 33 | Alumni chapter, Meet and Engagement in university activities/events or… | Supplied (pilot) | [ ] | | | |
+| 34 | Number of teachers provided with financial support to attend conferenc… | Project-created | [ ] | | | |
+| 35 | Number of teachers provided membership fee of professional bodies year… | Project-created | [ ] | | | |
+| 36 | No of administrative training programs organized for staff and non-tea… | Supplied (FDP/STP family) | [ ] | | | |
+| 37 | Faculty development programs organized on I&E, IPR etc. (min 30 hours) | Supplied (FDP/STP family) | [ ] | | | |
+| 38 | Total number of teachers who have undergone online/ face-to-face Facul… | Supplied | [ ] | | | |
+| 39 | Total Grants received from government and non-government bodies and ph… | Adapted | [ ] | | | |
+| 40 | Institution has initiated Gender audit and measure for the promotion o… | Project-created | [ ] | | | |
+| 41 | Number of activities organized by the university for providing an incl… | Project-created | [ ] | | | |
+| 42 | Number of activities organized for Sensitization of students and emplo… | Project-created | [ ] | | | |
+| 43 | Scopus ConferenceOrganized by the Department | Adapted | [ ] | | | |
+| 44 | BOOT Camps & Peer Learning Activities | Supplied | [ ] | | | |
+| 45 | National &International Flagship Event | Supplied | [ ] | | | |
+
+**Owner acceptance of the KRA 33 pilot (separate from the above):** accepted by the project owner on 2026-10-17 for template
+fidelity/usability of the pilot (recorded in `docs/progress.md`, Phase 2). KRA 33 still needs institutional review in the table above.
+
+## 6. Scripted checks done vs human checks pending
+Completed by automated/scripted checks (see `docs/validation.md`; not a substitute for the human checks):
+- Permissions, deadlines, revisions, concurrency (Phase 6A); PDF/failure recovery and local load (Phase 6B); scripted accessibility
+  audit, keyboard tabs, accessible names, required markers, inactive-field retention, 375 px header, measured contrast of shared
+  controls (Phase 6C).
+
+Pending — to be done by people (tick when done):
+- [ ] Screen-reader pass (NVDA or JAWS on Windows, and/or VoiceOver) through sign-in, a report (tabs, a table row, an error), evidence upload and the VC review.
+- [ ] Real browser zoom at 200% (Ctrl/Cmd + "+") on the Dean dashboard, a report workspace and the VC progress page: no lost content or controls; only wide tables scroll sideways.
+- [ ] Phone check on a real device (about 375 px wide).
+- [ ] Full end-to-end walkthrough (sections 1–4) with one VC and two Deans.
+- [ ] Institutional review of all 45 formats (section 5).
 
 ## Sign-off
 - [ ] Walkthrough completed — date: ______ participants: ______________________

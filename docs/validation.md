@@ -5,8 +5,8 @@
 | Check | Recorded result | When |
 |---|---|---|
 | `python backend/manage.py test tests` (renderer running) | **506 tests, OK**, 0 skipped | Phase 6B baseline (`71d326c`); not rerun in 6C (no backend change) |
-| `python e2e/run_isolated.py` (isolated browser suite) | 24 OK at 6B; **25 tests, OK (first full run: 23 OK + 2 failures where existing tests asserted pre-6C behaviour — the unticked KRA 9b input still visible, and the finalize panel as a dialog; both tests updated, the KRA 9 test now also proves the kept value returns when 9b is ticked again)** at 6C | run in Phase 6C |
-| `npm --prefix frontend run build` (`tsc -b` + Vite) | OK | run in Phase 6C |
+| `python e2e/run_isolated.py` (isolated browser suite) | 24 OK at 6B; 25 OK at 6C (`b5e5931`); **26 tests, OK** in the 6C follow-up | run in the 6C follow-up |
+| `npm --prefix frontend run build` (`tsc -b` + Vite) | OK | run in the 6C follow-up |
 | `python e2e/run_perf.py` | local Windows dev-server figures only; not production capacity | Phase 6B |
 
 Only the 6C rows marked "run in Phase 6C" were executed for Phase 6C; the others are recorded results. Browser tests must be run
@@ -360,7 +360,7 @@ Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users. The 
 
 # Phase 6C validation (2026-10-17) — usability, accessibility and documentation
 
-**Method:** a scripted Playwright audit (temporary, on the isolated runner; synthetic demo accounts, disposable `<db>_e2e` database, evidence under `.work/e2e/private`) visited Dean login/dashboard, the workspace (Report/Evidence/Achievement tabs, a submit attempt) for KRAs 33, 32, 9, 4 and 20, and VC progress, review, reopening requests, assignments and KRAs, at 1280×900, 375×812 (phone) and 640×450 (= 1280 px at 200% zoom). Per page it counted visible controls without an accessible name, page-wide horizontal overflow (wide tables inside their own scroll region excluded), tabs without a controlled panel, non-tab children of tablists, positive tabindex, invalid fields without a description, and walked 25–30 Tab presses checking each focused element for a visible outline/ring. Plus code review of shared components (SchemaForm, Workspace, ReviewPage, EvidenceTab, ui.tsx). No automated contrast/axe tool is installed; colour pairs were checked by class (no `text-*-300/400` text on white is used). **This is not a full accessibility (WCAG) audit.**
+**Method:** a scripted Playwright audit (temporary, on the isolated runner; synthetic demo accounts, disposable `<db>_e2e` database, evidence under `.work/e2e/private`) visited Dean login/dashboard, the workspace (Report/Evidence/Achievement tabs, a submit attempt) for KRAs 33, 32, 9, 4 and 20, and VC progress, review, reopening requests, assignments and KRAs, at 1280×900, 375×812 (phone) and a 640×450 viewport (a narrow-viewport reflow approximation — **not** browser zoom; see the follow-up below). Per page it counted visible controls without an accessible name, page-wide horizontal overflow (wide tables inside their own scroll region excluded), tabs without a controlled panel, non-tab children of tablists, positive tabindex, invalid fields without a description, and walked 25–30 Tab presses checking each focused element for a visible outline/ring. Plus code review of shared components (SchemaForm, Workspace, ReviewPage, EvidenceTab, ui.tsx). No automated contrast/axe tool is installed; colour pairs were checked by class (no `text-*-300/400` text on white is used). **This is not a full accessibility (WCAG) audit.**
 
 **Findings → fixes (D-071):**
 
@@ -369,7 +369,7 @@ Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users. The 
 | Tabs had `role=tab` but no `aria-controls`/tabpanel; no arrow-key operation; "+ Add" button and PDF link inside tablists | Workspace, review page, activity (event/programme) tabs | Shared `tabKeys` (Arrow/Home/End, roving tabindex); tabpanels with `aria-labelledby`; non-tab buttons moved out of tablists |
 | Table-mode cell inputs had no accessible name (an unassociated sr-only span) | SchemaForm tables (e.g. KRA 33 engagements) | `aria-label` "Column, row N" on each cell input/select |
 | Required "*" on not-applicable fields; "*" read aloud as "star" | KRA 32 card labels; card/fieldset labels | Shared `Req` marker (visual "*", sr text), shown only while the field applies; grid headers say "(required where applicable)" |
-| Inactive activity fields shown as normal editable inputs | KRA 9 (9a/9b variants), KRAs 4–6 (component = No) | Hidden while not applicable, with a note that earlier values are kept but not checked, submitted or printed; values stay in the draft (verified: saved payload keeps them, switching back shows them) |
+| Inactive activity fields shown as normal editable inputs | KRA 9 (9a/9b variants), KRAs 4–6 (component = No) | Hidden while not applicable, with a note that earlier values are retained but not checked for submission or printed (note wording corrected in the follow-up: the values do stay in the submitted revision); values stay in the draft (verified: saved payload keeps them, switching back shows them) |
 | VC header overflowed by 55 px at 375 px (Sign out off-screen) | Shell header | Header nav wraps |
 | Date inputs showed no focus ring | `.input` utility | `focus-within` ring |
 | Colour-only error dot on tabs | Workspace Evidence tab, activity tabs | sr-only "(needs attention)" / "(has errors)" |
@@ -377,10 +377,42 @@ Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users. The 
 | Mobile Form/Preview toggle state not exposed | Workspace | `aria-pressed` |
 | Inline finalize panel marked `role=dialog` without dialog behaviour | VC assignments | `role=region` |
 
-**Checked and acceptable as is:** login pages; dashboards (no unnamed controls, no overflow at 375 px or 200%); buttons and inputs have visible focus rings; save state uses one `role=status` region (polite, announced on state change only); upload/delete errors and submit-blocking summaries use `role=alert`; read-only, loading, empty and closed-window states have explicit text; native `window.confirm` dialogs (remove row/event/evidence, submit, discard) are keyboard-accessible and return focus; wide tables scroll inside their own region.
+**Checked and acceptable as is:** login pages; dashboards (no unnamed controls, no overflow at 375 px or in the 640 px viewport); buttons and inputs have visible focus rings; save state uses one `role=status` region (polite, announced on state change only); upload/delete errors and submit-blocking summaries use `role=alert`; read-only, loading, empty and closed-window states have explicit text; native `window.confirm` dialogs (remove row/event/evidence, submit, discard) are keyboard-accessible and return focus; wide tables scroll inside their own region.
 
 **Regression:** new browser test `test_phase6c_tabs_names_markers_inactive_fields_and_phone_width` — arrow/Home keys on workspace tabs and panel association; "Alumni Name, row 1" accessible name; no unnamed controls, panel-less tabs or non-tab tablist children on the workspace; KRA 32 marker follows Equipment/Asset ↔ Financial; KRA 4 component answer Yes→No hides fields with the note, Save keeps `component_name` in the stored payload, back to Yes shows the value; VC dashboard at 375 px has no horizontal overflow and Sign out is on screen. Existing KRA 4–6 and KRA 8–10 browser tests (retention after switching/unticking) still pass.
 
 **Commands:** `npx tsc -b` + `npm run build` (in `frontend/`) → OK; `python e2e/run_isolated.py -k phase6c` → 1 OK; full `python e2e/run_isolated.py` → **25 tests, OK (first full run: 23 OK + 2 failures where existing tests asserted pre-6C behaviour — the unticked KRA 9b input still visible, and the finalize panel as a dialog; both tests updated, the KRA 9 test now also proves the kept value returns when 9b is ticked again)**. Backend unchanged in 6C (backend suite not rerun; recorded 506 OK at 6B).
 
-**Not covered / limitations:** screen-reader testing with NVDA/JAWS/VoiceOver; automated contrast measurement; 400% zoom/reflow at 320 px; the PDF documents themselves (tagged-PDF accessibility not attempted); the Phase 4 report layouts are unchanged.
+**Not covered / limitations:** screen-reader testing with NVDA/JAWS/VoiceOver; automated contrast measurement (done for representative elements in the follow-up below); 400% zoom/reflow at 320 px; the PDF documents themselves (tagged-PDF accessibility not attempted); the Phase 4 report layouts are unchanged.
+
+# Phase 6C follow-up (2026-10-17) — inactive-field wording, zoom, contrast, acceptance tracking
+
+**Inactive fields — traced behaviour (KRA 9, KRAs 4–6):** `services.submit` copies the whole draft payload into the immutable revision (`payload=sub.payload`), so values of inactive fields are **retained in the draft and in submitted revisions**; `schema.validate_payload(strict=True)` skips fields whose `when` does not apply; the PDF templates print only active content. Existing backend tests already cover this (`test_kra8_10 …switching_selection_keeps_data_and_excludes_deselected_from_pdf`: submit succeeds with deselected 9b data, PDF has no 9b; `test_kra4_6 …not_applicable_component_kept_but_ignored`: stored, ignored at submission, absent from preview). The 6C UI note wrongly said "not … submitted"; it now reads: "Values entered earlier are retained (in the draft and in any submitted revision), but are not checked for submission or included in the printed report." **Not changed:** the template intros of KRA 9 and KRAs 4–6 (built in `backend/apps/reports/families.py`) still say "not submitted or printed"; template versions are immutable once used (seed refuses to rewrite them), so correcting that text needs a new template version — recorded as an open item, behaviour unaffected. Browser regression: the KRA 4 part of `test_phase6c_tabs_names_markers_inactive_fields_and_phone_width` now also asserts the corrected note and that the hidden component name is absent from the live preview; the KRA 8–10 test asserts retention after untick/reload and the value returning when 9b is ticked again.
+
+**Zoom — method and result:** the 6C audit's 640×450 viewport is only a narrow-viewport reflow approximation, **not** browser zoom. A genuine browser-zoom check was attempted in the isolated Playwright Chromium by pressing Ctrl+= : `innerWidth` stayed 1400, `devicePixelRatio` 1 and `visualViewport.scale` 1 — automated Chromium exposes no browser-zoom control, and CSS zoom / deviceScaleFactor / pinch zoom were deliberately not used as substitutes. **Real 200% zoom verification is pending** (manual steps in `docs/acceptance-checklist.md` §6: Chrome or Edge, Ctrl + "+" to 200% on the Dean dashboard, a report workspace with a table, the VC progress page and review page; confirm no lost text/controls, no page-wide sideways scrolling except inside wide tables, and focus stays visible).
+
+**Contrast — method:** in the isolated browser, every visible element with its own text, every placeholder and every input/select border was measured from `getComputedStyle` colours converted to sRGB through a 1×1 canvas (handles `oklch`), with alpha and ancestor opacity composited over the element's effective background (ancestor background chain composited onto white); WCAG 2.x relative-luminance ratio. Thresholds: 4.5:1 text, 3:1 large text (≥ 24 px or ≥ 18.66 px bold), 4.5:1 placeholders, 3:1 for control boundaries and focus indicators (1.4.11). Disabled controls are exempt (WCAG exception for inactive components) and reported separately. Pages: Dean login and dashboard, KRA 33 workspace after a submit attempt (Report and Evidence tabs), KRA 32, VC progress, VC assignments; focus indicators measured on 25 Tab stops (Dean workspace, VC dashboard).
+
+**Measured results (before → after):**
+
+| Element | Colours (fg on bg) | Ratio | Need | Result |
+|---|---|---|---|---|
+| Input/select border (`.input`), white background | #cad5e2 on #ffffff → #62748e on #ffffff | 1.49 → **4.76** | 3 | **fixed** (border slate-300 → slate-500) |
+| Input/select border on slate-50 cards | #cad5e2 on #f8fafc → #62748e on #f8fafc | 1.42 → **4.55** | 3 | **fixed** |
+| Placeholder text (e.g. "KRA #", "e.g. …") | #878b95 on #ffffff → #62748e on #ffffff | 3.41 → **4.76** | 4.5 | **fixed** (`placeholder:text-slate-500`) |
+| Error marker "●" on an unselected (white) tab | red-300 #ffa2a2 (measured value) on #ffffff: 1.92 by calculation — that state was not in the page sample → red-700 #c10007 on #ffffff | 1.92 → **6.42** | 3 (graphical, has text alternative) | **fixed** (dark red on unselected tabs) |
+| Error marker "●" on the selected (blue) tab | #ffa2a2 on #1447e6 | 3.56 | 3 | pass (kept) |
+| Help/secondary text slate-500 | #62748e on #ffffff / #f8fafc | 4.76 / 4.55 | 4.5 | pass |
+| Required "*" / error text red-700 | #c10007 on #ffffff | 6.42 | 4.5 | pass |
+| Primary button text | #ffffff on #1447e6 | 6.83 | 4.5 | pass |
+| Body, labels, links, alert text, status badges | measured | all ≥ 7 | 4.5 | pass |
+| Button focus ring (2 px) | #2b7fff vs adjacent white/slate-50 | 3.60–3.76 | 3 | pass |
+| Select focus ring (1 px) | #155dfc vs white | 5.01 | 3 | pass |
+| Input/link focus (browser outline) | dark outline vs white | 18–19 | 3 | pass |
+| Disabled buttons ("Sign in" while busy, "Previous") | #8aa3f3 on #1447e6 / #8e949e on #ffffff | 2.80 / 3.05 | — | exempt (inactive controls) |
+
+Not measured: native checkbox/radio rendering (browser default), the PDF documents, colours inside the preview iframe (report templates are print designs reviewed in Phase 4), hover-only states. Regression: `test_phase6c_measured_contrast_of_shared_controls` measures the input border (≥ 3), placeholder (≥ 4.5) and unselected-tab error marker (≥ 3) from computed colours.
+
+**Acceptance tracking:** `docs/acceptance-checklist.md` now has one row per KRA 1–45 (activity, format type, institutional acceptance box, status, reviewer, date/notes), all unchecked; the owner's KRA 33 pilot acceptance is recorded separately; a section separates completed scripted checks from pending human checks (screen reader, real 200% zoom, real phone, walkthrough, format review).
+
+**Commands:** `npx tsc -b` + `npm run build` → OK; `python e2e/run_isolated.py -k phase6c` → 2 OK; full `python e2e/run_isolated.py` → **26 tests, OK**. Backend not rerun (no backend change).
