@@ -568,3 +568,35 @@ def kra45_event(i=1, long_text=False, resource_persons=2):
 
 def kra45_payload(events=1, long_text=False, resource_persons=2):
     return {"activities": [kra45_event(i + 1, long_text, resource_persons) for i in range(events)]}
+
+
+def kra21_programme(i=1, long_text=False, qualifiers=0):
+    lines = lambda prefix, n: "\n".join(f"{prefix} {k + 1}" for k in range(n))
+    return {"programme_title": f"Synthetic GATE Preparation Programme {i}", "examination": "GATE" if i % 2 else "NET",
+            "start_date": "2026-08-03", "end_date": "2026-09-25", "duration": "40 hours over 8 weeks", "mode": "Hybrid",
+            "venue": "Seminar Hall 2 / online (synthetic)", "organizer": "ECE Department (synthetic)", "coordinator": "Test Coordinator",
+            "trainers": "Test Trainer A, Example Academy (synthetic)\nTest Trainer B, Professor, ECE", "target_group": "B.Tech ECE, 3rd and 4th year",
+            "enrolled": 80, "participated": 72, "sessions": "" if i % 2 == 0 else 20,
+            "topics": lines("Synthetic topic", 25 if long_text else 4), "outcomes": lines("Synthetic observed outcome", 12 if long_text else 2),
+            "evidence_refs": "Notice, Schedule, Attendance Sheet",
+            "qualifiers": [{"student_name": f"Test Qualifier {i}.{q + 1}", "year": "2026", "level": "National", "exam": "GATE",
+                            "link": "" if q % 2 else "Evidence: Exam Scorecards"} for q in range(qualifiers)]}
+
+
+def kra21_payload(programmes=1, long_text=False, qualifiers=0):
+    return {"activities": [kra21_programme(i + 1, long_text, qualifiers) for i in range(programmes)]}
+
+
+def kra39_grant(i=1, long_text=False, receipts=2):
+    return {"funding_body": f"Example Infrastructure Trust {i} (synthetic)", "body_type": ["Government", "Non-government", "Philanthropist"][i % 3],
+            "grant_reference": f"SYN/INFRA/{i:03d}", "purpose_type": "Development" if i % 2 else "Maintenance",
+            "purpose": "Synthetic smart-classroom upgrade" + (" including projectors, acoustic panels and networking" * 8 if long_text else ""),
+            "sanction_date": "2026-07-15", "sanctioned_inr": "1500000.00",
+            "receipts": [{"receipt_date": f"2026-0{8 + r % 2}-1{r % 9}", "amount_inr": ["500000.50", "250000", "125000.25"][r % 3],
+                          "reference": "" if r % 2 else f"UTR-SYN-{i}{r:03d}"} for r in range(receipts)],
+            "utilization_status": "In progress", "utilized_inr": "" if i % 2 == 0 else "320000.75",
+            "utilization_remarks": "Synthetic: procurement under way.", "evidence_refs": "Sanction Letter; Receipt"}
+
+
+def kra39_payload(grants=1, long_text=False, receipts=2):
+    return {"activities": [kra39_grant(i + 1, long_text, receipts) for i in range(grants)]}
