@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import type { DisplayStatus, Role } from '../api/types'
 import { homeFor, useAuth } from '../auth/AuthContext'
@@ -54,6 +54,17 @@ export function RequireRole({ role }: { role: Role }) {
   return <Shell><Outlet /></Shell>
 }
 
+/** WAI-ARIA tabs keyboard pattern for a role="tablist": arrows/Home/End move to and select a tab (roving tabindex). */
+export function tabKeys(e: KeyboardEvent<HTMLElement>) {
+  const tabs = [...e.currentTarget.querySelectorAll<HTMLElement>('[role=tab]')]
+  const i = tabs.indexOf(document.activeElement as HTMLElement)
+  const next = i < 0 ? undefined : ({ ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 } as Record<string, number>)[e.key]
+  if (next === undefined) return
+  e.preventDefault()
+  const t = tabs[(next + tabs.length) % tabs.length]
+  t.focus(); t.click()
+}
+
 function Shell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
   if (!user) return null
@@ -63,7 +74,7 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-2">
           <Link to={homeFor(user)} className="font-semibold text-blue-900">KIET KRA Portal</Link>
           <span className="text-sm text-slate-600">{user.role === 'VC' ? 'Vice Chancellor' : `Dean — ${user.department?.name}`}</span>
-          <nav className="ml-auto flex items-center gap-3 text-sm">
+          <nav className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             {user.role === 'VC' && <Link className="underline" to="/vc/reopen-requests">Reopening requests</Link>}
             {user.role === 'VC' && <Link className="underline" to="/vc/assignments">Assignments</Link>}
             {user.role === 'VC' && <Link className="underline" to="/vc/kras">KRAs</Link>}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useFieldArray, useWatch, type Control, type UseFormGetValues, type UseFormRegister, type UseFormSetValue } from 'react-hook-form'
 import type { Field, Payload, Schema } from '../../api/types'
+import { tabKeys } from '../../components/ui'
 
 type Errors = Record<string, string[]>
 interface Ctx {
@@ -23,17 +24,25 @@ function FieldError({ path, errors }: { path: string; errors: Errors }) {
   return msgs ? <p id={`${path}-err`} className="mt-1 text-xs text-red-700">{msgs.join(' ')}</p> : null
 }
 
-function Label({ f, htmlFor }: { f: Field; htmlFor?: string }) {
-  return (
-    <label className="label" htmlFor={htmlFor}>
-      {f.label}{f.required && <span className="text-red-700" aria-hidden> *</span>}
-      {f.required && <span className="sr-only"> (required for submission)</span>}
-    </label>
-  )
+/** Visible "*" plus screen-reader text; shown only while the field applies (inactive fields are never required). */
+function Req({ on }: { on?: boolean }) {
+  return on ? <><span className="text-red-700" aria-hidden> *</span><span className="sr-only"> (required for submission)</span></> : null
 }
 
-function Scalar({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
-  const common = { id: name, disabled: ctx.disabled, 'aria-invalid': !!ctx.errors[name], 'aria-describedby': ctx.errors[name] ? `${name}-err` : undefined, className: 'input' }
+type When = { field: string; in?: string[]; contains?: string }
+/** Same rule as the server's `applies` (backend/apps/reports/schema.py). */
+export function applies(cond: When | undefined, obj: Record<string, unknown> | undefined) {
+  if (!cond) return true
+  const v = obj?.[cond.field]
+  return cond.contains !== undefined ? Array.isArray(v) && v.includes(cond.contains) : (cond.in ?? []).includes(v as string)
+}
+
+function Label({ f, htmlFor }: { f: Field; htmlFor?: string }) {
+  return <label className="label" htmlFor={htmlFor}>{f.label}<Req on={f.required} /></label>
+}
+
+function Scalar({ f, name, ctx, ariaLabel }: { f: Field; name: string; ctx: Ctx; ariaLabel?: string }) {
+  const common = { id: name, disabled: ctx.disabled, 'aria-label': ariaLabel, 'aria-invalid': !!ctx.errors[name], 'aria-describedby': ctx.errors[name] ? `${name}-err` : undefined, className: 'input' }
   const reg = (opts = {}) => ctx.register(name as never, opts)
   switch (f.type) {
     case 'longtext':
@@ -62,7 +71,7 @@ function Scalar({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
 }
 
 /** Column that applies only for some values of another column in the same row (e.g. payment fields). */
-function ConditionalCell({ c, rowName, ctx }: { c: Field; rowName: string; ctx: Ctx }) {
+function ConditionalCell({ c, rowName, ctx, ariaLabel }: { c: Field; rowName: string; ctx: Ctx; ariaLabel?: string }) {
   const name = `${rowName}.${c.id}`
   const ctrl = useWatch({ control: ctx.control, name: `${rowName}.${c.when!.field}` as never }) as unknown as string
   const applies = c.when!.in.includes(ctrl)
@@ -73,17 +82,23 @@ function ConditionalCell({ c, rowName, ctx }: { c: Field; rowName: string; ctx: 
     }
   }, [applies, name, ctx, c.keep_inactive])
   if (!applies) return <input className="input" value={c.keep_inactive && ctx.getValues(name as never) ? 'NA (entered value kept, not used)' : 'NA'} disabled readOnly aria-label={`${c.label}: not applicable`} />
-  return <Scalar f={c} name={name} ctx={ctx} />
+  return <Scalar f={c} name={name} ctx={ctx} ariaLabel={ariaLabel} />
 }
 
-function Cell({ c, rowName, ctx }: { c: Field; rowName: string; ctx: Ctx }) {
-  return c.when ? <ConditionalCell c={c} rowName={rowName} ctx={ctx} /> : <Scalar f={c} name={`${rowName}.${c.id}`} ctx={ctx} />
+function Cell({ c, rowName, ctx, ariaLabel }: { c: Field; rowName: string; ctx: Ctx; ariaLabel?: string }) {
+  return c.when ? <ConditionalCell c={c} rowName={rowName} ctx={ctx} ariaLabel={ariaLabel} /> : <Scalar f={c} name={`${rowName}.${c.id}`} ctx={ctx} ariaLabel={ariaLabel} />
+}
+
+/** Card-editor label: the required marker follows the row's current answers (e.g. KRA 32 payment fields). */
+function CardLabel({ c, rowName, ctx, htmlFor }: { c: Field; rowName: string; ctx: Ctx; htmlFor: string }) {
+  const row = useWatch({ control: ctx.control, name: rowName as never }) as unknown as Record<string, unknown> | undefined
+  return <label className="label" htmlFor={htmlFor}>{c.label}<Req on={c.required && applies(c.when, row)} /></label>
 }
 
 function MultiSelect({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   return (
-    <fieldset aria-invalid={!!ctx.errors[name]}>
-      <legend className="label">{f.label}{f.required && <span className="text-red-700"> *</span>}</legend>
+    <fieldset aria-invalid={!!ctx.errors[name]} aria-describedby={ctx.errors[name] ? `${name}-err` : undefined}>
+      <legend className="label">{f.label}<Req on={f.required} /></legend>
       <div className="grid gap-1 sm:grid-cols-2">
         {f.options!.map((o) => (
           <label key={o} className="flex items-start gap-2 text-sm">
@@ -97,8 +112,8 @@ function MultiSelect({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
 
 function Checklist({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   return (
-    <fieldset>
-      <legend className="label">{f.label}{f.required && <span className="text-red-700"> *</span>}</legend>
+    <fieldset aria-describedby={ctx.errors[name] ? `${name}-err` : undefined}>
+      <legend className="label">{f.label}<Req on={f.required} /></legend>
       <table className="w-full text-sm">
         <tbody>
           {f.items!.map((item, i) => (
@@ -123,8 +138,8 @@ function Checklist({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
 function Ratings({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   const lo = f.scale![0], hi = f.scale![f.scale!.length - 1]
   return (
-    <fieldset>
-      <legend className="label">{f.label}{f.required && <span className="text-red-700"> *</span>}</legend>
+    <fieldset aria-describedby={ctx.errors[name] ? `${name}-err` : undefined}>
+      <legend className="label">{f.label}<Req on={f.required} /></legend>
       <p className="mb-2 text-xs text-slate-500">Scale {lo}–{hi}: {f.scale_labels?.join(' · ')}. Enter the college-prepared average, up to {f.decimal_places ?? 2} decimals.</p>
       <table className="w-full text-sm">
         <thead><tr className="text-left"><th className="w-8 p-1">S No.</th><th className="p-1">Statement</th><th className="w-28 p-1">Average ({lo}–{hi})</th></tr></thead>
@@ -137,7 +152,7 @@ function Ratings({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
                 <td className="p-1"><label htmlFor={p}>{item}</label></td>
                 <td className="p-1">
                   <input id={p} className="input" type="text" inputMode="decimal" placeholder={`${lo}–${hi}`} disabled={ctx.disabled}
-                    aria-invalid={!!ctx.errors[p]} {...ctx.register(p as never, { setValueAs: decimalText })} />
+                    aria-invalid={!!ctx.errors[p]} aria-describedby={ctx.errors[p] ? `${p}-err` : undefined} {...ctx.register(p as never, { setValueAs: decimalText })} />
                   <FieldError path={p} errors={ctx.errors} />
                 </td>
               </tr>
@@ -174,7 +189,7 @@ function Table({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
                   const p = `${name}.${i}.${c.id}`
                   return (
                     <div key={c.id} className={c.type === 'longtext' ? 'sm:col-span-2' : ''}>
-                      <label className="label" htmlFor={p}>{c.label}{c.required && <span className="text-red-700"> *</span>}</label>
+                      <CardLabel c={c} rowName={`${name}.${i}`} ctx={ctx} htmlFor={p} />
                       <Cell c={c} rowName={`${name}.${i}`} ctx={ctx} />
                       {c.help && <p className="mt-1 text-xs text-slate-500">{c.help}</p>}
                       <FieldError path={p} errors={ctx.errors} />
@@ -188,14 +203,14 @@ function Table({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
-            <thead><tr className="bg-slate-100 text-left"><th className="w-10 p-1">Sl.</th>{cols.map((c) => <th key={c.id} className="p-1">{c.label}{c.required && <span className="text-red-700"> *</span>}</th>)}<th /></tr></thead>
+            <thead><tr className="bg-slate-100 text-left"><th className="w-10 p-1">Sl.</th>{cols.map((c) => <th key={c.id} className="p-1">{c.label}<Req on={c.required && !c.when} />{c.required && c.when && <span className="text-xs font-normal text-slate-600"> (required where applicable)</span>}</th>)}<th /></tr></thead>
             <tbody>
               {fields.map((row, i) => (
                 <tr key={row.id} className="border-t border-slate-100 align-top">
                   <td className="p-1">{i + 1}</td>
                   {cols.map((c) => {
                     const p = `${name}.${i}.${c.id}`
-                    return <td key={c.id} className="p-1"><span className="sr-only">{c.label} row {i + 1}</span><Cell c={c} rowName={`${name}.${i}`} ctx={ctx} /><FieldError path={p} errors={ctx.errors} /></td>
+                    return <td key={c.id} className="p-1"><Cell c={c} rowName={`${name}.${i}`} ctx={ctx} ariaLabel={`${c.label}, row ${i + 1}`} /><FieldError path={p} errors={ctx.errors} /></td>
                   })}
                   <td className="p-1">{removeBtn(i)}</td>
                 </tr>
@@ -240,6 +255,18 @@ function FieldView({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
   )
 }
 
+/** Fields whose `when` does not apply are hidden, never cleared: the server keeps their values but ignores them (D-048, KRA 9). */
+function InactiveNote({ section, act }: { section: Field[]; act: Record<string, unknown> | undefined }) {
+  const n = section.filter((f) => !applies(f.when, act)).length
+  if (!n) return null
+  return (
+    <p className="rounded bg-slate-50 p-2 text-sm text-slate-700">
+      {n === section.length ? 'This section does not apply to your current answers' : `${n} field(s) here do not apply to your current answers`}.
+      {' '}Anything entered earlier is kept in the draft but is not checked, submitted as part of the report or printed.
+    </p>
+  )
+}
+
 export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }) {
   const { fields, append, remove } = useFieldArray({ control: ctx.control, name: 'activities' })
   const values = useWatch({ control: ctx.control, name: 'activities' })
@@ -254,13 +281,15 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
     <div>
       <FieldError path="activities" errors={ctx.errors} />
       {!single && (
-        <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label={`${label}s in this report`}>
-          {fields.map((a, i) => (
-            <button key={a.id} type="button" role="tab" aria-selected={open === i} onClick={() => setOpen(i)}
-              className={open === i ? 'btn-primary' : 'btn-secondary'}>
-              {label} {i + 1}{Object.keys(ctx.errors).some((k) => k.startsWith(`activities.${i}.`)) && <span className="text-red-300"> ●</span>}
-            </button>
-          ))}
+        <div className="mb-3 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label={`${label}s in this report`} onKeyDown={tabKeys}>
+            {fields.map((a, i) => (
+              <button key={a.id} id={`act-tab-${i}`} type="button" role="tab" aria-selected={open === i} aria-controls={`act-panel-${i}`}
+                tabIndex={open === i ? 0 : -1} onClick={() => setOpen(i)} className={open === i ? 'btn-primary' : 'btn-secondary'}>
+                {label} {i + 1}{Object.keys(ctx.errors).some((k) => k.startsWith(`activities.${i}.`)) && <><span className="text-red-300" aria-hidden> ●</span><span className="sr-only"> (has errors)</span></>}
+              </button>
+            ))}
+          </div>
           {!ctx.disabled && (
             <button type="button" className="btn-secondary" disabled={fields.length >= schema.activity.max}
               onClick={() => { append(emptyActivity(schema) as never); setOpen(fields.length) }}>+ Add {label.toLowerCase()}</button>
@@ -268,7 +297,7 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
         </div>
       )}
       {fields.map((a, i) => (
-        <div key={a.id} hidden={open !== i}>
+        <div key={a.id} hidden={open !== i} {...(single ? {} : { role: 'tabpanel', id: `act-panel-${i}`, 'aria-labelledby': `act-tab-${i}` })}>
           <nav className="mb-3 flex flex-wrap gap-2 text-xs" aria-label="Sections">
             {schema.sections.map((s) => <a key={s.id} className="underline text-blue-800" href={`#sec-${i}-${s.id}`}>{s.title}</a>)}
           </nav>
@@ -276,7 +305,8 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
             <section key={s.id} id={`sec-${i}-${s.id}`} className="card mb-3">
               <h3 className="mb-2 font-semibold">{s.title}</h3>
               {s.intro && <p className="mb-2 text-sm text-slate-600">{s.intro}</p>}
-              {s.fields.map((f) => <FieldView key={f.id} f={f} name={`activities.${i}.${f.id}`} ctx={ctx} />)}
+              {s.fields.filter((f) => applies(f.when, values?.[i] as Record<string, unknown>)).map((f) => <FieldView key={f.id} f={f} name={`activities.${i}.${f.id}`} ctx={ctx} />)}
+              <InactiveNote section={s.fields} act={values?.[i] as Record<string, unknown>} />
             </section>
           ))}
           {!single && !ctx.disabled && fields.length > 1 && <button type="button" className="btn-danger" onClick={() => removeActivity(i)}>Remove {label.toLowerCase()} {i + 1}</button>}

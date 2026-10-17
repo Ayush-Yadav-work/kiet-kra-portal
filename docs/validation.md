@@ -1,7 +1,21 @@
 # Validation log
 
-All results below were actually run on 2026-10-16 on the development machine (Windows 11, Python 3.11, PostgreSQL 16.2
-via `scripts/devdb.py`, Chromium 156 via Playwright 1.64). Local pilot only — no server, load or recovery testing yet.
+## Current summary (2026-10-17)
+
+| Check | Recorded result | When |
+|---|---|---|
+| `python backend/manage.py test tests` (renderer running) | **506 tests, OK**, 0 skipped | Phase 6B baseline (`71d326c`); not rerun in 6C (no backend change) |
+| `python e2e/run_isolated.py` (isolated browser suite) | 24 OK at 6B; **25 tests, OK (first full run: 23 OK + 2 failures where existing tests asserted pre-6C behaviour — the unticked KRA 9b input still visible, and the finalize panel as a dialog; both tests updated, the KRA 9 test now also proves the kept value returns when 9b is ticked again)** at 6C | run in Phase 6C |
+| `npm --prefix frontend run build` (`tsc -b` + Vite) | OK | run in Phase 6C |
+| `python e2e/run_perf.py` | local Windows dev-server figures only; not production capacity | Phase 6B |
+
+Only the 6C rows marked "run in Phase 6C" were executed for Phase 6C; the others are recorded results. Browser tests must be run
+through `e2e/run_isolated.py`; historical entries below that show `python e2e/test_browser.py` record how tests were run at the time.
+
+## Historical log (results as recorded at the time; counts and commands may be superseded)
+
+The earliest results below were run on 2026-10-16 on the development machine (Windows 11, Python 3.11, PostgreSQL 16.2
+via `scripts/devdb.py`, Chromium 156 via Playwright 1.64), when the project was a local pilot without server, load or recovery testing.
 
 ## Automated tests
 
@@ -328,7 +342,7 @@ Limitations: concurrency is exercised in-process through Django's test client (t
 | 8+2 | 2,954 | 100 req/s | 0 | 88 / 118 | 81 / 106 | 69 / 92 | 83 / 111 | 493 / 531 | 510 / 653 |
 | 13+2 | 2,765 | 94 req/s | 0 | 173 / 223 | 143 / 182 | 112 / 147 | 137 / 197 | 598 / 673 | 705 / 848 |
 
-Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users because the single Django development-server process (GIL) is the bottleneck, not PostgreSQL or the renderer. The first run (before the renderer fix) had the same shape and 0 errors.
+Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users. The likely cause is the single Django development-server process (one Python interpreter), but this was **not profiled — unconfirmed**; PostgreSQL and the renderer were not shown to be saturated either. The first run (before the renderer fix) had the same shape and 0 errors.
 
 **Query counts:** `tests.test_phase6b.QueryCountTests`. Before the fix the VC assignments dashboard went from 9 queries (10 submissions) to 36 (100 submissions); now the VC/Dean assignments and VC progress counts are constant. Submission detail uses a fixed small number (≤ 6 periods).
 
@@ -343,3 +357,30 @@ Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users becau
 **Regression runs:** focused `tests.test_phase6b tests.test_workflow tests.test_phase3 tests.test_phase5b tests.test_reports tests.test_phase6a` → 91 OK (7 renderer tests skipped, renderer down at that point); full `python backend/manage.py test tests` with the renderer running → **Ran 506 tests, OK** (0 skipped); `python e2e/run_isolated.py` → **Ran 24 tests, OK**. Frontend code unchanged in 6B (build not rerun).
 
 **Limitations / not measured:** Gunicorn workers, Nginx, TLS, Linux; DEBUG=0; file uploads under load (only the failure path); long-uptime Chromium memory; client–server network latency; more than 15 concurrent users (capped to protect this machine). These local numbers are not service-level guarantees.
+
+# Phase 6C validation (2026-10-17) — usability, accessibility and documentation
+
+**Method:** a scripted Playwright audit (temporary, on the isolated runner; synthetic demo accounts, disposable `<db>_e2e` database, evidence under `.work/e2e/private`) visited Dean login/dashboard, the workspace (Report/Evidence/Achievement tabs, a submit attempt) for KRAs 33, 32, 9, 4 and 20, and VC progress, review, reopening requests, assignments and KRAs, at 1280×900, 375×812 (phone) and 640×450 (= 1280 px at 200% zoom). Per page it counted visible controls without an accessible name, page-wide horizontal overflow (wide tables inside their own scroll region excluded), tabs without a controlled panel, non-tab children of tablists, positive tabindex, invalid fields without a description, and walked 25–30 Tab presses checking each focused element for a visible outline/ring. Plus code review of shared components (SchemaForm, Workspace, ReviewPage, EvidenceTab, ui.tsx). No automated contrast/axe tool is installed; colour pairs were checked by class (no `text-*-300/400` text on white is used). **This is not a full accessibility (WCAG) audit.**
+
+**Findings → fixes (D-071):**
+
+| Finding | Where | Fix |
+|---|---|---|
+| Tabs had `role=tab` but no `aria-controls`/tabpanel; no arrow-key operation; "+ Add" button and PDF link inside tablists | Workspace, review page, activity (event/programme) tabs | Shared `tabKeys` (Arrow/Home/End, roving tabindex); tabpanels with `aria-labelledby`; non-tab buttons moved out of tablists |
+| Table-mode cell inputs had no accessible name (an unassociated sr-only span) | SchemaForm tables (e.g. KRA 33 engagements) | `aria-label` "Column, row N" on each cell input/select |
+| Required "*" on not-applicable fields; "*" read aloud as "star" | KRA 32 card labels; card/fieldset labels | Shared `Req` marker (visual "*", sr text), shown only while the field applies; grid headers say "(required where applicable)" |
+| Inactive activity fields shown as normal editable inputs | KRA 9 (9a/9b variants), KRAs 4–6 (component = No) | Hidden while not applicable, with a note that earlier values are kept but not checked, submitted or printed; values stay in the draft (verified: saved payload keeps them, switching back shows them) |
+| VC header overflowed by 55 px at 375 px (Sign out off-screen) | Shell header | Header nav wraps |
+| Date inputs showed no focus ring | `.input` utility | `focus-within` ring |
+| Colour-only error dot on tabs | Workspace Evidence tab, activity tabs | sr-only "(needs attention)" / "(has errors)" |
+| Errors of checkbox/radio/ratings groups not associated | MultiSelect, Checklist, Ratings | `aria-describedby` to the error text |
+| Mobile Form/Preview toggle state not exposed | Workspace | `aria-pressed` |
+| Inline finalize panel marked `role=dialog` without dialog behaviour | VC assignments | `role=region` |
+
+**Checked and acceptable as is:** login pages; dashboards (no unnamed controls, no overflow at 375 px or 200%); buttons and inputs have visible focus rings; save state uses one `role=status` region (polite, announced on state change only); upload/delete errors and submit-blocking summaries use `role=alert`; read-only, loading, empty and closed-window states have explicit text; native `window.confirm` dialogs (remove row/event/evidence, submit, discard) are keyboard-accessible and return focus; wide tables scroll inside their own region.
+
+**Regression:** new browser test `test_phase6c_tabs_names_markers_inactive_fields_and_phone_width` — arrow/Home keys on workspace tabs and panel association; "Alumni Name, row 1" accessible name; no unnamed controls, panel-less tabs or non-tab tablist children on the workspace; KRA 32 marker follows Equipment/Asset ↔ Financial; KRA 4 component answer Yes→No hides fields with the note, Save keeps `component_name` in the stored payload, back to Yes shows the value; VC dashboard at 375 px has no horizontal overflow and Sign out is on screen. Existing KRA 4–6 and KRA 8–10 browser tests (retention after switching/unticking) still pass.
+
+**Commands:** `npx tsc -b` + `npm run build` (in `frontend/`) → OK; `python e2e/run_isolated.py -k phase6c` → 1 OK; full `python e2e/run_isolated.py` → **25 tests, OK (first full run: 23 OK + 2 failures where existing tests asserted pre-6C behaviour — the unticked KRA 9b input still visible, and the finalize panel as a dialog; both tests updated, the KRA 9 test now also proves the kept value returns when 9b is ticked again)**. Backend unchanged in 6C (backend suite not rerun; recorded 506 OK at 6B).
+
+**Not covered / limitations:** screen-reader testing with NVDA/JAWS/VoiceOver; automated contrast measurement; 400% zoom/reflow at 320 px; the PDF documents themselves (tagged-PDF accessibility not attempted); the Phase 4 report layouts are unchanged.

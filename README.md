@@ -1,8 +1,14 @@
 # KIET KRA Portal
 
 College-hosted portal for bimonthly KRA reporting: one Vice Chancellor, one Dean per department.
-Plan: [`docs/implementation-plan.md`](docs/implementation-plan.md) (v2.0). Status: **Phase 2 pilot (KRA 33) — local only, awaiting acceptance.**
-Phase 3 (KRAs 20, 7, 32) implemented and awaiting review. Not production-ready: see [`docs/progress.md`](docs/progress.md).
+Plan: [`docs/implementation-plan.md`](docs/implementation-plan.md) (v2.0).
+
+**Status (2026-10-17):** Phases 0–5 and Phase 6A–6B are implemented and committed (latest commit `71d326c`, Phase 6B). Phase 6C
+(usability/accessibility and documentation) is in the working tree, not yet committed. All 45 KRA report formats are implemented;
+the KRA 33 pilot was accepted by the project owner on 2026-10-17, but **none of the 45 formats has institutional (college) acceptance
+yet**, and proposed evidence rules and other **college** decisions in [`docs/decisions.md`](docs/decisions.md) remain pending.
+Local only — **not production-ready** (Phase 6D production configuration and Phase 7 deployment are not done): see
+[`docs/progress.md`](docs/progress.md) and the team checklist [`docs/acceptance-checklist.md`](docs/acceptance-checklist.md).
 
 | Part | Stack |
 |---|---|
@@ -12,9 +18,19 @@ Phase 3 (KRAs 20, 7, 32) implemented and awaiting review. Not production-ready: 
 | `seed/` | Reviewed catalogue + 2026-27 targets extracted from `reference/workbook/` |
 | `docs/` | Plan, source audit, template inventory, decisions, progress, validation |
 
-## Local setup (Windows, PowerShell or Git Bash; run from `kiet-kra-portal/`)
+## Local setup (Windows, PowerShell or Git Bash)
 
-Prerequisites: Python 3.11, Node 20+ (tested with 24).
+Prerequisites: Python 3.11, Node 20+ (tested with 24), Git. Clone, then run every later command from the `kiet-kra-portal/` folder:
+
+```bash
+git clone https://github.com/Ayush-Yadav-work/kiet-kra-portal.git
+```
+```bash
+cd kiet-kra-portal
+```
+```bash
+git checkout phase2-kra33-pilot
+```
 
 ```bash
 py -3.11 -m venv .venv
@@ -62,13 +78,20 @@ Open http://localhost:5173 → Dean login (`/dean/login`) or VC login (`/vc/logi
 ```bash
 .venv/Scripts/python backend/manage.py test tests
 ```
-45 tests on the real PostgreSQL test database. The 3 PDF tests run only when the renderer is up (otherwise they are reported as skipped).
+Runs on Django's separate PostgreSQL test database (never the working database). Recorded baseline: **506 tests, OK** with the
+renderer running (Phase 6B, 2026-10-17); with the renderer down, the renderer-dependent tests are reported as skipped, not passed.
 ```bash
 npm --prefix frontend run build
 ```
-Browser regression tests (need the three servers below running and `seed_demo` done; they edit ECE demo drafts only):
+Browser regression tests — always through the isolated runner (disposable `<db>_e2e` database, its own Django :8001 and Vite :5174,
+evidence under `.work/e2e/private`; needs the dev PostgreSQL and `npm install`). Recorded baseline: 24 tests OK (Phase 6B);
+Phase 6C adds one. `e2e/test_browser.py` refuses to run directly.
 ```bash
-.venv/Scripts/python e2e/test_browser.py
+.venv/Scripts/python e2e/run_isolated.py
+```
+Local performance/failure measurements (disposable `<db>_perf` database; not production capacity):
+```bash
+.venv/Scripts/python e2e/run_perf.py
 ```
 Synthetic sample PDFs for KRAs 33, 20, 7 and 32 (`normal`, `long`, `empty`, `nil`) → `.work/renders/kra<N>/` (needs the renderer):
 ```bash
@@ -83,7 +106,7 @@ Side-by-side with the source (example for KRA 7):
 
 Use two browsers/profiles (one browser profile holds one session at a time).
 1. **Dean (CSE):** dashboard → KRA 33 → *Open* for P2. Fill events (add a second event, add/remove table rows), watch autosave and the live preview; open the *Final PDF preview*.
-2. Evidence tab: add files (PDF/JPEG/PNG ≤ 20 MB) and Drive links; the minimum set (notice, attendance, photographs — proposal D-013) is required to submit. Achievement tab: enter the period achievement.
+2. Evidence tab: add files (PDF/JPEG/PNG ≤ 20 MB) and Drive links; the minimum set (notice, attendance, photographs) is a **proposal (D-013, pending college decision)** that the portal currently enforces at submission. Achievement tab: enter the period achievement.
 3. Submit. Try *Nil* on another period: reason required, no evidence needed.
 4. **VC:** dashboard counts/filters → *Review* → Reject with a reason. **Dean** sees the reason on the dashboard, corrects and resubmits; **VC** approves; PDF now reads "Verified by VC - …"; *Return for correction* keeps the approved revision in History.
 5. **Reopening:** Dean opens P1 (closed) → *Request reopening* → VC approves in *Reopening requests* → Dean dashboard shows the "Reopened KRAs — Action Required" banner with countdown.
@@ -163,7 +186,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 40** — add an
 
 ## Phase 5A review (VC assignments and next-year targets)
 
-Run `python backend/manage.py migrate`, restart Django and Vite. Sign in as the VC: **Assignments** — pick 2027-28, *Copy 2026-27 assignments into drafts* (run it twice to see the conflict list), choose a department, edit a target (any text, kept exactly) and *Save*, *Review and finalize* → the summary by department → *Confirm finalize*; finalized rows become read-only and appear for that department's Dean. 2026-27 is shown read-only (locked). **KRAs** — create a KRA by choosing an installed layout and ticking the confirmation. A Dean opening `/vc/assignments` is redirected, and `/api/v1/admin/...` returns 403. API reference: `docs/api.md`. Decision: D-065.
+Run `python backend/manage.py migrate`, restart Django and Vite. Sign in as the VC: **Assignments** — pick 2027-28, *Copy 2026-27 assignments into drafts* (run it twice to see the conflict list), choose a department, edit a target (any text, kept exactly) and *Save*, *Review and finalize* → the summary by department → *Confirm finalize*; finalized rows become read-only and appear for that department's Dean. Only ended years are read-only; in the current year (2026-27) the VC may add and finalize **new** department/KRA pairs, while targets of existing assignments stay immutable (D-066). **KRAs** — create a KRA by choosing an installed layout and ticking the confirmation. A Dean opening `/vc/assignments` is redirected, and `/api/v1/admin/...` returns 403. API reference: `docs/api.md`. Decision: D-065.
 
 ## Browser tests and cleaning old test data
 

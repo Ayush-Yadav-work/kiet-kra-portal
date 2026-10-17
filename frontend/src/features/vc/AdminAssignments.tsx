@@ -149,7 +149,7 @@ export default function AdminAssignments() {
               <ul className="mt-1 max-h-40 list-disc overflow-auto pl-5">{conflicts.map((c) => <li key={`${c.department}-${c.kra}`}>{c.department} KRA {c.kra}: {c.reason}</li>)}</ul>
               <p className="text-xs text-slate-500">To replace one, delete or edit its draft below; finalized assignments cannot be replaced.</p></details>)}
           {review && (
-            <div role="dialog" aria-label="Finalize review" className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
+            <div role="region" aria-label="Finalize review" className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
               <p className="font-medium">Finalize {pending.length} draft assignment(s) for {year}?</p>
               <p>By department: {Object.entries(byDept).map(([k, v]) => `${k} ${v}`).join(' · ')}</p>
               <p className="mt-1">After finalizing, Deans see these assignments and the targets and templates cannot be changed.</p>

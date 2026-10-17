@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useBlocker, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { Assignment, Payload, Period, Schema, SubmissionDetail } from '../../api/types'
-import { ErrorBox, Loading, StatusBadge, timeLeft, useServerClock } from '../../components/ui'
+import { ErrorBox, Loading, StatusBadge, tabKeys, timeLeft, useServerClock } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
 import EvidenceTab from '../evidence/EvidenceTab'
 import Preview from './Preview'
@@ -169,11 +169,12 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
         </div>
       )}
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div role="tablist" className="flex gap-1">
+        <div role="tablist" aria-label="Report sections" className="flex gap-1" onKeyDown={tabKeys}>
           {(['report', 'evidence', 'achievement'] as Tab[]).map((t) => (
-            <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'btn-primary' : 'btn-secondary'} onClick={() => switchTab(t)}>
+            <button key={t} id={`ws-tab-${t}`} role="tab" aria-selected={tab === t} aria-controls={`ws-panel-${t}`} tabIndex={tab === t ? 0 : -1}
+              className={tab === t ? 'btn-primary' : 'btn-secondary'} onClick={() => switchTab(t)}>
               {t === 'report' ? 'Report' : t === 'evidence' ? 'Evidence' : 'Achievement'}
-              {t === 'evidence' && errors.evidence && <span className="text-red-300"> ●</span>}
+              {t === 'evidence' && errors.evidence && <><span className="text-red-300" aria-hidden> ●</span><span className="sr-only"> (needs attention)</span></>}
             </button>
           ))}
         </div>
@@ -189,10 +190,10 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
       {d.can_request_reopen && <div className="mb-3"><ReopenRequestForm path={`/submissions/${d.id}/reopen-requests/`} onDone={reload} /></div>}
       {d.reopen_requests.some((r) => r.state === 'PENDING') && <p className="mb-3 rounded bg-amber-50 p-2 text-sm">Reopening request pending VC decision.</p>}
 
-      <div hidden={tab !== 'report'}>
+      <div hidden={tab !== 'report'} role="tabpanel" id="ws-panel-report" aria-labelledby="ws-tab-report">
         <div className="mb-2 flex gap-2 lg:hidden">
-          <button className={view === 'form' ? 'btn-primary' : 'btn-secondary'} onClick={() => setView('form')}>Form</button>
-          <button className={view === 'preview' ? 'btn-primary' : 'btn-secondary'} onClick={() => setView('preview')}>Preview</button>
+          <button className={view === 'form' ? 'btn-primary' : 'btn-secondary'} aria-pressed={view === 'form'} onClick={() => setView('form')}>Form</button>
+          <button className={view === 'preview' ? 'btn-primary' : 'btn-secondary'} aria-pressed={view === 'preview'} onClick={() => setView('preview')}>Preview</button>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <div className={`min-w-0 ${view === 'preview' ? 'hidden lg:block' : ''}`}>
@@ -217,10 +218,10 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
           </div>
         </div>
       </div>
-      <div hidden={tab !== 'evidence'}>
+      <div hidden={tab !== 'evidence'} role="tabpanel" id="ws-panel-evidence" aria-labelledby="ws-tab-evidence">
         <EvidenceTab submissionId={d.id} canEdit={editable} />
       </div>
-      <div hidden={tab !== 'achievement'}>
+      <div hidden={tab !== 'achievement'} role="tabpanel" id="ws-panel-achievement" aria-labelledby="ws-tab-achievement">
         <AchievementTab detail={d} values={ach} onChange={setAchField} disabled={!editable} errors={errors} />
       </div>
     </div>
