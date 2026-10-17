@@ -1,0 +1,65 @@
+{% extends "reports/base.html" %}
+{% comment %}KRAs 34–35 (D-060): project-created faculty financial-support report. Sanctioned and paid amounts are separate,
+in INR exactly as entered; payments are listed, never totalled.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% with fam=schema.family %}
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">{{ schema.activity.label }} {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">{{ fam.title }}</h1>
+<p class="center fdp-sub">Project-created report format (no template supplied) — awaiting institutional review</p>
+
+<p class="bold k11-label">1. Faculty and {{ fam.item }} details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Academic Year / Reporting Period</td><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
+  <tr><td>Name of the faculty member</td><td>{{ a.faculty_name }}</td></tr>
+  <tr><td>Employee ID</td><td>{{ a.employee_id }}</td></tr>
+  {% if fam.kra == 34 %}
+  <tr><td>Type</td><td>{{ a.event_type }}</td></tr>
+  <tr><td>Name of the conference / workshop</td><td>{{ a.event_title }}</td></tr>
+  <tr><td>Organized by</td><td>{{ a.organizer }}</td></tr>
+  <tr><td>Venue / mode</td><td>{{ a.venue_mode }}</td></tr>
+  <tr><td>Dates</td><td>{{ a.start_date_display }}{% if a.end_date_display and a.end_date != a.start_date %} – {{ a.end_date_display }}{% endif %}</td></tr>
+  <tr><td>Participation</td><td>{{ a.participation }}</td></tr>
+  {% else %}
+  <tr><td>Professional body</td><td>{{ a.professional_body }}</td></tr>
+  <tr><td>Membership type / number</td><td>{{ a.membership_type }}{% if a.membership_no %} / {{ a.membership_no }}{% endif %}</td></tr>
+  <tr><td>Validity</td><td>{{ a.valid_from_display }} – {% if a.valid_to_display %}{{ a.valid_to_display }}{% elif a.valid_from %}no end date (life){% endif %}</td></tr>
+  <tr><td><b>Membership fee (INR)</b></td><td>{{ a.fee_inr }}</td></tr>
+  {% endif %}
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Support sanctioned and paid (INR)</p>
+<table class="k11-grid mou-kv">
+  <tr><td style="width:38%">Sanction order / reference</td><td>{{ a.sanction_ref|default:"—" }}</td></tr>
+  {% if fam.kra == 34 %}<tr><td>Sanction date</td><td>{{ a.sanction_date_display }}</td></tr>{% endif %}
+  <tr><td><b>Sanctioned amount (INR)</b></td><td>{{ a.sanctioned_inr }}</td></tr>
+</table>
+<table class="k11-grid k11-courses" style="margin-top:4pt">
+  <thead><tr><th style="width:8%">S. No.</th><th style="width:22%">Payment date</th><th style="width:25%">Amount paid (INR)</th><th>Payment / voucher reference</th></tr></thead>
+  {% for r in a.payments_records %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ r.payment_date }}</td><td>{{ r.amount_inr }}</td><td>{{ r.reference }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="empty">No payment recorded yet.</td></tr>{% endfor %}
+</table>
+<p class="table-note">{{ fam.note }}</p>
+</div>
+
+<div class="keep">
+<p class="bold k11-label">3. Evidence</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:12%">Sl. No.</th><th>Evidence</th><th style="width:20%">Maintained</th></tr></thead>
+  {% for item, val in a.doc_checklist_items %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td class="center">{{ val|default:"—" }}</td></tr>{% endfor %}
+</table>
+<p class="table-note">Files are kept in the portal's Evidence tab, not in this PDF.</p>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">{{ fam.title }}</h1>
+<p class="empty">No records have been added to this report yet.</p>
+{% endfor %}
+{% endwith %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

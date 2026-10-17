@@ -152,3 +152,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 43** — projec
 ## KRAs 21 and 39 review (adapted formats)
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 21** — add training programmes (try attended > enrolled, then *Submit*); add optional qualifying students and check the PDF labels them supporting information only. **KRA 39** — add a grant with a sanctioned amount and receipts in rupees (e.g. `500000.50`); check sanctioned, received and utilized amounts print separately and nothing is totalled; note the PDF's unit remark about "INR in Lakhs" vs the target. Samples: `.work/renders/kra{21,39}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 21 --kra 39`). Decisions: D-056, D-057.
+
+## KRAs 14, 16, 34, 35 review (project-created formats)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 14** — add a registration and its student team (Submit refuses an empty team). **KRA 16** — add an ambassador; certificate fields may stay blank. **KRAs 34/35** — enter the sanctioned amount and several payments in rupees (e.g. `3000.50`, `1499.99`): each smaller payment is accepted, sanctioned and paid amounts print separately and nothing is totalled; 35 accepts a blank valid-to for life membership. Samples: `.work/renders/kra{14,16,34,35}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 14 --kra 16 --kra 34 --kra 35`). Decisions: D-058 to D-061.

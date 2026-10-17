@@ -1,0 +1,44 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 14 (D-058): project-created Yukthi registration report; no template was supplied.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Registration {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">Yukthi Registration — Faculty with Students</h1>
+<p class="center fdp-sub">Project-created report format (no template supplied) — awaiting institutional review</p>
+
+<p class="bold k11-label">1. Registration details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:36%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Academic Year / Reporting Period</td><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
+  <tr><td>Project / idea title</td><td>{{ a.project_title }}</td></tr>
+  <tr><td>Yukthi registration ID</td><td>{{ a.registration_id }}</td></tr>
+  <tr><td>Registration date</td><td>{{ a.registration_date_display }}</td></tr>
+  <tr><td>Faculty coordinator</td><td>{{ a.faculty_coordinator }}</td></tr>
+  <tr><td>Innovation area / domain</td><td>{{ a.innovation_area }}</td></tr>
+  <tr><td>Current status</td><td>{{ a.status }}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Student team</p>
+{% if a.students_rows %}{% include "reports/_records_table.html" with spec=fields.students rows=a.students_rows %}
+{% else %}<p class="empty">No students recorded.</p>{% endif %}
+</div>
+
+<div class="keep">
+<p class="bold k11-label">3. Evidence</p>
+<table class="k11-grid mou-ev">
+  <thead><tr><th style="width:12%">Sl. No.</th><th>Evidence</th><th style="width:20%">Maintained</th></tr></thead>
+  {% for item, val in a.doc_checklist_items %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ item }}</td><td class="center">{{ val|default:"—" }}</td></tr>{% endfor %}
+</table>
+<p class="table-note">References: {{ a.evidence_refs|default:"—" }}. Files are kept in the portal's Evidence tab, not in this PDF.</p>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">Yukthi Registration — Faculty with Students</h1>
+<p class="empty">No registrations have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

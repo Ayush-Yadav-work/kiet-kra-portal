@@ -1,0 +1,57 @@
+{
+  "key": "kra16",
+  "version": 1,
+  "title": "Innovation Ambassadors",
+  "source": "none — project-created format (no template supplied; plan 5.3, D-059)",
+  "source_checksum": "",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Ambassador", "min": 1, "max": 20},
+  "sections": [
+    {
+      "id": "identity", "title": "1. Ambassador details",
+      "intro": "Project-created format awaiting institutional review. One section per innovation ambassador. Department, academic year and reporting period are filled from this report.",
+      "fields": [
+        {"id": "name", "label": "Name of the innovation ambassador", "type": "text", "required": true, "max_length": 150},
+        {"id": "member_id", "label": "Employee ID / Roll No.", "type": "text", "required": true, "max_length": 40},
+        {"id": "category", "label": "Category", "type": "select", "required": true, "options": ["Faculty", "Staff", "Student"]},
+        {"id": "designation", "label": "Designation / programme", "type": "text", "required": true, "max_length": 150}
+      ]
+    },
+    {
+      "id": "appointment", "title": "2. Appointment, training and certification",
+      "fields": [
+        {"id": "appointing_body", "label": "Appointing / certifying body", "type": "text", "required": true, "max_length": 200,
+         "suggestions": ["MoE's Innovation Cell (IIC)"]},
+        {"id": "training", "label": "Training programme completed", "type": "text", "required": true, "max_length": 250},
+        {"id": "training_completed", "label": "Training completion date", "type": "date", "required": false},
+        {"id": "certificate_no", "label": "Certificate number (if issued)", "type": "text", "required": false, "max_length": 80},
+        {"id": "certificate_date", "label": "Certificate date (if issued)", "type": "date", "required": false}
+      ]
+    },
+    {
+      "id": "contributions", "title": "3. Contributions as innovation ambassador",
+      "intro": "Activities actually conducted or supported; leave empty if none yet.",
+      "fields": [
+        {"id": "contributions", "label": "Contributions", "type": "table", "required": false, "max_rows": 30,
+         "columns": [
+           {"id": "date", "label": "Date", "type": "date", "required": true, "width": "16%"},
+           {"id": "activity", "label": "Activity", "type": "text", "required": true, "max_length": 200, "width": "34%"},
+           {"id": "description", "label": "Contribution / outcome", "type": "longtext", "required": true, "max_length": 800, "width": "45%"}
+         ]}
+      ]
+    },
+    {
+      "id": "documents", "title": "4. Evidence", "intro": "Yes/No as maintained; upload files in the Evidence tab (not added to the PDF).",
+      "fields": [
+        {"id": "doc_checklist", "label": "Evidence maintained", "type": "checklist", "required": false,
+         "items": ["Appointment / nomination letter", "Training completion certificate", "Innovation Ambassador certificate", "Evidence of contributions"]},
+        {"id": "evidence_refs", "label": "Evidence references (optional)", "type": "text", "required": false, "max_length": 300}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Appointment / nomination letter", "Training completion certificate", "Innovation Ambassador certificate", "Evidence of contributions", "Other"],
+    "required": [],
+    "note": "Proposed categories awaiting institutional review; no minimum set agreed (docs/decisions.md D-059)."
+  }
+}

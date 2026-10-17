@@ -129,11 +129,17 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 ## Bug fix — event-tab reset after workspace load ✅
 - [x] Cause: `SubmissionLoader` remounted the editor (`key={state.n}`) on every completed load; React StrictMode runs the load effect twice in development, so the second response remounted the editor, resetting the selected event tab and discarding input typed in between (a late/stale load in any environment does the same).
 - [x] Fix: loads are aborted when their effect is cleaned up (only the current load may update state); the loader is keyed by submission id so a KRA/period switch starts fresh; explicit reloads (after submit, conflict resolution, reopen request) still remount on purpose.
-- [x] Browser regression test added. Committed separately on phase2-kra33-pilot.
+- [x] Browser regression test added. Committed (6b34e82).
+
+## Phase 4 (bounded) — KRAs 14, 16, 34, 35 (project-created formats) ✅ (pending review)
+- [x] KRA 14 Yukthi registrations with student teams (D-058); KRA 16 innovation ambassadors (D-059)
+- [x] KRAs 34/35 faculty financial support: sanctioned vs paid INR, multiple payments, Rs. 5,000 condition printed without aggregation (D-060)
+- [x] Mappings idempotent, targets unchanged; frontend unchanged; verification box kept with the report end (D-061)
+- Open: D-058–D-061 institutional review. Committed on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 7 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 3 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).

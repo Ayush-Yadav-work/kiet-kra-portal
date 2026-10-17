@@ -600,3 +600,52 @@ def kra39_grant(i=1, long_text=False, receipts=2):
 
 def kra39_payload(grants=1, long_text=False, receipts=2):
     return {"activities": [kra39_grant(i + 1, long_text, receipts) for i in range(grants)]}
+
+
+def kra14_registration(i=1, students=3, long_text=False):
+    return {"project_title": f"Synthetic smart irrigation idea {i}" + (" with low-cost soil sensors and solar telemetry" if long_text else ""),
+            "registration_id": f"SYN-YUKTHI-{i:04d}", "registration_date": "2026-09-05", "faculty_coordinator": "Test Faculty, Assistant Professor",
+            "innovation_area": "Agritech (synthetic)", "status": "Registered",
+            "students": [{"name": f"Test Student {i}.{s + 1} Zoë", "roll_no": f"SYN22{i:02d}{s:02d}", "programme": "" if s % 3 == 2 else "B.Tech ECE / III"}
+                         for s in range(students)],
+            "doc_checklist": {"Yukthi registration confirmation": "Yes", "Team details": "Yes"}, "evidence_refs": ""}
+
+
+def kra14_payload(registrations=1, students=3, long_text=False):
+    return {"activities": [kra14_registration(i + 1, students, long_text) for i in range(registrations)]}
+
+
+def kra16_ambassador(i=1, contributions=2, long_text=False):
+    return {"name": f"Test Ambassador {i} Łukasz", "member_id": f"T{2000 + i}", "category": ["Faculty", "Staff", "Student"][i % 3],
+            "designation": "Assistant Professor", "appointing_body": "MoE's Innovation Cell (IIC)",
+            "training": "Synthetic Innovation Ambassador foundation training", "training_completed": "2026-08-20",
+            "certificate_no": "" if i % 2 == 0 else f"SYN-IA-{i:04d}", "certificate_date": "" if i % 2 == 0 else "2026-08-25",
+            "contributions": [{"date": f"2026-09-{10 + c % 18:02d}", "activity": f"Synthetic ideation session {c + 1}",
+                               "description": "Synthetic mentoring of student teams." + (" Synthetic follow-up detail." * 12 if long_text else "")}
+                              for c in range(contributions)],
+            "doc_checklist": {"Appointment / nomination letter": "Yes", "Training completion certificate": "Yes"}, "evidence_refs": ""}
+
+
+def kra16_payload(ambassadors=1, contributions=2, long_text=False):
+    return {"activities": [kra16_ambassador(i + 1, contributions, long_text) for i in range(ambassadors)]}
+
+
+def support_record(kra, i=1, payments=2, long_text=False):
+    base = {"faculty_name": f"Test Faculty {i} Zoë", "employee_id": f"T{3000 + i}",
+            "payments": [{"payment_date": f"2026-09-{5 + p % 20:02d}", "amount_inr": ["3000.50", "2000", "1499.99"][p % 3],
+                          "reference": f"SYN-VCH-{kra}{i:02d}{p:02d}"} for p in range(payments)],
+            "doc_checklist": {"Sanction order": "Yes", "Payment / reimbursement proof": "Yes"}}
+    if kra == 34:
+        base.update(event_type="Conference" if i % 2 else "Workshop",
+                    event_title=f"Synthetic International Conference {i}" + (" on Embedded Systems, Signal Processing and Communication" if long_text else ""),
+                    organizer="Example Institute (synthetic)", venue_mode="Example City / Offline", start_date="2026-09-02", end_date="2026-09-04",
+                    participation="Paper presentation", sanction_ref=f"SYN/FS/{i:03d}", sanction_date="2026-08-20", sanctioned_inr="5000.00")
+    else:
+        base.update(professional_body=f"Example Engineering Society {i} (synthetic)", membership_type="Annual" if i % 2 else "Life",
+                    membership_no=f"SYN-M-{i:05d}", valid_from="2026-04-01", valid_to="2027-03-31" if i % 2 else "", fee_inr="5500.00",
+                    sanction_ref="" if i % 2 == 0 else f"SYN/MS/{i:03d}", sanctioned_inr="5000")
+    return base
+
+
+def support_payload(kra, records=1, payments=2, long_text=False):
+    return {"activities": [support_record(kra, i + 1, payments, long_text) for i in range(records)]}
