@@ -159,10 +159,17 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] Locking corrected: only ended years are read-only; new current-year pairs can be finalized; existing assignments immutable; deadlines unchanged (D-066)
 - [x] Browser tests isolated on a disposable database (`e2e/run_isolated.py`); direct runs refused (D-067)
 - [x] DEBUG-only `cleanup_e2e_data` with dry run, provenance checks and explicit execution; not executed against the working database (D-067)
-- Open: the working database still holds the earlier browser-test residue until the owner reviews and runs the cleanup. Committed on phase2-kra33-pilot.
+- Open: the working database still holds the earlier browser-test residue until the owner reviews and runs the cleanup. Committed (1cd9f13).
+
+## Phase 5B — VC progress reporting and review navigation ✅ (pending review)
+- [x] One progress dataset for table, counts and PDF; filter validation; deterministic order; pagination (D-068)
+- [x] Submitted vs unsubmitted achievements distinguished; Nil shown beside status; exact text, no totals
+- [x] Progress PDF of all filtered rows via the internal renderer; VC-only, read-only, not cached
+- [x] Review reads the submitted revision (achievement, remarks, Nil, evidence manifest); filters kept when returning
+- Phase 4 institutional acceptance of report formats still pending. Committed on phase2-kra33-pilot.
 
 ## Not done / deferred
-- C10 evidence ZIP (deferred by plan). Phase 5B: progress PDF export, VC review filters and histories.
+- C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).
 - OpenAPI document (a hand-written reference is in `docs/api.md`) and frontend component tests. Browser tests (`e2e/`) cover 22 flows.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.

@@ -1,5 +1,5 @@
 from django.db.models import Exists, OuterRef
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,12 +9,14 @@ from apps.audit.errors import ApiError
 from apps.catalogue.models import ReportingPeriod
 from apps.catalogue.views import assignment_json, period_json
 from apps.evidence.models import Evidence
-from apps.reports.pdf import export_pdf
-from apps.reports.rendering import build_context, render_html
+from apps.reports.pdf import call_renderer, export_pdf
+from apps.reports.rendering import build_context, progress_pdf_parts, render_html
 from apps.reports.schema import validate_payload
 
+from . import progress
 from . import services as svc
 from .models import ReopenGrant, ReviewDecision, Status, Submission
+from .progress import STATUS_LABELS
 from .scope import assignments_for, get_or_404, reopen_requests_for, submissions_for
 
 
@@ -85,8 +87,9 @@ def detail_json(sub, user):
         "reopen_requests": [request_json(r) for r in requests],
         "can_request_reopen": (user.role == "DEAN" and at >= sub.period.closes_at and active is None
                                and not pending and sub.status in svc.EDITABLE_STATUSES),
-        "current_revision": ({"id": str(sub.current_revision.id), "sequence": sub.current_revision.sequence,
-                              "submitted_at": sub.current_revision.submitted_at} if sub.current_revision else None),
+        "current_revision": (lambda r: r and {  # what was submitted: review reads only these values (D-068)
+            "id": str(r.id), "sequence": r.sequence, "submitted_at": r.submitted_at, "achievement_text": r.achievement_text,
+            "remarks": r.remarks, "is_nil": r.is_nil, "nil_reason": r.nil_reason, "evidence": r.evidence_manifest})(sub.current_revision),
         "latest_decision": latest_decision(sub),
         "grant_option_available": svc.grant_option_available(sub, at),
         "period_entries": [
@@ -332,43 +335,40 @@ class ReviewView(APIView):
 
 
 class ProgressView(APIView):
-    """VC status table + counts for year/period with filters; counts derived from the database (C11)."""
+    """VC progress table: filtered, paginated rows and status counts from one dataset (D-068)."""
 
     permission_classes = [IsVC]
-    STATUSES = (svc.NOT_SUBMITTED, Status.DRAFT, Status.SUBMITTED, Status.REJECTED, Status.APPROVED)
 
     def get(self, request):
-        q = request.query_params
-        year = q.get("year", "2026-27")
-        period = get_or_404(ReportingPeriod.objects.filter(year__label=year), pk=q.get("period"))
-        assignments = assignments_for(request.user).filter(year__label=year).order_by("kra__number", "department__code")
-        if q.get("department"):
-            assignments = assignments.filter(department__code=q["department"])
-        if q.get("kra"):
-            assignments = assignments.filter(kra__number=q["kra"])
-        if q.get("search"):
-            assignments = assignments.filter(kra__activity_text__icontains=q["search"][:100])
-        active_ev = Evidence.objects.filter(submission=OuterRef("pk"), removed=False)
-        subs = {s.assignment_id: s for s in Submission.objects.filter(period=period, assignment__in=assignments)
-                .annotate(has_ev=Exists(active_ev))}
-        rows, counts = [], {s: 0 for s in self.STATUSES}
-        for a in assignments:
-            s = subs.get(a.id)
-            if s is None or (s.status == Status.DRAFT and s.edit_version == 0 and not s.has_ev):
-                ds = svc.NOT_SUBMITTED
-            else:
-                ds = s.status
-            counts[ds] += 1
-            if q.get("status") and q["status"] != ds:
-                continue
-            rows.append({"assignment_id": str(a.id), "department": a.department.code, "kra_number": a.kra.number,
-                         "kra_text": a.kra.activity_text, "target_text": a.target_text,
-                         "has_template": a.template_version_id is not None,
-                         "submission_id": str(s.id) if s else None, "display_status": ds,
-                         "achievement_text": s.achievement_text if s else "", "is_nil": s.is_nil if s else False})
-        page, size = max(int(q.get("page", 1) or 1), 1), 50
+        f = progress.parse_filters(request.query_params)
+        rows, counts = progress.build(f)
+        try:
+            page = max(int(request.query_params.get("page", 1) or 1), 1)
+            size = min(max(int(request.query_params.get("page_size", 50) or 50), 10), 100)
+        except ValueError:
+            raise ApiError(400, "invalid_filter", "Page must be a number.")
         pending = reopen_requests_for(request.user).filter(state="PENDING").count()
-        return Response({"server_time": timezone.now(), "period": period_json(period), "counts": counts,
-                         "assigned": sum(counts.values()), "pending_reopen_requests": pending,
-                         "total": len(rows), "page": page, "page_size": size,
-                         "results": rows[(page - 1) * size: page * size]})
+        return Response({"server_time": timezone.now(), "period": period_json(f["period"]), "filters": progress.filters_json(f),
+                         "counts": counts, "assigned": sum(counts.values()), "pending_reopen_requests": pending,
+                         "total": len(rows), "page": page, "page_size": size, "results": rows[(page - 1) * size: page * size]})
+
+
+class ProgressExportView(APIView):
+    """VC-only PDF of ALL filtered rows. Rows and counts come from one statement snapshot; read-only; rendered by the
+    internal renderer (no Chromium in API workers); returned directly, never cached on disk (D-068)."""
+
+    permission_classes = [IsVC]
+
+    def get(self, request):
+        f = progress.parse_filters(request.query_params)
+        rows, counts = progress.build(f)  # one SQL statement: rows and counts share a snapshot
+        at = timezone.localtime()
+        parts = progress_pdf_parts({"rows": rows, "counts": counts, "total": len(rows), "filters": progress.filters_json(f),
+                                    "generated_at": at, "count_list": [(STATUS_LABELS[s], counts[s]) for s in progress.STATUSES]})
+        data = call_renderer(parts)
+        name = f'KRA_progress_{f["year"].label}_P{f["period"].index}_{at:%Y%m%d-%H%M}.pdf'
+        resp = HttpResponse(data, content_type="application/pdf")
+        resp["Content-Disposition"] = f'attachment; filename="{name}"'
+        resp["Cache-Control"] = "private, no-store"
+        resp["X-Content-Type-Options"] = "nosniff"
+        return resp

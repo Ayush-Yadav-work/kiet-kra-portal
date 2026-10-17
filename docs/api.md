@@ -11,9 +11,11 @@ All endpoints are under `/api/v1/`, use the session cookie plus the `X-CSRFToken
 | `GET years/`, `GET periods/?year=`, `GET departments/`, `GET kras/`, `GET templates/<key>/<version>/` | Dean, VC | Catalogue reads (Dean: own department; templates only when assigned) |
 | `GET assignments/?year=&period=` | Dean (own department), VC (all) | Finalized assignments with the period's submission summary; also the VC's read-only view of past years |
 | `GET/POST assignments/<id>/periods/<period>/`, `POST …/reopen-requests/` | Dean | Open/create the workspace row; request reopening |
-| `GET submissions/<id>/`, `PATCH …/draft/`, `POST …/validate/`, `POST …/preview/`, `GET …/export/`, `POST …/submit/`, `POST …/review/`, `GET …/history/`, `POST …/reopen-requests/` | Dean / VC as applicable | Report workflow |
+| `GET submissions/<id>/` (its `current_revision` carries the submitted achievement, remarks, Nil and evidence manifest), `PATCH …/draft/`, `POST …/validate/`, `POST …/preview/`, `GET …/export/`, `POST …/submit/`, `POST …/review/`, `GET …/history/`, `POST …/reopen-requests/` | Dean / VC as applicable | Report workflow |
 | `GET/POST submissions/<id>/evidence/`, `GET/DELETE evidence/<id>/`, `GET evidence/<id>/download/` | Dean / VC | Evidence |
-| `GET reopen-requests/`, `POST reopen-requests/<id>/decision/`, `GET reopen-grants/active/`, `GET progress/` | VC (Dean: own) | Review administration |
+| `GET reopen-requests/`, `POST reopen-requests/<id>/decision/`, `GET reopen-grants/active/` | VC (Dean: own) | Review administration |
+| `GET progress/?year=&period=&department=&kra=&status=&search=&page=&page_size=` | VC only | Phase 5B (D-068): `{filters, counts, assigned, total, page, page_size, results}`; counts cover all filters except status; rows carry `display_status`, `status_label`, exact `target_text`/`achievement_text`, `is_nil`, `achievement_source` (`submitted`/`draft`/`none`), `revision_sequence`, `submitted_at`, `changed_since_submission`. 400 `invalid_filter` (period not in year, unknown status/department/KRA), 400 `too_many_rows` (> 5,000). Page size 10–100 (default 50) |
+| `GET progress/export/?…same filters…` | VC only | PDF of **all** filtered rows (A4 landscape, repeating header, filters, counts, generation time); `attachment`, `Cache-Control: private, no-store`, not stored. 503 `pdf_busy`/`pdf_unavailable`, 502 `pdf_failed` from the renderer |
 
 ## Phase 5A — VC administration (D-065)
 

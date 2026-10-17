@@ -25,7 +25,8 @@ export interface SubmissionDetail {
   id: string; server_time: string; assignment: Assignment; period: Period; status: string; display_status: DisplayStatus
   is_nil: boolean; nil_reason: string; achievement_text: string; remarks: string; payload: Payload; edit_version: number
   editable: boolean; active_grant: Grant | null; grants: Grant[]; reopen_requests: ReopenRequest[]; can_request_reopen: boolean
-  current_revision: { id: string; sequence: number; submitted_at: string } | null; latest_decision: Decision | null
+  current_revision: { id: string; sequence: number; submitted_at: string; achievement_text: string; remarks: string; is_nil: boolean; nil_reason: string
+    evidence: { id: string; source_type: string; category: string; label: string; original_filename: string; drive_url: string }[] } | null; latest_decision: Decision | null
   grant_option_available: boolean; period_entries: PeriodEntry[]
 }
 

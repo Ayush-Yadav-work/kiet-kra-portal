@@ -41,6 +41,7 @@ api = [
     path(f"reopen-requests/{UUID}/decision/", sub.ReopenDecisionView.as_view()),
     path("reopen-grants/active/", sub.ActiveGrantsView.as_view()),
     path("progress/", sub.ProgressView.as_view()),
+    path("progress/export/", sub.ProgressExportView.as_view()),
     # Phase 5A — VC administration (D-065)
     path("admin/templates/", adm.TemplatesView.as_view()),
     path("admin/kras/", adm.AdminKRAsView.as_view()),
