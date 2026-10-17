@@ -1,0 +1,57 @@
+{
+  "key": "kra39",
+  "version": 1,
+  "title": "Grants received for development and maintenance of infrastructure",
+  "source": "reference/templates/KRA 39 - Template.xlsx - Research Funding.pdf (adapted: the supplied sheet covers research funding; the workbook counts infrastructure grants — D-057)",
+  "source_checksum": "eef1813a590b3cfda0487e3f445abf4870965ff9b53f67ec1e2110eaa0e0c0f9",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Grant", "min": 1, "max": 20},
+  "sections": [
+    {
+      "id": "grant", "title": "1. Grant details",
+      "intro": "Adapted format: one section per grant for development or maintenance of infrastructure. Exclude research projects, endowments/chairs and grants covered under Criteria III and V. All amounts are entered in INR (rupees, up to 2 decimals) — not in lakhs.",
+      "fields": [
+        {"id": "funding_body", "label": "Name of the funding body / donor", "type": "text", "required": true, "max_length": 250},
+        {"id": "body_type", "label": "Type of funding body", "type": "select", "required": true,
+         "options": ["Government", "Non-government", "Philanthropist"]},
+        {"id": "grant_reference", "label": "Grant / sanction reference", "type": "text", "required": true, "max_length": 150},
+        {"id": "purpose_type", "label": "Infrastructure purpose", "type": "select", "required": true,
+         "options": ["Development", "Maintenance", "Development and maintenance"]},
+        {"id": "purpose", "label": "Infrastructure item(s) / description", "type": "longtext", "required": true, "max_length": 1500},
+        {"id": "sanction_date", "label": "Sanction date", "type": "date", "required": true},
+        {"id": "sanctioned_inr", "label": "Sanctioned amount (INR)", "type": "decimal", "required": true, "min": 0, "max": 1000000000000,
+         "decimal_places": 2, "placeholder": "e.g. 1500000.00"}
+      ]
+    },
+    {
+      "id": "receipts", "title": "2. Amounts received",
+      "intro": "One row per receipt (instalment) actually received. The workbook KRA counts grants received; the portal does not total the receipts.",
+      "fields": [
+        {"id": "receipts", "label": "Receipts", "type": "table", "required": false, "max_rows": 50,
+         "columns": [
+           {"id": "receipt_date", "label": "Date received", "type": "date", "required": true, "width": "22%"},
+           {"id": "amount_inr", "label": "Amount received (INR)", "type": "decimal", "required": true, "min": 0, "max": 1000000000000,
+            "decimal_places": 2, "width": "28%"},
+           {"id": "reference", "label": "Receipt / transaction reference", "type": "text", "required": false, "max_length": 120, "width": "46%"}
+         ]}
+      ]
+    },
+    {
+      "id": "utilization", "title": "3. Utilization",
+      "fields": [
+        {"id": "utilization_status", "label": "Utilization status", "type": "select", "required": true,
+         "options": ["Not started", "In progress", "Completed"]},
+        {"id": "utilized_inr", "label": "Amount utilized so far (INR, if known)", "type": "decimal", "required": false, "min": 0,
+         "max": 1000000000000, "decimal_places": 2},
+        {"id": "utilization_remarks", "label": "Utilization details / remarks", "type": "longtext", "required": false, "max_length": 2000},
+        {"id": "evidence_refs", "label": "Evidence references", "type": "text", "required": false, "max_length": 300,
+         "help": "Name the Evidence-tab items (sanction letter, receipt, utilization certificate); files are not added to the PDF."}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Sanction Letter", "Receipt/Bank Credit Advice", "Utilization Certificate", "Statement of Expenditure", "Photographs of Infrastructure", "Other"],
+    "required": [],
+    "note": "No minimum set has been agreed (docs/decisions.md D-057)."
+  }
+}

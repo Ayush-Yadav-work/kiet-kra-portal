@@ -148,3 +148,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean, open each of KRAs 27�
 ## KRAs 43, 44, 45 review
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 43** — project-created conference format: enter paper counts (try published > accepted, then *Submit*) and set indexing to "Verified in Scopus" to see the reference become required. **KRA 44** — check the six phases start empty (source text under *Template guidance*) and the 14-item Yes/No evidence list. **KRA 45** — tick SDGs, add resource persons, and note "Implementation/follow-up plan" replaces the undefined "MBU"; photographs/brochure/certificates go to the Evidence tab only. Samples: `.work/renders/kra{43,44,45}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 43 --kra 44 --kra 45`). Decisions: D-053 to D-055.
+
+## KRAs 21 and 39 review (adapted formats)
+
+Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 21** — add training programmes (try attended > enrolled, then *Submit*); add optional qualifying students and check the PDF labels them supporting information only. **KRA 39** — add a grant with a sanctioned amount and receipts in rupees (e.g. `500000.50`); check sanctioned, received and utilized amounts print separately and nothing is totalled; note the PDF's unit remark about "INR in Lakhs" vs the target. Samples: `.work/renders/kra{21,39}/{normal,multi,long,empty,nil}.pdf` (regenerate with `manage.py render_sample --kra 21 --kra 39`). Decisions: D-056, D-057.

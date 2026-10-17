@@ -1,0 +1,53 @@
+{% extends "reports/base.html" %}
+{% comment %}KRA 39 (D-057): adapted infrastructure-grant report. Sanctioned, received (per receipt) and utilized amounts are
+separate rows, all in INR exactly as entered; nothing is totalled or converted to lakhs.{% endcomment %}
+{% block body %}
+{% include "reports/_summary.html" %}
+<p class="table-note">Workbook unit: the KRA text says "(INR in Lakhs)", while the target above is printed exactly as assigned; whether it is in rupees or lakhs is unresolved. Amounts in this report are in INR (rupees).</p>
+{% for a in activities %}
+<section class="k11 evt {% if not forloop.first %}event-break{% endif %}">
+{% if activities|length > 1 %}<p class="event-tag">Grant {{ forloop.counter }} of {{ activities|length }}</p>{% endif %}
+<h1 class="title fdp-title">Grants Received for Development and Maintenance of Infrastructure</h1>
+<p class="center fdp-sub">Adapted report format — the supplied KRA 39 sheet covers research funding, which is excluded here</p>
+
+<p class="bold k11-label">1. Grant details</p>
+<table class="k11-grid mou-kv">
+  <thead><tr><th style="width:38%">Particular</th><th>Details</th></tr></thead>
+  <tr><td>Department/School</td><td>{{ snap.department.name }}</td></tr>
+  <tr><td>Academic Year / Reporting Period</td><td>{{ snap.year }} — {{ snap.period.label }}</td></tr>
+  <tr><td>Funding body / donor</td><td>{{ a.funding_body }}</td></tr>
+  <tr><td>Type of funding body</td><td>{{ a.body_type }}</td></tr>
+  <tr><td>Grant / sanction reference</td><td>{{ a.grant_reference }}</td></tr>
+  <tr><td>Infrastructure purpose</td><td>{{ a.purpose_type }}</td></tr>
+  <tr><td>Infrastructure item(s) / description</td><td>{{ a.purpose|linebreaksbr }}</td></tr>
+  <tr><td>Sanction date</td><td>{{ a.sanction_date_display }}</td></tr>
+  <tr><td><b>Sanctioned amount (INR)</b></td><td>{% if a.sanctioned_inr != "" %}{{ a.sanctioned_inr }}{% endif %}</td></tr>
+</table>
+
+<div class="keep">
+<p class="bold k11-label">2. Amounts received (INR)</p>
+<table class="k11-grid k11-courses">
+  <thead><tr><th style="width:8%">S. No.</th><th style="width:22%">Date received</th><th style="width:28%">Amount received (INR)</th><th>Receipt / transaction reference</th></tr></thead>
+  {% for r in a.receipts_records %}<tr><td class="center">{{ forloop.counter }}</td><td>{{ r.receipt_date }}</td><td>{{ r.amount_inr }}</td><td>{{ r.reference|default:"—" }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="empty">No amount received recorded for this grant.</td></tr>{% endfor %}
+</table>
+<p class="table-note">Each receipt as entered; the portal does not total receipts or compare them with the sanctioned amount.</p>
+</div>
+
+<div class="keep">
+<p class="bold k11-label">3. Utilization</p>
+<table class="k11-grid mou-kv">
+  <tr><td style="width:38%">Utilization status</td><td>{{ a.utilization_status }}</td></tr>
+  <tr><td><b>Amount utilized so far (INR)</b></td><td>{% if a.utilized_inr != "" %}{{ a.utilized_inr }}{% else %}—{% endif %}</td></tr>
+  <tr><td>Utilization details / remarks</td><td>{% if a.utilization_remarks %}{{ a.utilization_remarks|linebreaksbr }}{% else %}—{% endif %}</td></tr>
+  <tr><td>Evidence references</td><td>{{ a.evidence_refs|default:"—" }}</td></tr>
+</table>
+<p class="table-note">Files are kept in the portal's Evidence tab, not in this PDF.</p>
+</div>
+</section>
+{% empty %}
+<h1 class="title fdp-title">Grants Received for Development and Maintenance of Infrastructure</h1>
+<p class="empty">No grants have been added to this report yet.</p>
+{% endfor %}
+<div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
+{% endblock %}

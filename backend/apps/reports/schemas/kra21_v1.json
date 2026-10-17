@@ -1,0 +1,73 @@
+{
+  "key": "kra21",
+  "version": 1,
+  "title": "Competitive Training (GATE, NET, GMAT etc.,) conducted",
+  "source": "reference/templates/KRA 21 GATE and Training.xlsx - GATE.pdf (adapted: the supplied sheet lists students qualifying exams; the workbook counts training conducted — D-056)",
+  "source_checksum": "a0f11131a9003eccb23bc2145f09df012f5166e34a932af12aeba28fbe38485f",
+  "page": {"format": "A4", "landscape": false, "style": "report"},
+  "activity": {"label": "Programme", "min": 1, "max": 20},
+  "rules": [
+    {"type": "date_order", "a": "start_date", "b": "end_date", "message": "End date cannot be before the start date."},
+    {"type": "lte", "a": "participated", "b": "enrolled", "message": "Students participated cannot exceed students enrolled."}
+  ],
+  "sections": [
+    {
+      "id": "programme", "title": "1. Training programme details",
+      "intro": "Adapted format: one section per competitive-examination training programme conducted. Department, academic year and reporting period are filled from this report.",
+      "fields": [
+        {"id": "programme_title", "label": "Title of the training programme", "type": "text", "required": true, "max_length": 250},
+        {"id": "examination", "label": "Examination(s) targeted", "type": "text", "required": true, "max_length": 150,
+         "suggestions": ["GATE", "NET", "GMAT", "GPAT"], "help": "Workbook examples: GATE, NET, GMAT etc."},
+        {"id": "start_date", "label": "Start date", "type": "date", "required": true},
+        {"id": "end_date", "label": "End date", "type": "date", "required": true},
+        {"id": "duration", "label": "Duration", "type": "text", "required": true, "max_length": 80, "placeholder": "e.g. 40 hours over 8 weeks",
+         "help": "As conducted; no minimum duration is applied."},
+        {"id": "mode", "label": "Mode", "type": "select", "required": true, "options": ["Offline", "Online", "Hybrid"]},
+        {"id": "venue", "label": "Venue / platform", "type": "text", "required": true, "max_length": 200},
+        {"id": "organizer", "label": "Organized by", "type": "text", "required": true, "max_length": 200},
+        {"id": "coordinator", "label": "Faculty coordinator(s)", "type": "text", "required": true, "max_length": 300},
+        {"id": "trainers", "label": "Trainer(s) / resource person(s) with designation and organization (one per line)", "type": "longtext",
+         "required": true, "max_length": 1500},
+        {"id": "target_group", "label": "Target group", "type": "text", "required": true, "max_length": 200, "placeholder": "e.g. B.Tech ECE, 3rd and 4th year"}
+      ]
+    },
+    {
+      "id": "participation", "title": "2. Participation",
+      "fields": [
+        {"id": "enrolled", "label": "Students enrolled", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "participated", "label": "Students who attended", "type": "integer", "required": true, "min": 0, "max": 100000},
+        {"id": "sessions", "label": "Number of sessions (if known)", "type": "integer", "required": false, "min": 0, "max": 10000}
+      ]
+    },
+    {
+      "id": "content", "title": "3. Topics and outcomes",
+      "fields": [
+        {"id": "topics", "label": "Topics covered (one per line)", "type": "longtext", "required": true, "max_length": 3000},
+        {"id": "outcomes", "label": "Outcomes observed (one per line)", "type": "longtext", "required": true, "max_length": 3000,
+         "help": "Describe what was observed (e.g. mock-test participation); do not report future exam results here."},
+        {"id": "evidence_refs", "label": "Evidence references", "type": "text", "required": false, "max_length": 300,
+         "help": "Name the Evidence-tab items (notice, schedule, attendance, material); files are not added to the PDF."}
+      ]
+    },
+    {
+      "id": "qualifiers", "title": "4. Students qualifying examinations (optional supporting information)",
+      "intro": "Optional. These are the columns of the supplied sheet. They support the report but are not the KRA 21 achievement, and the portal counts nothing from them.",
+      "fields": [
+        {"id": "qualifiers", "label": "Qualifying students (optional)", "type": "table", "required": false, "max_rows": 100,
+         "columns": [
+           {"id": "student_name", "label": "Name of the qualifying student", "type": "text", "required": true, "max_length": 150, "width": "28%"},
+           {"id": "year", "label": "Year of Qualifying", "type": "text", "required": true, "max_length": 9, "width": "13%", "placeholder": "e.g. 2026"},
+           {"id": "level", "label": "Level of Exam", "type": "select", "required": true, "options": ["State", "National", "International"], "width": "14%"},
+           {"id": "exam", "label": "Name of competitive examination", "type": "text", "required": true, "max_length": 100, "width": "20%"},
+           {"id": "link", "label": "Links to relevant document", "type": "text", "required": false, "max_length": 300, "width": "21%"}
+         ]}
+      ]
+    }
+  ],
+  "evidence": {
+    "categories": ["Training Notice/Circular", "Schedule/Timetable", "Attendance Sheet", "Training Material", "Photographs", "Trainer Profile",
+                   "Mock Test/Assessment Records", "Exam Scorecards (optional)", "Other"],
+    "required": [],
+    "note": "No minimum set has been agreed (docs/decisions.md D-056). Scorecards are optional supporting evidence."
+  }
+}

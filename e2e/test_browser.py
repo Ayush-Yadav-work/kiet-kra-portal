@@ -48,6 +48,12 @@ def open_ece_kra(page, kra_number):
     return info["submission_id"]
 
 
+def open_info(page, assignment_id, period_id):
+    """Submission id of an assignment/period workspace (row already created by opening it)."""
+    _, info = api(page, "GET", f"/assignments/{assignment_id}/periods/{period_id}/")
+    return info["submission_id"]
+
+
 class BrowserTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -571,6 +577,7 @@ class BrowserTests(unittest.TestCase):
             p.get_by_role("button", name="Save draft").click()
             expect(p.get_by_role("status")).to_contain_text("Saved")
             p.reload()
+            p.wait_for_load_state("networkidle")  # select the tab after the workspace's post-load re-render
             p.get_by_role("tab", name=re.compile("Event 2")).click()
             expect(p.locator(f"[name='activities.1.{field}']")).to_have_value(value)
             expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
@@ -605,6 +612,7 @@ class BrowserTests(unittest.TestCase):
             p.get_by_role("button", name="Save draft").click()
             expect(p.get_by_role("status")).to_contain_text("Saved")
             p.reload()
+            p.wait_for_load_state("networkidle")  # the workspace re-renders once evidence/preview load; select the tab after
             p.get_by_role("tab", name=re.compile(tab)).click()
             expect(p.locator(f"[name='activities.1.{field}']")).to_have_value(value)
             expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
@@ -617,6 +625,102 @@ class BrowserTests(unittest.TestCase):
                 status, body = api(p, "POST", f"/submissions/{sid}/validate/")
                 self.assertIn("activities.1.indexing_reference", body["field_errors"])
                 expect(frame.get_by_text("Verified in Scopus").first).to_be_visible(timeout=10000)
+
+    def test_kra21_39_adapted_reports(self):
+        """KRA 21: programme title edited and an optional qualifier row's exam edited; KRA 39: a receipt amount edited (kept
+        exactly) — saved, reloaded, previewed and exported."""
+        from tests.fixtures import kra21_payload, kra39_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        frame = p.frame_locator("iframe[title='Report preview']")
+        cases = {21: (kra21_payload(1, qualifiers=2), "activities.0.programme_title", "Synthetic programme {}"),
+                 39: (kra39_payload(1), "activities.0.receipts.1.amount_inr", "123456.{:02d}")}
+        for n, (payload, field, pattern) in cases.items():
+            sid = open_ece_kra(p, n)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            self.assertEqual(d["status"], "DRAFT", f"KRA {n}: demo row not editable")
+            status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                             "achievement_text": "Synthetic"})
+            self.assertEqual(status, 200, body)
+            p.reload()
+            p.wait_for_load_state("networkidle")
+            value = pattern.format(int(time.time()) % 100)
+            p.locator(f"[name='{field}']").fill(value)
+            p.get_by_role("button", name="Save draft").click()
+            expect(p.get_by_role("status")).to_contain_text("Saved")
+            p.reload()
+            expect(p.locator(f"[name='{field}']")).to_have_value(value)
+            expect(frame.get_by_text(value).first).to_be_visible(timeout=10000)
+            _, d = api(p, "GET", f"/submissions/{sid}/")
+            if n == 39:
+                self.assertEqual(d["payload"]["activities"][0]["receipts"][1]["amount_inr"], value)  # stored as typed
+            else:
+                expect(frame.get_by_text("supporting information only").first).to_be_visible()
+            r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
+            self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
+
+    def test_workspace_keeps_event_selection_and_input_across_loads(self):
+        """Regression: a second load of the submission (React StrictMode runs the load effect twice in development; any
+        late or stale load behaves the same) remounted the editor, resetting the selected event tab and discarding typed
+        input. The duplicate detail request is delayed in the page so the race is deterministic. Also checks autosave,
+        removing the selected event and switching KRA without a full page load."""
+        from tests.fixtures import event_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 27)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        payload = event_payload(27, 2)
+        status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                         "achievement_text": "Synthetic"})
+        self.assertEqual(status, 200, body)
+        p.add_init_script("""(() => {
+          const f = window.fetch; let n = 0;
+          window.fetch = (input, init) => {
+            const url = typeof input === 'string' ? input : input.url;
+            if (/\\/api\\/v1\\/submissions\\/[0-9a-f-]{36}\\/$/.test(url) && !(init && init.method && init.method !== 'GET') && ++n === 2)
+              return new Promise((r) => setTimeout(r, 1500)).then(() => f(input, init));
+            return f(input, init);
+          };
+        })()""")
+        p.reload()
+        tab2 = p.get_by_role("tab", name=re.compile("^Event 2"))
+        tab2.click()  # before the delayed duplicate load completes
+        value = f"Typed during load {int(time.time())}"
+        box = p.locator("[name='activities.1.sport']")
+        box.fill(value)
+        p.wait_for_timeout(2500)  # the delayed load has finished by now
+        expect(tab2).to_have_attribute("aria-selected", "true")
+        expect(box).to_have_value(value)
+        expect(p.get_by_role("status")).to_contain_text("Saved", timeout=10000)  # autosave completion keeps the view
+        expect(tab2).to_have_attribute("aria-selected", "true")
+        expect(box).to_have_value(value)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        self.assertEqual(d["payload"]["activities"][1]["sport"], value)
+
+        p.once("dialog", lambda dlg: dlg.accept())
+        p.get_by_role("button", name="Remove event 2").click()  # removing the selected event selects a remaining one
+        expect(p.get_by_role("tab", name=re.compile("^Event 1"))).to_have_attribute("aria-selected", "true")
+        expect(p.get_by_role("tab", name=re.compile("^Event 2"))).to_have_count(0)
+        expect(p.locator("[name='activities.0.event_title']")).to_have_value(payload["activities"][0]["event_title"])
+        expect(p.get_by_role("status")).to_contain_text("Saved", timeout=10000)
+
+        # In-app navigation to another KRA: nothing from KRA 27 (selection or fields) is carried over.
+        _, rows = api(p, "GET", "/periods/?year=2026-27")
+        period = next(x for x in rows["results"] if x["is_open"])
+        _, data = api(p, "GET", f"/assignments/?year=2026-27&period={period['id']}")
+        asg28 = next(a for a in data["results"] if a["kra"]["number"] == 28)
+        p.evaluate("url => { history.pushState({}, '', url); dispatchEvent(new PopStateEvent('popstate')) }",
+                   f"/dean/kra/{asg28['id']}/{period['id']}")
+        expect(p.get_by_role("heading", name=re.compile("^KRA 28"))).to_be_visible(timeout=10000)
+        p.wait_for_load_state("networkidle")
+        expect(p.locator("[name='activities.0.sport']")).to_have_count(0)
+        expect(p.locator("[name='activities.0.cultural_activity']")).to_have_count(1)
+        _, d28 = api(p, "GET", f"/submissions/{open_info(p, asg28['id'], period['id'])}/")
+        self.assertNotIn(value, str(d28["payload"]))
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

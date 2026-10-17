@@ -118,11 +118,22 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] KRA 44 BOOT camp / peer learning report with source sections and editable phases (D-054)
 - [x] KRA 45 flagship event report with SDGs, resource persons, neutral follow-up plan label; paste-in pages → evidence (D-055)
 - [x] Mappings idempotent, targets unchanged; frontend unchanged
-- Open: D-053–D-055 college questions. Committed on phase2-kra33-pilot.
+- Open: D-053–D-055 college questions. Committed (8ce4b52).
+
+## Phase 4 (bounded) — KRAs 21 and 39 (adapted formats) ✅ (pending review)
+- [x] KRA 21 training-conducted report; exam qualifiers optional supporting information only (D-056)
+- [x] KRA 39 infrastructure-grant report; sanctioned / received / utilized INR kept distinct; lakhs ambiguity recorded (D-057)
+- [x] Mappings idempotent, targets unchanged; frontend unchanged; browser tests hardened (wait before tab selection)
+- Open: D-056–D-057 college questions. Committed (e4e934c).
+
+## Bug fix — event-tab reset after workspace load ✅
+- [x] Cause: `SubmissionLoader` remounted the editor (`key={state.n}`) on every completed load; React StrictMode runs the load effect twice in development, so the second response remounted the editor, resetting the selected event tab and discarding input typed in between (a late/stale load in any environment does the same).
+- [x] Fix: loads are aborted when their effect is cleaned up (only the current load may update state); the loader is keyed by submission id so a KRA/period switch starts fresh; explicit reloads (after submit, conflict resolution, reopen request) still remount on purpose.
+- [x] Browser regression test added. Committed separately on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
-- Templates for the other 9 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
+- Templates for the other 7 KRAs (Phase 4); their assignments show "Template pending (Phase 4)".
 - OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
