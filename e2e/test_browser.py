@@ -829,5 +829,65 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_phase5a_vc_assignment_workflow(self):
+        """Phase 5A: Dean denied; VC copies 2026-27 into 2027-28 drafts (repeats show conflicts), edits an ECE target
+        (saved exactly), then adds and finalizes one ECE draft for 2028-29 through the review dialog; the Dean then sees it
+        and a finalized target cannot change. Rerunnable: each run finalizes the next free ECE KRA for 2028-29."""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        status, _ = api(p, "GET", "/admin/years/")
+        self.assertEqual(status, 403)
+        p.goto(f"{BASE}/vc/assignments")
+        p.wait_for_url("**/dean/dashboard")  # VC screen not reachable for a Dean
+
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        v = vc.new_page()
+        login(v, "vc", "demo.vc")
+        v.wait_for_url("**/vc/dashboard")
+        v.get_by_role("link", name="Assignments").click()
+        v.get_by_label("Academic year").select_option("2027-28")
+        v.get_by_label("Department").select_option("ECE")
+        v.get_by_role("button", name="Copy 2026-27 assignments into drafts").click()
+        expect(v.get_by_role("status")).to_contain_text("into 2027-28 drafts")
+        target = f"Synthetic target {int(time.time())} — 50% / NA"
+        box = v.get_by_label("Target for KRA 1", exact=True)
+        box.fill(target)
+        v.get_by_role("row", name=re.compile(r"^KRA 1 ")).get_by_role("button", name="Save").click()
+        v.reload()
+        v.get_by_label("Academic year").select_option("2027-28")
+        v.get_by_label("Department").select_option("ECE")
+        expect(v.get_by_label("Target for KRA 1", exact=True)).to_have_value(target)  # stored exactly
+        _, drafts = api(v, "GET", "/admin/drafts/?year=2027-28&department=ECE")
+        self.assertEqual(next(x for x in drafts if x["kra"]["number"] == 1)["target_text"], target)
+        _, again = api(v, "POST", "/admin/years/2027-28/copy/", {"source_year": "2026-27"})
+        self.assertEqual(again["created"], 0)  # repeated copy never overwrites
+
+        v.get_by_label("Academic year").select_option("2028-29")
+        v.get_by_label("Department").select_option("ECE")
+        pick = v.get_by_label("New draft KRA")
+        expect(pick.locator("option").nth(1)).to_be_attached()
+        kra = pick.locator("option").nth(1).get_attribute("value")
+        pick.select_option(kra)
+        v.get_by_label("New draft target").fill("Synthetic 2028-29 target: 1 Per Year")
+        v.get_by_role("button", name="Add draft").click()
+        expect(v.get_by_label(f"Target for KRA {kra}", exact=True)).to_have_value("Synthetic 2028-29 target: 1 Per Year")
+        _, years = api(v, "GET", "/admin/years/")
+        pending = next(y for y in years if y["label"] == "2028-29")["drafts_pending"]
+        v.get_by_role("button", name=re.compile("Review and finalize")).click()
+        expect(v.get_by_role("dialog", name="Finalize review")).to_contain_text(f"Finalize {pending} draft")
+        v.get_by_role("button", name="Confirm finalize").click()
+        expect(v.get_by_role("status")).to_contain_text(f"Finalized {pending} assignment(s) for 2028-29")
+        expect(v.get_by_label(f"Target for KRA {kra}", exact=True)).to_have_count(0)  # finalized row is read-only
+        _, drafts = api(v, "GET", "/admin/drafts/?year=2028-29&department=ECE")
+        d = next(x for x in drafts if x["kra"]["number"] == int(kra))
+        status, body = api(v, "PATCH", f"/admin/drafts/{d['id']}/", {"target_text": "changed"})
+        self.assertEqual((status, body["code"]), (409, "finalized"))
+        vc.close()
+
+        _, rows = api(p, "GET", "/assignments/?year=2028-29")
+        mine = [r for r in rows["results"] if r["kra"]["number"] == int(kra)]
+        self.assertEqual([(r["department"]["code"], r["target_text"]) for r in mine], [("ECE", "Synthetic 2028-29 target: 1 Per Year")])
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

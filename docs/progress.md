@@ -147,10 +147,18 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - Exit criterion "no unreviewed report exports" is NOT met until that review happens. Phase 5 not started.
 - Committed on phase2-kra33-pilot.
 
+## Phase 5A — VC KRA management and next-year assignments ✅ (pending review)
+- [x] KRA creation with an installed, confirmed report layout; KRA list (D-065)
+- [x] Draft assignments per department/year with exact target text and template; edit/delete until finalized
+- [x] Copy a year's finalized assignments into next-year drafts with explicit conflict reporting; repeat-safe
+- [x] Review summary and transactional, double-click-safe finalization; finalized assignments read-only; past years readable
+- [x] VC-only APIs and screens (Assignments, KRAs); audit events; API reference `docs/api.md`
+- Not in 5A: progress PDF export, VC review filters/histories (5B). Phase 4 institutional-review gate still open. Committed on phase2-kra33-pilot.
+
 ## Not done / deferred
-- C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
+- C10 evidence ZIP (deferred by plan). Phase 5B: progress PDF export, VC review filters and histories.
 - Institutional review of all 45 report formats (Phase 4 exit gate).
-- OpenAPI document and frontend component tests. Browser tests (`e2e/`) cover 9 flows, not the full workflow.
+- OpenAPI document (a hand-written reference is in `docs/api.md`) and frontend component tests. Browser tests (`e2e/`) cover 22 flows.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.

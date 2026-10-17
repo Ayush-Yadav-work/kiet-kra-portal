@@ -160,3 +160,7 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 14** — add a 
 ## KRAs 40, 41, 42 review (project-created formats) and Phase 4 gate
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 40** — add an audit, findings with Refs (F1, F2) and actions naming those Refs; try an action Ref that does not exist, then *Submit* (refused); choose "Follow-up of an earlier audit" to report progress without a new audit. **KRAs 41/42** — add activities and tick the diversity / constitutional dimensions addressed. Samples: `.work/renders/kra{40,41,42}/{normal,multi,long,empty,nil}.pdf`. Decisions: D-062 to D-064. All 45 KRAs are implemented and tested; the Phase 4 gate stays open until the college reviews every format.
+
+## Phase 5A review (VC assignments and next-year targets)
+
+Run `python backend/manage.py migrate`, restart Django and Vite. Sign in as the VC: **Assignments** — pick 2027-28, *Copy 2026-27 assignments into drafts* (run it twice to see the conflict list), choose a department, edit a target (any text, kept exactly) and *Save*, *Review and finalize* → the summary by department → *Confirm finalize*; finalized rows become read-only and appear for that department's Dean. 2026-27 is shown read-only (locked). **KRAs** — create a KRA by choosing an installed layout and ticking the confirmation. A Dean opening `/vc/assignments` is redirected, and `/api/v1/admin/...` returns 403. API reference: `docs/api.md`. Decision: D-065.
