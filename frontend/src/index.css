@@ -45,3 +45,17 @@ h1, h2, h3 { @apply text-heading; }
 }
 @utility label { @apply mb-1 block text-sm font-semibold text-heading; }
 @utility card { @apply rounded-[10px] border border-line bg-white p-4; }
+
+/* UI-2: report tables become labelled cards on phones (wide tables keep their own horizontal scroll on larger screens). */
+@media (max-width: 767px) {
+  .report-table thead { display: none; }
+  .report-table, .report-table tbody, .report-table tr, .report-table td { display: block; width: auto; }
+  .report-table tr { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; padding: 14px 16px; border-bottom: 1px solid var(--color-line); }
+  .report-table td { padding: 0 !important; border: 0 !important; }
+  .report-table td[data-col=head] { grid-column: 1 / 3; font-weight: 700; color: var(--color-heading); }
+  .report-table td[data-col=status] { grid-column: 3; justify-self: end; }
+  .report-table td[data-col=wide] { grid-column: 1 / -1; }
+  .report-table td[data-label]::before { content: attr(data-label) ": "; font-weight: 600; color: var(--color-muted); }
+  .report-table td[data-col=action] { grid-column: 1 / -1; }
+  .report-table td[data-col=action] > * { width: 100%; }
+}

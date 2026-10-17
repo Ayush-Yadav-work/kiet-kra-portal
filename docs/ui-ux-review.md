@@ -201,3 +201,44 @@ an error). Not verified: real 200% browser zoom, screen readers.
 
 - [x] UI-1 accepted by the project owner after local review, 2026-10-17. UI-2 not started.
 
+## UI-2 — dashboards, filters and report tables (2026-10-17) — accepted by the owner
+
+**Changed files:** `frontend/src/features/dean/DeanDashboard.tsx` (rebuilt body; year/period picker widths), `frontend/src/features/vc/VCDashboard.tsx`
+(presentation only — URL filters, stale guard, export and back state unchanged), `frontend/src/components/ui.tsx` (`StatCard`),
+`frontend/src/components/icons.tsx` (card/attention/export icons), `frontend/src/index.css` (phone card layout for `.report-table`),
+`e2e/test_browser.py` (new UI-2 test; 6C contrast test waits for the colour transition). Docs: progress, validation, this file.
+
+**Dean dashboard (reference structure):** title + department, year/period filters right; window line ("P2 is open · Submissions close … ·
+N days left", or closed/not-yet-open); cards Assigned / Not submitted / Draft / Submitted / Rejected / Approved from the loaded rows (they
+always reconcile); "Needs your attention (n)" lists Rejected reports of the selected period (title says *Rejected* or *Returned for
+correction* from the latest decision, reason and decision time, deadline = reopening expiry if a grant exists, else the period close, else
+"Period closed — request reopening from the report") and active reopening grants for any period (deadline = grant expiry; "Current
+status" from the grant); a note says these are also counted in the status totals. Table: KRA, activity, exact target (wrapped), status
+(+ Nil), details (Rejected/Returned date + reviewer, "Awaiting VC review", "Approved by the VC", "Not yet submitted", "—"), one action
+("Start report", "Continue draft", "Correct & resubmit", or "Open report" when the window is closed and no grant; "View" for
+submitted/approved; "Template pending" without a template).
+
+**VC dashboard:** same title row; cards toggle the status filter (`aria-pressed`) and a line explains that counts apply every filter
+except Status; labelled filter bar with Clear filters and the primary Export PDF (busy text "Preparing PDF…", errors in the alert box)
+plus "The PDF contains every row matching these filters, not only this page"; table with achievement source labels ("Submitted revision N ·
+date", "Unsubmitted draft — not reviewed", "Edited after submission; not resubmitted"); Review (primary, Submitted rows) or View &
+history; "N rows · page x of y" with Previous/Next.
+
+**Deviations from the reference (data/feature limits):** no "Returned" card (a VC Return results in Rejected — wording comes from the
+decision instead); no "Needs attention" card (a list, not a workflow total); no "View … reports" links on Dean cards (the Dean dashboard
+has no status filter); no "View all pending" link; no sort arrows; no pagination on the Dean list (all assigned KRAs on one page, in KRA
+order); no "Last update" dates except the rejection/return decision time (the dashboard API does not return per-row update times);
+reopening deadline shown only where a grant exists.
+
+**Localhost review steps:** start the dev services (README), sign in as a Dean → check the cards add up to Assigned, change the period
+(P1/P2), open a report from the table; as the VC reject a submitted report → back as the Dean the item appears under "Needs your
+attention"; as the VC click a status card (table filters, counts stay), use Clear filters, page with Next, export a PDF, open Review and
+use "← Progress" to return to the same filters; repeat at phone width (browser devtools 375 px).
+
+**Screenshots:** `.work/ui-review/ui2/` — `dean-desktop(-top)`, `dean-mobile(-top)`, `vc-desktop(-top)`, `vc-desktop-rejected`,
+`vc-desktop-ece-draft`, `vc-mobile(-top)` (synthetic demo data from the isolated runner, including one rejection and one reopening).
+
+### Owner decision (UI-2)
+
+- [x] UI-2 accepted by the project owner after local review, 2026-10-17. UI-3 not started.
+

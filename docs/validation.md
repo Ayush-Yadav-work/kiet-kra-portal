@@ -416,3 +416,12 @@ Not measured: native checkbox/radio rendering (browser default), the PDF documen
 **Acceptance tracking:** `docs/acceptance-checklist.md` now has one row per KRA 1–45 (activity, format type, institutional acceptance box, status, reviewer, date/notes), all unchecked; the owner's KRA 33 pilot acceptance is recorded separately; a section separates completed scripted checks from pending human checks (screen reader, real 200% zoom, real phone, walkthrough, format review).
 
 **Commands:** `npx tsc -b` + `npm run build` → OK; `python e2e/run_isolated.py -k phase6c` → 2 OK; full `python e2e/run_isolated.py` → **26 tests, OK**. Backend not rerun (no backend change).
+
+# UI-2 validation (2026-10-17) — dashboards, filters and report tables
+
+- `npx tsc -b` + `npm run build` (in `frontend/`) → OK.
+- Focused: `python e2e/run_isolated.py -k ui2 -k phase5b -k phase6c -k wrong_role` → 5 OK (after fixing: a new "Status summary" heading made `get_by_label("Status")` ambiguous — renamed "Report counts"; the 6C contrast test measured the error marker during the 150 ms button colour transition introduced in UI-1 — it now waits 400 ms and measures the settled state, which passes).
+- New regression `test_ui2_dashboards_counts_attention_filters`: Nil submission rejected by the VC and an approved P1 reopening appear once each under "Needs your attention" with the reason, "Period closes" / "Reopening ends" and the right action; Assigned equals the sum of the five status cards and the table row count; the rejected row shows "by Demo Vice-Chancellor"; switching P1→P2 quickly ends on "P2 Reports" (stale guard); the action opens the workspace; VC status card toggles `status=REJECTED` (`aria-pressed`) while the counts stay identical; Clear filters removes it; Next shows page 2; both dashboards have 0 px overflow at 375 px.
+- Full suite on final code: `python e2e/run_isolated.py` → **Ran 27 tests, OK**.
+- Measured (computed colours, isolated runner): Dean and VC dashboards at 1440 and 375 px plus VC with status/department filters — 0 contrast failures, 0 px overflow, no console errors other than the existing signed-out 401. Lowest pairs: control border on canvas 4.23, white on orange marker 4.83, muted text on canvas 5.29, error text on its tint 5.66.
+- Backend unchanged → backend suite not rerun (recorded 506 OK at 6B).

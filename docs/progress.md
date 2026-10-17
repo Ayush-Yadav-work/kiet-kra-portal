@@ -211,6 +211,13 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Checks: `tsc -b` + `npm run build` OK; isolated browser suite 26/26 OK (run twice, the second after the final header change); 0 overflow / 0 contrast failures on login, landing, change-password, Dean and VC dashboards at 1440 and 375 px; header measured at 375–1600 px
 - Not changed: dashboard content (UI-2), workspace/review (UI-3), report preview/PDF templates, APIs, auth.
 
+## UI-2 — Dean/VC dashboards, filters and report tables (UI/UX plan) ✅ accepted by the owner (2026-10-17)
+- [x] Dean: title + department with aligned year/period filters, open/closed/upcoming window line, six summary cards (Assigned = sum of the five statuses), one "Needs your attention" list (rejected/returned reports of the period + active reopening grants, deduplicated, real deadlines), report table with exact targets, status details from available data and one action per row
+- [x] VC: grouped filters (labelled), primary Export PDF with all-rows note, status cards that toggle the status filter (counts exclude the status filter, explained in the UI), Clear filters, achievement source labels, Review / View & history, page N of M
+- [x] Phones: report tables become labelled cards; no page overflow at 375 px; explicit table roles kept for screen readers
+- [x] Checks: `tsc -b` + build OK; full isolated browser suite 27/27 (new `test_ui2_dashboards_counts_attention_filters`); 0 overflow / 0 contrast failures on both dashboards at 1440 and 375 px
+- Not changed: backend, APIs, permissions, workspace, review page, PDFs.
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).
