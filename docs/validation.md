@@ -264,3 +264,37 @@ Not covered: real college data volumes, Devanagari names, printing on physical p
 - Frontend: progress page (achievement source labels, Export PDF with busy/error state, review links keeping filters), review page (revision-based achievement/evidence, back link); `tsc -b` + `npm run build` OK.
 - Browser (isolated runner only): new Phase 5B test — Dean saves an ECE draft achievement; Dean gets 403 from progress and export; VC filters ECE + Draft, sees "Unsubmitted draft", opens View & history (achievement tab says unreviewed draft), "← Progress" returns to the identical filtered URL; clearing the status filter shows 45 rows; Export PDF downloads `KRA_progress_2026-27_P…pdf` containing the draft text, "rows in this report: 45" and the draft marker. It exposed a pre-existing bug (choosing "All …" did not clear a progress filter) — fixed. `python e2e/run_isolated.py` → **23/23 OK**.
 - Visual check: `.work/renders/progress/sample.pdf` (synthetic test data, 54 pages) — KIET header and table header on every page, filters/counts block on page 1, wrapped KRA text, footer with generation time and page N | M; only Tinos fonts.
+
+# Phase 6A validation (2026-10-17) — permissions and workflow integrity
+
+Coverage checklist (existing tests reused; new ones in `backend/tests/test_phase6a.py`):
+
+| Area | Existing coverage | Added in 6A |
+|---|---|---|
+| Login roles, CSRF, inactive users, throttling, password change | `test_auth_and_isolation` | — |
+| Cross-department IDs (submission, draft, preview, export, submit, evidence list/add/delete/download, history, reopen, assignment) | `test_auth_and_isolation` | foreign revision via own submission (preview, export), period of another year, foreign assignment reopen request, reopen-request lists |
+| Anonymous / role on every route | partial (per feature) | sweep over every route in `config/urls.py` (39 route-method pairs anonymous; all 11 VC-only routes for a Dean; 9 Dean-only actions for the VC) |
+| Private evidence exposure | download headers (`test_workflow`) | no URL other than the guarded download serves a stored key (`/`, `/media/`, `/static/`, `/private/`, `/.work/private/`); storage key never in API output |
+| Calendar (IST) | period edges, leap year, draft creation edges, C1 grant 71/72 h | submit at exact close / 1 µs before; request grant exactly 72 h from decision; grant scope (other period, other KRA, other department) |
+| Transitions | reject reason, stale revision, return keeps history, C1/C2 | full matrix incl. double approve, approve after return, blank reason |
+| Locked content / stale tabs | version conflict, submit lock | save, submit, evidence add/remove refused after submission and after approval; revision unchanged |
+| Historical PDFs | label logic | rejected rev 1 PDF says "Historical revision 1: not approved" with rev-1 text after rev 2 is approved |
+| Concurrency | none with real parallel requests | `ConcurrencyTests` (TransactionTestCase): each request in its own thread and DB connection; the test holds the contended row lock until all requests are waiting (`pg_stat_activity`), then releases |
+
+Confirmed defects and fixes (D-069):
+1. A reopening request for a period that had not started was accepted (201) and created a Submission row; approval would have granted 72 h of editing before the period opened. Fixed in `services.request_reopen` (`now < closes_at` → 409 `period_open`, row creation rolled back). Regression: `test_reopen_request_refused_for_a_period_that_has_not_started`.
+2. `GET submissions/<id>/export/` had no `Cache-Control`; now `private, no-store`. Regression: `test_report_export_is_not_cacheable`.
+3. VC progress page (and Dean dashboard/period list) had no stale-response guard: the isolated browser run failed deterministically in the Phase 5B test — after "← Progress", React's development double effect sent two `status=DRAFT` requests; the test then chose "All statuses", and the second Draft response arrived after the 45-row response and overwrote it (traced with request/stack logging; the URL had cleared correctly). Real-user effect: quick filter/period changes could show the previous filter's rows. Fixed with a cancel-on-cleanup guard in `VCDashboard.tsx` and `DeanDashboard.tsx` (`usePeriods`, assignments). Regression: the existing browser test (now passes).
+4. Backend tests stored uploaded evidence and generated PDFs in the working `.work/private`. `PortalTestCase` (and the concurrency tests) now use a temporary folder removed at exit. Existing residue was **not** cleaned.
+
+Concurrency results (no defects; existing locks sufficient): 3 simultaneous submits → one 200, two 409, one revision, one audit event; autosave vs submit → exactly one succeeds and the other gets `not_editable` or `version_conflict` (submitted text never changed afterwards; a stale-version submit never submits unseen text); upload + removal + submit → the revision manifest equals the active evidence exactly, late changes get 409; approve vs reject from two VC tabs → one decision, one audit event, status matches; two reopen decisions → one grant; two first-time C2 requests → one row, one request. The class passed 5 consecutive runs. Which waiter wins is decided by PostgreSQL's lock queue; both outcomes are asserted.
+
+Commands and results:
+- `python scripts/devdb.py start` (local dev PostgreSQL was stopped); all tests use Django's separate test database; the working database was not used.
+- `python backend/manage.py test tests.test_phase6a tests.test_workflow` → **Ran 44 tests, OK**; `tests.test_phase6a.ConcurrencyTests` ×5 → **5 OK each**.
+- Full regression: `python backend/manage.py test tests` → **Ran 500 tests, OK** (renderer running; 0 skipped).
+- Browser (isolated runner only): `python e2e/run_isolated.py` → **Ran 23 tests, OK** (first run: 22 OK + 1 failure in the Phase 5B test → defect 3 above, fixed; reruns of that test alone failed 3/3 before the fix).
+- Frontend: `npx tsc -b` + `npm run build` OK.
+- The PDF renderer was started locally for the full run (`python renderer/server.py`); without it the same suite gave 500 tests OK with 48 renderer tests skipped.
+
+Limitations: concurrency is exercised in-process through Django's test client (threads, separate PostgreSQL connections), not through Gunicorn/HTTP under load; measured load testing is later Phase 6 work. Automated checks are not college acceptance; policy questions are listed in `docs/progress.md`.

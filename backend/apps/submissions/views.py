@@ -236,6 +236,7 @@ class ExportView(APIView):
         resp = FileResponse(path.open("rb"), content_type="application/pdf",
                             as_attachment=request.query_params.get("inline") != "1", filename=f"{name}.pdf")
         resp["X-Content-Type-Options"] = "nosniff"
+        resp["Cache-Control"] = "private, no-store"  # unpublished institutional report (Phase 6A)
         return resp
 
 

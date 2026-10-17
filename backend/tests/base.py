@@ -1,6 +1,9 @@
 """Shared test setup. Uses the real PostgreSQL test database and the real seed command. SYNTHETIC users only."""
+import atexit
 import datetime
 import io
+import shutil
+import tempfile
 from contextlib import contextmanager
 from unittest import mock
 from zoneinfo import ZoneInfo
@@ -14,6 +17,9 @@ from apps.catalogue.models import AnnualAssignment, Department, ReportingPeriod
 
 IST = ZoneInfo("Asia/Kolkata")
 PASSWORD = "Synthetic-Test-Pass-91"
+# Uploaded evidence and generated PDFs from tests go to a throwaway folder, never the working .work/private (Phase 6A).
+TEST_STORAGE = tempfile.mkdtemp(prefix="kra_test_private_")
+atexit.register(shutil.rmtree, TEST_STORAGE, ignore_errors=True)
 
 
 def ist(*args):
@@ -26,7 +32,7 @@ def frozen(at):
         yield
 
 
-@override_settings(SESSION_COOKIE_AGE=10**8)  # sessions must survive frozen far-future clocks
+@override_settings(SESSION_COOKIE_AGE=10**8, PRIVATE_STORAGE_ROOT=TEST_STORAGE)  # sessions must survive frozen far-future clocks
 class PortalTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
