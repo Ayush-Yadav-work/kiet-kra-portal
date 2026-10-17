@@ -51,8 +51,11 @@ def display_status(submission):
     """C11: an untouched Draft (edit_version 0, no active evidence) shows as Not submitted."""
     if submission is None:
         return NOT_SUBMITTED
-    if submission.status == Status.DRAFT and submission.edit_version == 0 and not has_active_evidence(submission):
-        return NOT_SUBMITTED
+    if submission.status == Status.DRAFT and submission.edit_version == 0:
+        # list views annotate `has_ev` (one query for all rows); otherwise ask per submission
+        has_ev = submission.has_ev if hasattr(submission, "has_ev") else has_active_evidence(submission)
+        if not has_ev:
+            return NOT_SUBMITTED
     return submission.status
 
 

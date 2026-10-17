@@ -45,14 +45,15 @@ def latest_decision(sub):
     return decision_json(d) if d else None
 
 
-def summary_json(sub):
-    """Compact per-period state used by dashboards (C11 display status)."""
+def summary_json(sub, decisions):
+    """Compact per-period state used by dashboards (C11 display status). `decisions`: latest decision per submission id."""
     if sub is None:
         return {"id": None, "display_status": svc.NOT_SUBMITTED}
     out = {"id": str(sub.id), "display_status": svc.display_status(sub), "status": sub.status,
            "achievement_text": sub.achievement_text, "is_nil": sub.is_nil}
     if sub.status == Status.REJECTED:
-        out["latest_decision"] = latest_decision(sub)
+        d = decisions.get(sub.id)
+        out["latest_decision"] = decision_json(d) if d else None
     return out
 
 
@@ -113,14 +114,19 @@ class AssignmentsView(APIView):
         qs = assignments_for(request.user).filter(year__label=year)
         period_id = request.query_params.get("period")
         period = get_or_404(ReportingPeriod.objects.filter(year__label=year), pk=period_id) if period_id else None
-        subs = {}
-        if period:
-            subs = {s.assignment_id: s for s in Submission.objects.filter(period=period, assignment__in=qs)}
+        subs, decisions = {}, {}
+        if period:  # fixed number of queries however many rows (Phase 6B: was one query per Rejected/untouched row)
+            subs = {s.assignment_id: s for s in Submission.objects.filter(period=period, assignment__in=qs).annotate(
+                has_ev=Exists(Evidence.objects.filter(submission=OuterRef("pk"), removed=False)))}
+            rejected = [s.id for s in subs.values() if s.status == Status.REJECTED]
+            for d in (ReviewDecision.objects.filter(revision__submission_id__in=rejected).select_related("revision")
+                      .order_by("-created_at")):
+                decisions.setdefault(d.revision.submission_id, d)
         at = timezone.now()
         return Response({
             "server_time": at,
             "period": period_json(period, at) if period else None,
-            "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id)) if period else None}
+            "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id), decisions) if period else None}
                         for a in qs],
         })
 

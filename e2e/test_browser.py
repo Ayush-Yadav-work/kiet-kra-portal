@@ -133,6 +133,41 @@ class BrowserTests(unittest.TestCase):
         _, d = api(p, "GET", f"/submissions/{sid}/")
         self.assertEqual(d["payload"]["activities"][0]["chapter_name"], "Synthetic chapter typed after upload")
 
+    def test_phase6b_failed_autosave_and_upload_recover(self):
+        """Phase 6B: a failed autosave keeps typed values and says so; the next change saves everything; a failed upload is
+        reported and never listed as attached."""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 33)
+        field = p.locator("input[name='activities.0.chapter_name']")
+        fail = lambda route: route.fulfill(status=500, content_type="application/json",
+                                           body='{"code":"error","message":"Synthetic server failure","field_errors":{}}') \
+            if route.request.method == "PATCH" else route.continue_()
+        p.route("**/api/v1/submissions/*/draft/", fail)
+        field.fill("Typed while the server fails")
+        expect(p.get_by_role("status")).to_contain_text("Save failed — will retry on next change", timeout=10000)
+        expect(field).to_have_value("Typed while the server fails")  # typed content preserved
+        p.unroute("**/api/v1/submissions/*/draft/")
+        p.locator("input[name='activities.0.chapter_name']").fill("Typed while the server fails, then recovered")
+        expect(p.get_by_role("status")).to_contain_text("Saved", timeout=10000)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        self.assertEqual(d["payload"]["activities"][0]["chapter_name"], "Typed while the server fails, then recovered")
+        p.reload()
+        expect(p.locator("input[name='activities.0.chapter_name']")).to_have_value("Typed while the server fails, then recovered")
+
+        p.route("**/api/v1/submissions/*/evidence/", lambda route: route.abort() if route.request.method == "POST" else route.continue_())
+        p.get_by_role("tab", name="Evidence").click()
+        p.get_by_label("Category").select_option("Photographs")
+        p.get_by_label("Label").fill("Synthetic upload that fails")
+        p.set_input_files("#ev-file", files=[{"name": "f.png", "mimeType": "image/png", "buffer": b"\x89PNG\r\n\x1a\n" + b"0" * 512}])
+        p.get_by_role("button", name="Add evidence").click()
+        expect(p.get_by_role("alert")).to_contain_text("Cannot reach the server")  # network failure is reported
+        p.unroute("**/api/v1/submissions/*/evidence/")
+        self.assertEqual(p.get_by_text("Synthetic upload that fails", exact=True).count(), 0)
+        _, ev = api(p, "GET", f"/submissions/{sid}/evidence/")
+        self.assertNotIn("Synthetic upload that fails", [e["label"] for e in ev["results"]])
+
     # ---- Phase 3 templates ----
     def test_kra32_conditional_payment_fields(self):
         p = self.page

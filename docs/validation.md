@@ -298,3 +298,48 @@ Commands and results:
 - The PDF renderer was started locally for the full run (`python renderer/server.py`); without it the same suite gave 500 tests OK with 48 renderer tests skipped.
 
 Limitations: concurrency is exercised in-process through Django's test client (threads, separate PostgreSQL connections), not through Gunicorn/HTTP under load; measured load testing is later Phase 6 work. Automated checks are not college acceptance; policy questions are listed in `docs/progress.md`.
+
+# Phase 6B validation (2026-10-17) — performance and failure recovery
+
+**Environment (local only; not production capacity):** Windows 11 (10.0.26200), 20 logical CPUs, 15.7 GB RAM, Python 3.11.9, PostgreSQL 16.2 (dev cluster), Django `runserver --noreload` (threaded, `DJANGO_DEBUG=1`, needed for seeded demo accounts and plain-HTTP cookies). Gunicorn does not run on Windows and WSL is not installed, so the planned app server was **not** measured. Renderer `renderer/server.py`: pool 2, queue 4, job timeout 40 s; Django renderer timeout 45 s.
+
+**Command:** `python e2e/run_perf.py --seconds 30` (results in `.work/perf-results.json`). It recreates `<working db>_perf`, migrates, seeds the catalogue, demo accounts and `e2e/perf_seed.py`, runs its own Django (:8002) and renderer (:8791) with evidence under `.work/perf/private`, then stops them, drops the database and removes `.work/perf`. The working database and uploads are never used.
+
+**Dataset (synthetic):** 13 departments × 45 KRAs = 585 assignments; 6 reporting periods (P1 closed, P2 open; P3–P6 not yet open, so empty); 997 submissions, 704 revisions, 469 decisions, 1,408 Drive-link evidence rows; 13 Deans (one per department) + 1 VC; a long KRA 33 report (3 events × 40 rows, long text) and a wide KRA 31 table (80 rows × 14 columns).
+
+**PDF results (final run):**
+
+| Check | Result |
+|---|---|
+| Normal report / long KRA 33 / wide KRA 31 / progress (585 rows) | 200, valid PDF; 1 / 21 / 27 / 56 pages; 0.8 / 1.0 / 1.0 / 1.4 s on first render; `application/pdf`, `private, no-store`; repeat of a cached report 0.13 s |
+| Anonymous progress export | 401 |
+| Burst: 12 simultaneous distinct progress exports | renderer peak 2 active + 4 queued; 6 × 200 (all valid PDFs, 0.4–1.1 s), 6 × 503 `pdf_busy` (0.1 s): bounded, no hang |
+| Renderer job timeout (renderer restarted with a 1 s limit, 585-row export) | 502 `pdf_failed` in 1.1 s; next small export 200 valid |
+| Renderer stopped | progress export 503 `pdf_unavailable` in 2.1 s (Windows connection-refused delay); cached report still served; after renderer restart 200 without restarting Django |
+| Chromium processes killed inside a running renderer | before fix: 2 failures (one per worker), then recovery; after fix: 4/4 exports 200, with two "relaunching" log lines |
+| Submission/revision/decision/evidence fingerprints before vs after all PDF stages | identical |
+| Chromium processes / RSS (renderer tree) | 9–10 processes throughout; about 0.50 → 0.67 GB across restarts and crash recovery |
+
+**Mixed workload (final run; 30 s per stage; Deans: dashboard, report read, save, preview; VC: progress with random filters, review read, and every 6th loop a progress PDF / report PDF):**
+
+| Users (Deans+VC) | Requests | Throughput | 5xx | Dean dashboard p50/p95 ms | Dean save p50/p95 | Dean preview p50/p95 | VC progress p50/p95 | Progress PDF p50/p95 | Report PDF p50/p95 |
+|---|---|---|---|---|---|---|---|---|---|
+| 4+1 | 2,319 | 78 req/s | 0 | 52 / 68 | 51 / 65 | 49 / 63 | 50 / 68 | 442 (n=1) | 477 (n=1) |
+| 8+2 | 2,954 | 100 req/s | 0 | 88 / 118 | 81 / 106 | 69 / 92 | 83 / 111 | 493 / 531 | 510 / 653 |
+| 13+2 | 2,765 | 94 req/s | 0 | 173 / 223 | 143 / 182 | 112 / 147 | 137 / 197 | 598 / 673 | 705 / 848 |
+
+Machine CPU stayed at about 27–37%. Throughput flattens at 10–15 users because the single Django development-server process (GIL) is the bottleneck, not PostgreSQL or the renderer. The first run (before the renderer fix) had the same shape and 0 errors.
+
+**Query counts:** `tests.test_phase6b.QueryCountTests`. Before the fix the VC assignments dashboard went from 9 queries (10 submissions) to 36 (100 submissions); now the VC/Dean assignments and VC progress counts are constant. Submission detail uses a fixed small number (≤ 6 periods).
+
+**Failure recovery:**
+- Backend (`tests/test_phase6b.py`): a renderer 200 with an HTML error page, empty or truncated body → 502 `pdf_failed`, nothing cached, submissions/evidence unchanged, recovery once healthy; mid-body disconnect → 502; reset/timeout → 503; the progress export refuses non-PDF; a failed evidence DB write → 500, not listed, no new file and no `.part` file; logs captured during failures contain no report text or test password.
+- Browser (`test_phase6b_failed_autosave_and_upload_recover`, isolated runner): draft PATCH forced to 500 → "Save failed — will retry on next change", typed value kept; after recovery the next change saves both edits and a reload shows them; an upload aborted at the network → "Cannot reach the server…" alert, item not listed, API shows no row.
+- Retries: duplicate submits and stale saves are covered by Phase 6A (one revision, 409s, no overwrite).
+- Log scan of the perf run (8,346 lines, Django + renderer): 0 report-text marker hits, 0 password hits, 0 tracebacks (before the renderer fix: 2 tracebacks, the crash failures).
+
+**Confirmed defects fixed (D-070):** non-PDF/truncated renderer reply returned and cached as a PDF; IncompleteRead → unhandled 500; orphan evidence file after a failed upload; assignments dashboard N+1; one failed job per renderer worker after a Chromium crash.
+
+**Regression runs:** focused `tests.test_phase6b tests.test_workflow tests.test_phase3 tests.test_phase5b tests.test_reports tests.test_phase6a` → 91 OK (7 renderer tests skipped, renderer down at that point); full `python backend/manage.py test tests` with the renderer running → **Ran 506 tests, OK** (0 skipped); `python e2e/run_isolated.py` → **Ran 24 tests, OK**. Frontend code unchanged in 6B (build not rerun).
+
+**Limitations / not measured:** Gunicorn workers, Nginx, TLS, Linux; DEBUG=0; file uploads under load (only the failure path); long-uptime Chromium memory; client–server network latency; more than 15 concurrent users (capped to protect this machine). These local numbers are not service-level guarantees.

@@ -175,7 +175,15 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] Status transition matrix; reasons required; submitted/approved reports locked against stale tabs (save, submit, evidence add/remove); historical revision PDFs keep their own labels and content
 - [x] Real concurrent requests on PostgreSQL: duplicate submit, autosave vs submit, evidence upload/removal vs submit, competing VC approve/reject, double reopen decision, double C2 request
 - [x] Fixed: reopen request accepted for a period that had not started; report export cacheable; stale dashboard responses overwrote newer filters; backend tests wrote uploads to the working private storage (D-069)
-- Open: earlier test runs left files in the working `.work/private` (252 evidence, 1,455 generated on 2026-10-17); not cleaned (owner decision). Uncommitted.
+- Open: earlier test runs left files in the working `.work/private` (252 evidence, 1,455 generated on 2026-10-17); not cleaned (owner decision). Committed (2fb8415).
+
+## Phase 6B — performance and failure-recovery validation ✅ (local measurements; not production capacity)
+- [x] Isolated measurement runner `e2e/run_perf.py` (disposable `<db>_perf`, temporary storage, own Django :8002 and renderer :8791, synthetic 13-department dataset)
+- [x] PDF: bounded concurrency (2 active + 4 queued, overflow → `pdf_busy`), timeout, outage/restart, Chromium crash, integrity, headers, normal/long/wide/progress exports
+- [x] Mixed Dean/VC workload at 5, 10 and 15 concurrent users: 0 server errors; percentiles in `docs/validation.md`
+- [x] Failure recovery: failed autosave keeps typed values and recovers; failed upload reported, not attached, no orphan file; logs free of report text and passwords
+- [x] Fixed: non-PDF/truncated renderer replies served and cached as PDFs; mid-body disconnect → 500; orphan file after failed upload; dashboard N+1; renderer failed one job per worker after a Chromium crash (D-070)
+- Open: measured with Django's development server on Windows (Gunicorn unsupported); repeat on the college Linux server with Gunicorn before setting capacity. Uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
@@ -183,6 +191,7 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - OpenAPI document (a hand-written reference is in `docs/api.md`) and frontend component tests. Browser tests (`e2e/`) cover 22 flows.
 - Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
-- Phase 6 remainder: accessibility/mobile checks, dependency and production-config checks, measured load/concurrency through Gunicorn, team walkthrough and owner sign-off.
+- Phase 6 remainder: accessibility/mobile checks, dependency and production-config checks (DEBUG=0, secure cookies, shared throttle cache), a Gunicorn/Linux repeat of `e2e/run_perf.py`, team walkthrough and owner sign-off.
+- Phase 6B notes: a failed autosave retries on the next change only (the indicator says so; no timed retry). If a save succeeded but its response was lost, the retry gets a version conflict (the Conflict dialog keeps typed values) — by design, no last-write-wins. Renderer + Chromium memory rose from about 0.5 to 0.67 GB over a run with restarts (process count stable at 9–10); watch it under long uptime.
 - Policy questions (6A, unresolved — not changed in code): may a Dean request reopening for a period of an **ended academic year**? (currently allowed; VC decides); is VC review allowed at any time after the deadline? (currently yes, no review window); should approving a reopen request be refused if the report is no longer Draft/Rejected? (cannot currently arise: requests need Draft/Rejected and a closed period).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.

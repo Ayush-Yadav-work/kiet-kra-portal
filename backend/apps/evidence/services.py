@@ -71,12 +71,16 @@ def add_file(user, submission_id, uploaded, category, label, description="", req
                            f"({settings.EVIDENCE_MAX_HISTORY_BYTES // 2**20} MB). Use Drive links.")
         key = f"evidence/{uuid.uuid4().hex}.{kind[2]}"
         path = write_upload(key, uploaded)
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        ev = Evidence.objects.create(
-            submission=sub, source_type=Evidence.Source.FILE, category=category, label=label,
-            description=description, storage_key=key, original_filename=safe_filename(uploaded.name),
-            mime=kind[1], bytes=uploaded.size, checksum=digest, uploaded_by=user)
-        record(user, "evidence_added", sub, {"evidence": str(ev.id), "type": "FILE", "bytes": ev.bytes}, request)
+        try:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            ev = Evidence.objects.create(
+                submission=sub, source_type=Evidence.Source.FILE, category=category, label=label,
+                description=description, storage_key=key, original_filename=safe_filename(uploaded.name),
+                mime=kind[1], bytes=uploaded.size, checksum=digest, uploaded_by=user)
+            record(user, "evidence_added", sub, {"evidence": str(ev.id), "type": "FILE", "bytes": ev.bytes}, request)
+        except BaseException:  # the row rolls back with the transaction; remove the file it would have referenced
+            path.unlink(missing_ok=True)
+            raise
         return ev
 
 

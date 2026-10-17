@@ -1,4 +1,5 @@
 """Django -> internal renderer client and generated-document cache (plan 8.13–8.14, C4)."""
+import http.client
 import json
 import urllib.error
 import urllib.request
@@ -18,13 +19,19 @@ def call_renderer(parts):
                                  headers={"Content-Type": "application/json"}, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=settings.RENDERER_TIMEOUT_SECONDS) as resp:
-            return resp.read()
+            data = resp.read()
     except urllib.error.HTTPError as e:
         if e.code == 503:
             raise ApiError(503, "pdf_busy", "The PDF service is busy. Your draft is safe — try again in a moment.")
         raise ApiError(502, "pdf_failed", "PDF generation failed. Your draft is safe — try again.")
     except (urllib.error.URLError, TimeoutError, ConnectionError):
         raise ApiError(503, "pdf_unavailable", "The PDF service is unavailable. Your draft is safe — try again later.")
+    except http.client.HTTPException:  # connection dropped mid-body (IncompleteRead etc.)
+        raise ApiError(502, "pdf_failed", "PDF generation failed. Your draft is safe — try again.")
+    # Never serve or cache a non-PDF or truncated body as a successful export (Phase 6B).
+    if not (data.startswith(b"%PDF-") and data.rstrip().endswith(b"%%EOF")):
+        raise ApiError(502, "pdf_failed", "PDF generation failed. Your draft is safe — try again.")
+    return data
 
 
 def export_pdf(submission, revision=None):
