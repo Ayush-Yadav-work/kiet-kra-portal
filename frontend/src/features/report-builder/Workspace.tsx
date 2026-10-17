@@ -230,40 +230,43 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
 export function SubmissionLoader({ id, render }: { id: string; render: (d: SubmissionDetail, schema: Schema, reload: () => void) => React.ReactNode }) {
   const [state, setState] = useState<{ d: SubmissionDetail; schema: Schema; n: number } | null>(null)
   const [error, setError] = useState('')
-  const load = useCallback(async () => {
+  // Each completed load remounts the editor (key = n). A load whose effect was cleaned up (StrictMode's double run, an
+  // unmount) is aborted so it cannot remount over the user's tab selection and unsaved input.
+  const load = useCallback(async (signal?: AbortSignal) => {
     try {
-      const d = await api<SubmissionDetail>(`/submissions/${id}/`)
+      const d = await api<SubmissionDetail>(`/submissions/${id}/`, { signal })
       const t = d.assignment.template!
-      const s = await api<{ schema: Schema }>(`/templates/${t.key}/${t.version}/`)
-      setState((prev) => ({ d, schema: s.schema, n: (prev?.n ?? 0) + 1 }))
-    } catch (e) { setError((e as Error).message) }
+      const s = await api<{ schema: Schema }>(`/templates/${t.key}/${t.version}/`, { signal })
+      if (!signal?.aborted) setState((prev) => ({ d, schema: s.schema, n: (prev?.n ?? 0) + 1 }))
+    } catch (e) { if (!signal?.aborted) setError((e as Error).message) }
   }, [id])
-  useEffect(() => { load() }, [load])
+  useEffect(() => { const c = new AbortController(); load(c.signal); return () => c.abort() }, [load])
+  const reload = useCallback(() => { load() }, [load])
   if (error) return <ErrorBox error={error} />
   if (!state) return <Loading />
-  return <div key={state.n}>{render(state.d, state.schema, load)}</div>
+  return <div key={state.n}>{render(state.d, state.schema, reload)}</div>
 }
 
 export default function WorkspaceRoute() {
   const { assignmentId, periodId } = useParams()
   const [info, setInfo] = useState<{ assignment: Assignment; period: Period; submission_id: string | null; can_request_reopen?: boolean } | null>(null)
   const [error, setError] = useState('')
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     try {
       const base = `/assignments/${assignmentId}/periods/${periodId}/`
-      let r = await api<NonNullable<typeof info>>(base)
+      let r = await api<NonNullable<typeof info>>(base, { signal })
       if (!r.submission_id && r.period.is_open && r.assignment.template) {
-        const c = await api<{ submission_id: string }>(base, { method: 'POST' }) // Dean action creates the row (D-017)
+        const c = await api<{ submission_id: string }>(base, { method: 'POST', signal }) // Dean action creates the row (D-017)
         r = { ...r, submission_id: c.submission_id }
       }
-      setInfo(r)
-    } catch (e) { setError((e as Error).message) }
+      if (!signal?.aborted) setInfo(r) // a stale response for the previous KRA/period never replaces the current one
+    } catch (e) { if (!signal?.aborted) setError((e as Error).message) }
   }, [assignmentId, periodId])
-  useEffect(() => { load() }, [load])
+  useEffect(() => { const c = new AbortController(); load(c.signal); return () => c.abort() }, [load])
 
   if (error) return <ErrorBox error={error} />
   if (!info) return <Loading />
-  if (info.submission_id) return <SubmissionLoader id={info.submission_id} render={(d, s, reload) => <Editor d={d} schema={s} reload={reload} />} />
+  if (info.submission_id) return <SubmissionLoader key={info.submission_id} id={info.submission_id} render={(d, s, reload) => <Editor d={d} schema={s} reload={reload} />} />
   return (
     <div className="space-y-3">
       <Link className="underline text-sm" to="/dean/dashboard">← Back</Link>
@@ -272,7 +275,7 @@ export default function WorkspaceRoute() {
         <p className="text-sm"><StatusBadge status="NOT_SUBMITTED" /> {info.period.is_closed ? 'This period is closed and no report was started.' : 'This period has not opened yet.'}</p>
       </div>
       {info.can_request_reopen && info.assignment.template && (
-        <ReopenRequestForm path={`/assignments/${assignmentId}/periods/${periodId}/reopen-requests/`} onDone={load} />
+        <ReopenRequestForm path={`/assignments/${assignmentId}/periods/${periodId}/reopen-requests/`} onDone={() => load()} />
       )}
     </div>
   )

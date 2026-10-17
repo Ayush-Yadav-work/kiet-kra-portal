@@ -124,7 +124,12 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] KRA 21 training-conducted report; exam qualifiers optional supporting information only (D-056)
 - [x] KRA 39 infrastructure-grant report; sanctioned / received / utilized INR kept distinct; lakhs ambiguity recorded (D-057)
 - [x] Mappings idempotent, targets unchanged; frontend unchanged; browser tests hardened (wait before tab selection)
-- Open: D-056–D-057 college questions. Committed on phase2-kra33-pilot.
+- Open: D-056–D-057 college questions. Committed (e4e934c).
+
+## Bug fix — event-tab reset after workspace load ✅
+- [x] Cause: `SubmissionLoader` remounted the editor (`key={state.n}`) on every completed load; React StrictMode runs the load effect twice in development, so the second response remounted the editor, resetting the selected event tab and discarding input typed in between (a late/stale load in any environment does the same).
+- [x] Fix: loads are aborted when their effect is cleaned up (only the current load may update state); the loader is keyed by submission id so a KRA/period switch starts fresh; explicit reloads (after submit, conflict resolution, reopen request) still remount on purpose.
+- [x] Browser regression test added. Committed separately on phase2-kra33-pilot.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan). Progress PDF export and VC KRA/next-year assignment admin (Phase 5).
