@@ -3,6 +3,7 @@
 **Version:** 2.0 (Master) | **Date:** 16 October 2026 | **Audience:** Development team and Claude Code  
 **Status:** Agreed functional scope; proposed technical implementation. No application has been implemented by this document.  
 **Supersedes:** v1.2. See section 0 for what changed.
+**UI/UX extension:** [`ui-ux-implementation-plan.md`](ui-ux-implementation-plan.md) (presentation phases UI-0…UI-3 between Phase 6C and 6D; review notes in [`ui-ux-review.md`](ui-ux-review.md)).  
 
 ## 0. Changes from v1.2
 

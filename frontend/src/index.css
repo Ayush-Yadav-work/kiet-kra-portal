@@ -1,16 +1,47 @@
 @import "tailwindcss";
 
+/* UI-1 design tokens (docs/ui-ux-review.md §4, approved UI-0 revision 3). Applies to the app document only:
+   report previews are separate iframe documents and PDFs are rendered server-side, so neither inherits these. */
+@theme {
+  --color-brand: #1B4568;
+  --color-action: #085290;
+  --color-action-hover: #06406F;
+  --color-accent: #F15B20;            /* rules and marks only; never text on white */
+  --color-accent-btn: #C8461A;        /* white text 4.83:1 (#F15B20 is 3.36:1) */
+  --color-accent-btn-hover: #B93D12;
+  --color-heading: #0C2D47;
+  --color-ink: #2C2B2B;
+  --color-muted: #55657A;
+  --color-control: #62748E;           /* input/control boundaries ≥3:1 */
+  --color-line: #DCE3E8;              /* dividers only */
+  --color-canvas: #EEF2F5;
+  --color-subtle: #F4F7F9;
+  --color-ok: #166534; --color-ok-bg: #E8F5EC;
+  --color-warn: #8A4B00; --color-warn-bg: #FFF4DE;
+  --color-err: #B91C1C; --color-err-bg: #FDECEC;
+  --color-info: #085290; --color-info-bg: #E6F0FA;
+  --color-neutral: #3B4A5C; --color-neutral-bg: #E9EEF2;
+}
+
 :root { color-scheme: light; }
-body { @apply bg-slate-50 text-slate-900; }
+body { @apply bg-canvas text-ink; }
+h1, h2, h3 { @apply text-heading; }
+:focus-visible { outline: 3px solid var(--color-action); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .btn-primary, .btn-secondary, .btn-quiet, .btn-danger, .btn-signin { transition: background-color .15s, border-color .15s, color .15s; }
+}
 
 @utility btn {
-  @apply inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500;
+  @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-transparent px-4 text-[15px] font-semibold
+         disabled:cursor-not-allowed disabled:border-[#C9D3DC] disabled:bg-[#E2E8ED] disabled:text-[#5D6B7C];
 }
-@utility btn-primary { @apply btn bg-blue-700 text-white hover:bg-blue-800; }
-@utility btn-secondary { @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-100; }
-@utility btn-danger { @apply btn bg-red-700 text-white hover:bg-red-800; }
+@utility btn-primary { @apply btn bg-action text-white hover:bg-action-hover; }
+@utility btn-secondary { @apply btn border-control bg-white text-action hover:bg-subtle; }
+@utility btn-quiet { @apply btn bg-transparent px-2 text-action hover:bg-subtle; }
+@utility btn-danger { @apply btn bg-err text-white hover:bg-[#991B1B]; }
 @utility input {
-  @apply w-full rounded-md border border-slate-500 bg-white px-2 py-1.5 text-sm placeholder:text-slate-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 disabled:bg-slate-100;
+  @apply min-h-10 w-full rounded-lg border border-control bg-white px-3 py-2 text-base text-ink placeholder:text-muted
+         focus:border-action focus-within:border-action focus-within:ring-1 focus-within:ring-action disabled:bg-[#EEF2F5];
 }
-@utility label { @apply mb-1 block text-sm font-medium text-slate-700; }
-@utility card { @apply rounded-lg border border-slate-200 bg-white p-4 shadow-sm; }
+@utility label { @apply mb-1 block text-sm font-semibold text-heading; }
+@utility card { @apply rounded-[10px] border border-line bg-white p-4; }

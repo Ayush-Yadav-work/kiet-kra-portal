@@ -21,13 +21,13 @@ export function usePeriods(year: string) {
 export function YearPeriodPicker({ year, period, periods, onChange }: { year: string; period: string; periods: Period[]; onChange: (y: string, p: string) => void }) {
   return (
     <div className="flex flex-wrap gap-3">
-      <label className="text-sm">Academic year{' '}
-        <select className="input w-auto" value={year} onChange={(e) => onChange(e.target.value, '')}>
+      <label className="grid w-full gap-1 text-sm font-semibold text-heading sm:w-auto">Academic year{' '}
+        <select className="input sm:w-auto" value={year} onChange={(e) => onChange(e.target.value, '')}>
           {YEARS.map((y) => <option key={y}>{y}</option>)}
         </select>
       </label>
-      <label className="text-sm">Reporting period{' '}
-        <select className="input w-auto" value={period} onChange={(e) => onChange(year, e.target.value)}>
+      <label className="grid w-full gap-1 text-sm font-semibold text-heading sm:w-auto">Reporting period{' '}
+        <select className="input sm:w-auto" value={period} onChange={(e) => onChange(year, e.target.value)}>
           {periods.map((p) => <option key={p.id} value={p.id}>{p.label}{p.is_open ? ' (open)' : p.is_closed ? ' (closed)' : ' (upcoming)'}</option>)}
         </select>
       </label>
