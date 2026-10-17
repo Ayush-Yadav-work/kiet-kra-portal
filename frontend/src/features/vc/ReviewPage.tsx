@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { Decision, Grant, SubmissionDetail } from '../../api/types'
-import { ErrorBox } from '../../components/ui'
+import { ErrorBox, tabKeys } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
 import EvidenceTab from '../evidence/EvidenceTab'
 import Preview from '../report-builder/Preview'
@@ -71,12 +71,16 @@ function Review({ d, reload }: { d: SubmissionDetail; reload: () => void }) {
       <WorkspaceHeader d={d} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div role="tablist" className="mb-2 flex flex-wrap gap-1">
-            {(['report', 'evidence', 'achievement', 'history'] as const).map((t) => (
-              <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'btn-primary' : 'btn-secondary'} onClick={() => setTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>
-            ))}
-            <a className="btn-secondary ml-auto" href={`/api/v1/submissions/${d.id}/export/?inline=1`} target="_blank" rel="noopener">PDF</a>
+          <div className="mb-2 flex flex-wrap gap-1">
+            <div role="tablist" aria-label="Submission sections" className="flex flex-wrap gap-1" onKeyDown={tabKeys}>
+              {(['report', 'evidence', 'achievement', 'history'] as const).map((t) => (
+                <button key={t} id={`rv-tab-${t}`} role="tab" aria-selected={tab === t} aria-controls="rv-panel" tabIndex={tab === t ? 0 : -1}
+                  className={tab === t ? 'btn-primary' : 'btn-secondary'} onClick={() => setTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>
+              ))}
+            </div>
+            <a className="btn-secondary ml-auto" href={`/api/v1/submissions/${d.id}/export/?inline=1`} target="_blank" rel="noopener">PDF<span className="sr-only"> (opens in a new tab)</span></a>
           </div>
+          <div role="tabpanel" id="rv-panel" aria-labelledby={`rv-tab-${tab}`}>
           {tab === 'report' && (d.current_revision
             ? <Preview submissionId={d.id} revision={d.current_revision.id} />
             : <p className="card text-sm">Not submitted yet.</p>)}
@@ -106,6 +110,7 @@ function Review({ d, reload }: { d: SubmissionDetail; reload: () => void }) {
               {history.grants.map((g) => <p key={g.id}>Grant ({g.source === 'REVIEW' ? 'with review decision' : 'on request'}): {fmtDateTime(g.starts_at)} → {fmtDateTime(g.expires_at)}{g.active && ' · active'}</p>)}
             </div>
           )}
+          </div>
         </div>
         <div><DecisionForm d={d} onDone={reload} /></div>
       </div>

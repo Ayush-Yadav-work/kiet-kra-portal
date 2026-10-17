@@ -40,3 +40,4 @@ There is no endpoint that edits or deletes an operational assignment; the model 
 
 - `python e2e/run_isolated.py [-k NAME] [--keep]` — browser suite on a disposable database (D-067).
 - `python backend/manage.py cleanup_e2e_data [--execute] [--copy-event ID]` — DEBUG only; report or remove browser-test residue with demonstrable provenance (D-067).
+- `python e2e/run_perf.py [--seconds N] [--keep]` — Phase 6B local PDF-reliability, failure and mixed-workload measurements on a disposable `<db>_perf` database with its own Django (:8002) and renderer (:8791) (D-070).

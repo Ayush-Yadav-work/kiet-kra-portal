@@ -72,7 +72,15 @@ def worker(n):
                 try:
                     if not browser.is_connected():
                         browser = p.chromium.launch(args=["--disable-gpu", "--no-first-run"])
-                    fut.set_result(render(browser, job))
+                    try:
+                        fut.set_result(render(browser, job))
+                    except Exception:
+                        if browser.is_connected():
+                            raise
+                        # Chromium died (crash/killed) and the loss is only noticed when a job fails: relaunch, retry once
+                        log.warning("worker %s: browser disconnected; relaunching and retrying the job once", n)
+                        browser = p.chromium.launch(args=["--disable-gpu", "--no-first-run"])
+                        fut.set_result(render(browser, job))
                 except Exception as e:  # report, keep worker alive
                     log.exception("render failed")
                     fut.set_exception(e)

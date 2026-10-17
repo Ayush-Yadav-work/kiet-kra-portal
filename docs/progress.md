@@ -1,7 +1,10 @@
 # Progress
 
-Last updated: 2026-10-17. Current gate: **KRA 23 (bounded Phase 4 task) complete — waiting for review with KRAs 11, 20, 7 and 32.**
-No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pilot` (3f4748a); Phase 3 committed (f9ebf88); KRA 11 committed (713e092); KRA 23 changes are uncommitted.
+Last updated: 2026-10-17 (Phase 6C). Branch `phase2-kra33-pilot`; latest commit `71d326c` (Phase 6B), equal to `origin/phase2-kra33-pilot`
+at `git fetch` on 2026-10-17. Phases 0–5 and 6A–6B are committed; **Phase 6C (usability/accessibility, documentation) is uncommitted**.
+Next bounded phase: **6D — production configuration**. Acceptance: the KRA 33 pilot was accepted by the project owner (2026-10-17);
+**institutional acceptance of all 45 report formats is still pending** (team checklist: `docs/acceptance-checklist.md`).
+Section notes below such as "uncommitted" or "pending review" describe the state when each phase was finished (historical).
 
 ## Phase 0 — Source audit and seed preparation ✅
 - [x] Inventory of 30 PDFs + workbook with SHA-256, page sizes, visual review → `docs/template-inventory.md`
@@ -175,14 +178,29 @@ No other Phase 4 KRAs started. Phase 0–2 committed on branch `phase2-kra33-pil
 - [x] Status transition matrix; reasons required; submitted/approved reports locked against stale tabs (save, submit, evidence add/remove); historical revision PDFs keep their own labels and content
 - [x] Real concurrent requests on PostgreSQL: duplicate submit, autosave vs submit, evidence upload/removal vs submit, competing VC approve/reject, double reopen decision, double C2 request
 - [x] Fixed: reopen request accepted for a period that had not started; report export cacheable; stale dashboard responses overwrote newer filters; backend tests wrote uploads to the working private storage (D-069)
-- Open: earlier test runs left files in the working `.work/private` (252 evidence, 1,455 generated on 2026-10-17); not cleaned (owner decision). Uncommitted.
+- Open: earlier test runs left files in the working `.work/private` (252 evidence, 1,455 generated on 2026-10-17); not cleaned (owner decision). Committed (2fb8415).
+
+## Phase 6B — performance and failure-recovery validation ✅ (local measurements; not production capacity)
+- [x] Isolated measurement runner `e2e/run_perf.py` (disposable `<db>_perf`, temporary storage, own Django :8002 and renderer :8791, synthetic 13-department dataset)
+- [x] PDF: bounded concurrency (2 active + 4 queued, overflow → `pdf_busy`), timeout, outage/restart, Chromium crash, integrity, headers, normal/long/wide/progress exports
+- [x] Mixed Dean/VC workload at 5, 10 and 15 concurrent users: 0 server errors; percentiles in `docs/validation.md`
+- [x] Failure recovery: failed autosave keeps typed values and recovers; failed upload reported, not attached, no orphan file; logs free of report text and passwords
+- [x] Fixed: non-PDF/truncated renderer replies served and cached as PDFs; mid-body disconnect → 500; orphan file after failed upload; dashboard N+1; renderer failed one job per worker after a Chromium crash (D-070)
+- Open: measured with Django's development server on Windows (Gunicorn unsupported); repeat on the college Linux server with Gunicorn before setting capacity. Committed (71d326c).
+
+## Phase 6C — usability/accessibility and documentation ✅ (automated + scripted checks; not a full accessibility audit)
+- [x] Docs reconciled: README status/setup/tests, progress header, validation summary (historical logs labelled), handover; acceptance checklist `docs/acceptance-checklist.md`
+- [x] Scripted audit of Dean/VC pages (login, dashboards, workspace tabs, KRAs 33/32/9/4/20, review, reopening, assignments, KRAs) at 1280 px, 375 px and 640 px (= 200% zoom)
+- [x] Fixed: tabs without panels or arrow keys; non-tab buttons inside tablists; unnamed table-cell inputs; required markers on not-applicable KRA 32 fields; inactive KRA 9 / KRA 4–6 fields shown as normal inputs; VC header overflow at 375 px; no visible focus on date inputs; colour-only error dots; unassociated fieldset errors; non-modal panel marked as dialog (D-071)
+- Not changed (policy/design): native confirm dialogs kept (accessible, focus returns); no automated contrast/axe tool installed — see `docs/validation.md`. Uncommitted.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).
-- OpenAPI document (a hand-written reference is in `docs/api.md`) and frontend component tests. Browser tests (`e2e/`) cover 22 flows.
-- Cosmetic: required-field markers still show on fields that are NA for the selected KRA 32 contribution type; KRA 33 footer sits ~8 pt right of the source position.
+- OpenAPI document (a hand-written reference is in `docs/api.md`) and frontend component tests. Browser tests (`e2e/test_browser.py`, run only via `e2e/run_isolated.py`) cover 25 flows.
+- Cosmetic: KRA 33 footer sits ~8 pt right of the source position. (KRA 32 required markers on NA fields: fixed in Phase 6C.)
 - Deployment artefacts (Nginx/Gunicorn/Compose), backups, restore drill, malware scanning (Phases 6–7).
-- Phase 6 remainder: accessibility/mobile checks, dependency and production-config checks, measured load/concurrency through Gunicorn, team walkthrough and owner sign-off.
+- Phase 6 remainder: accessibility/mobile checks, dependency and production-config checks (DEBUG=0, secure cookies, shared throttle cache), a Gunicorn/Linux repeat of `e2e/run_perf.py`, team walkthrough and owner sign-off.
+- Phase 6B notes: a failed autosave retries on the next change only (the indicator says so; no timed retry). If a save succeeded but its response was lost, the retry gets a version conflict (the Conflict dialog keeps typed values) — by design, no last-write-wins. Renderer + Chromium memory rose from about 0.5 to 0.67 GB over a run with restarts (process count stable at 9–10); watch it under long uptime.
 - Policy questions (6A, unresolved — not changed in code): may a Dean request reopening for a period of an **ended academic year**? (currently allowed; VC decides); is VC review allowed at any time after the deadline? (currently yes, no review window); should approving a reopen request be refused if the report is no longer Draft/Rejected? (cannot currently arise: requests need Draft/Rejected and a closed period).
 - Login throttling uses the in-process cache: switch to a shared cache before running >1 Gunicorn worker.

@@ -133,6 +133,107 @@ class BrowserTests(unittest.TestCase):
         _, d = api(p, "GET", f"/submissions/{sid}/")
         self.assertEqual(d["payload"]["activities"][0]["chapter_name"], "Synthetic chapter typed after upload")
 
+    def test_phase6b_failed_autosave_and_upload_recover(self):
+        """Phase 6B: a failed autosave keeps typed values and says so; the next change saves everything; a failed upload is
+        reported and never listed as attached."""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 33)
+        field = p.locator("input[name='activities.0.chapter_name']")
+        fail = lambda route: route.fulfill(status=500, content_type="application/json",
+                                           body='{"code":"error","message":"Synthetic server failure","field_errors":{}}') \
+            if route.request.method == "PATCH" else route.continue_()
+        p.route("**/api/v1/submissions/*/draft/", fail)
+        field.fill("Typed while the server fails")
+        expect(p.get_by_role("status")).to_contain_text("Save failed — will retry on next change", timeout=10000)
+        expect(field).to_have_value("Typed while the server fails")  # typed content preserved
+        p.unroute("**/api/v1/submissions/*/draft/")
+        p.locator("input[name='activities.0.chapter_name']").fill("Typed while the server fails, then recovered")
+        expect(p.get_by_role("status")).to_contain_text("Saved", timeout=10000)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        self.assertEqual(d["payload"]["activities"][0]["chapter_name"], "Typed while the server fails, then recovered")
+        p.reload()
+        expect(p.locator("input[name='activities.0.chapter_name']")).to_have_value("Typed while the server fails, then recovered")
+
+        p.route("**/api/v1/submissions/*/evidence/", lambda route: route.abort() if route.request.method == "POST" else route.continue_())
+        p.get_by_role("tab", name="Evidence").click()
+        p.get_by_label("Category").select_option("Photographs")
+        p.get_by_label("Label").fill("Synthetic upload that fails")
+        p.set_input_files("#ev-file", files=[{"name": "f.png", "mimeType": "image/png", "buffer": b"\x89PNG\r\n\x1a\n" + b"0" * 512}])
+        p.get_by_role("button", name="Add evidence").click()
+        expect(p.get_by_role("alert")).to_contain_text("Cannot reach the server")  # network failure is reported
+        p.unroute("**/api/v1/submissions/*/evidence/")
+        self.assertEqual(p.get_by_text("Synthetic upload that fails", exact=True).count(), 0)
+        _, ev = api(p, "GET", f"/submissions/{sid}/evidence/")
+        self.assertNotIn("Synthetic upload that fails", [e["label"] for e in ev["results"]])
+
+    def test_phase6c_tabs_names_markers_inactive_fields_and_phone_width(self):
+        """Phase 6C: keyboard tabs with panels; named table cells; required markers follow applicability (KRA 32);
+        inactive fields hidden with an explanation and their values kept (KRA 4); VC header usable at 375 px."""
+        semantics = """() => {
+          const vis = e => !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+          const named = e => (e.getAttribute('aria-label') || (e.labels && [...e.labels].map(l => l.textContent).join('')) || e.getAttribute('title')
+                              || (['BUTTON', 'A'].includes(e.tagName) && e.textContent) || '').trim();
+          return {unnamed: [...document.querySelectorAll('input:not([type=hidden]),select,textarea,button,a[href]')].filter(vis).filter(e => !named(e)).length,
+                  tabs_without_panel: [...document.querySelectorAll('[role=tab]')].filter(t => !document.getElementById(t.getAttribute('aria-controls'))).length,
+                  tablist_non_tabs: document.querySelectorAll('[role=tablist] > :not([role=tab])').length};
+        }"""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        open_ece_kra(p, 33)
+        report = p.get_by_role("tab", name="Report", exact=True)
+        report.focus()
+        p.keyboard.press("ArrowRight")
+        expect(p.get_by_role("tab", name="Evidence", exact=True)).to_have_attribute("aria-selected", "true")
+        expect(p.get_by_role("tabpanel", name="Evidence")).to_be_visible()
+        p.keyboard.press("Home")
+        expect(report).to_have_attribute("aria-selected", "true")
+        expect(report).to_be_focused()
+        if p.get_by_label("Alumni Name, row 1", exact=True).count() == 0:
+            p.get_by_role("button", name="+ Add row").first.click()
+        expect(p.get_by_label("Alumni Name, row 1", exact=True)).to_be_visible()  # table cells have accessible names
+        self.assertEqual(p.evaluate(semantics), {"unnamed": 0, "tabs_without_panel": 0, "tablist_non_tabs": 0})
+
+        open_ece_kra(p, 32)
+        if p.locator("select[name='activities.0.contributions.0.contribution_type']").count() == 0:
+            p.get_by_role("button", name="+ Add record").first.click()
+        kind = p.locator("select[name='activities.0.contributions.0.contribution_type']")
+        amount = p.locator("label[for='activities.0.contributions.0.amount']")
+        details = p.locator("label[for='activities.0.contributions.0.item_details']")
+        kind.select_option("Equipment/Asset")
+        expect(amount).not_to_contain_text("*")  # not applicable -> not marked required
+        expect(details).to_contain_text("*")
+        kind.select_option("Financial Contribution")
+        expect(amount).to_contain_text("*")
+        expect(details).not_to_contain_text("*")
+
+        sid = open_ece_kra(p, 4)
+        answer = p.locator("select[name='activities.0.has_component']")
+        answer.select_option("Yes")
+        name = f"Synthetic component {int(time.time())}"
+        p.locator("[name='activities.0.component_name']").fill(name)
+        answer.select_option("No")
+        expect(p.locator("[name='activities.0.component_name']")).to_have_count(0)  # hidden, not cleared
+        expect(p.get_by_text("do not apply to your current answers").first).to_be_visible()
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        self.assertEqual((d["payload"]["activities"][0]["has_component"], d["payload"]["activities"][0]["component_name"]), ("No", name))
+        answer.select_option("Yes")
+        expect(p.locator("[name='activities.0.component_name']")).to_have_value(name)
+
+        vc = self.browser.new_context(viewport={"width": 375, "height": 812})
+        v = vc.new_page()
+        login(v, "vc", "demo.vc")
+        v.wait_for_url("**/vc/dashboard")
+        v.wait_for_load_state("networkidle")
+        self.assertEqual(v.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0)
+        box = v.get_by_role("button", name="Sign out").bounding_box()
+        self.assertLessEqual(box["x"] + box["width"], 375)
+        vc.close()
+
     # ---- Phase 3 templates ----
     def test_kra32_conditional_payment_fields(self):
         p = self.page
@@ -326,12 +427,16 @@ class BrowserTests(unittest.TestCase):
         p.get_by_role("button", name="Save draft").click()
         expect(p.get_by_role("status")).to_contain_text("Saved")
         p.reload()
-        expect(p.locator("[id='activities.0.v9b_ratings.0']")).to_have_value("3.75")
+        # Phase 6C: an unticked variant's fields are hidden with a note, never cleared
+        expect(p.locator("[id='activities.0.v9b_ratings.0']")).to_have_count(0)
+        expect(p.get_by_text("does not apply to your current answers").first).to_be_visible()
         expect(frame.get_by_text("ALUMNI FEEDBACK FORM (9a)")).to_be_visible(timeout=10000)
         expect(frame.get_by_text("ALUMNI FEEDBACK FORM (9b)")).to_have_count(0)
         _, d = api(p, "GET", f"/submissions/{sid}/")
         act = d["payload"]["activities"][0]
         self.assertEqual((act["v9a_ratings"][0], act["v9b_ratings"][0]), ("4.25", "3.75"))
+        box9b.check()  # ticking 9b again shows the kept value
+        expect(p.locator("[id='activities.0.v9b_ratings.0']")).to_have_value("3.75")
         r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
         self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"))
 
@@ -879,7 +984,7 @@ class BrowserTests(unittest.TestCase):
         _, years = api(v, "GET", "/admin/years/")
         pending = next(y for y in years if y["label"] == "2028-29")["drafts_pending"]
         v.get_by_role("button", name=re.compile("Review and finalize")).click()
-        expect(v.get_by_role("dialog", name="Finalize review")).to_contain_text(f"Finalize {pending} draft")
+        expect(v.get_by_role("region", name="Finalize review")).to_contain_text(f"Finalize {pending} draft")
         v.get_by_role("button", name="Confirm finalize").click()
         expect(v.get_by_role("status")).to_contain_text(f"Finalized {pending} assignment(s) for 2028-29")
         expect(v.get_by_label(f"Target for KRA {kra}", exact=True)).to_have_count(0)  # finalized row is read-only
