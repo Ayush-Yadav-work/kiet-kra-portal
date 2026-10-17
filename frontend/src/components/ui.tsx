@@ -14,6 +14,21 @@ const STATUS: Record<DisplayStatus, [string, string]> = {
 }
 export const statusLabel = (s: DisplayStatus) => STATUS[s][0]
 
+const TONE: Record<DisplayStatus | 'ASSIGNED', [IconName, string]> = {
+  ASSIGNED: ['doc', 'bg-info-bg text-info'], NOT_SUBMITTED: ['circle', 'bg-neutral-bg text-neutral'], DRAFT: ['pencil', 'bg-warn-bg text-warn'],
+  SUBMITTED: ['send', 'bg-info-bg text-info'], REJECTED: ['undo', 'bg-err-bg text-err'], APPROVED: ['check', 'bg-ok-bg text-ok'],
+}
+/** Compact summary card (approved UI-0 dashboard). With `onClick` it is a toggle button (`pressed` = selected filter). */
+export function StatCard({ kind, value, label, onClick, pressed }: { kind: DisplayStatus | 'ASSIGNED'; value: number; label: string; onClick?: () => void; pressed?: boolean }) {
+  const [icon, tone] = TONE[kind]
+  const body = <>
+    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full md:h-11 md:w-11 ${tone}`}><Icon name={icon} /></span>
+    <span className="text-left"><span className="block text-2xl font-bold leading-tight text-heading md:text-[28px]">{value}</span><span className="text-sm text-ink md:text-[15px]">{label}</span></span>
+  </>
+  const cls = `flex items-center gap-3 rounded-[10px] border bg-white px-3 py-3 md:px-4 ${pressed ? 'border-action ring-2 ring-action' : kind === 'ASSIGNED' ? 'border-[#B9CDE0]' : 'border-line'}`
+  return onClick ? <button type="button" className={`${cls} hover:border-action`} aria-pressed={pressed} onClick={onClick}>{body}</button> : <div className={cls}>{body}</div>
+}
+
 export function StatusBadge({ status }: { status: DisplayStatus }) {
   const [label, cls] = STATUS[status] ?? [status, 'bg-neutral-bg text-neutral']
   return <span className={`inline-block whitespace-nowrap rounded-full px-3 py-0.5 text-[13px] font-semibold ${cls}`}>{label}</span>

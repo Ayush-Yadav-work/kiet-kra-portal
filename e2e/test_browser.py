@@ -264,8 +264,82 @@ class BrowserTests(unittest.TestCase):
         expect(p.get_by_role("tab", name=re.compile("Evidence.*needs attention"))).to_be_visible()
         if p.get_by_role("tab", name=re.compile("^Evidence")).get_attribute("aria-selected") == "true":
             p.get_by_role("tab", name="Report", exact=True).click()
+        p.wait_for_timeout(400)  # buttons animate colour for 150 ms (UI-1); measure the settled state
         dot = p.evaluate(measure, "[role=tab][aria-selected=false] span[aria-hidden]")
         self.assertGreaterEqual(dot["color"], 3.0, dot)
+
+    def test_ui2_dashboards_counts_attention_filters(self):
+        """UI-2: Dean cards reconcile with the list; a rejected Nil report and an approved P1 reopening appear once each in
+        "Needs your attention" with real deadlines and actions; rapid period changes settle on the last choice; VC status cards
+        toggle the status filter without changing the counts; pagination and Clear filters work; no page overflow at 375 px."""
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 42)
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        s, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "is_nil": True, "nil_reason": "Synthetic: no activity"})
+        self.assertEqual(s, 200, body)
+        self.assertEqual(api(p, "POST", f"/submissions/{sid}/submit/", {"edit_version": body["edit_version"]})[0], 200)
+        _, periods = api(p, "GET", "/periods/?year=2026-27")
+        p1 = next(x for x in periods["results"] if x["index"] == 1)
+        _, p1rows = api(p, "GET", f"/assignments/?year=2026-27&period={p1['id']}")
+        asg41 = next(a for a in p1rows["results"] if a["kra"]["number"] == 41)
+        s, req = api(p, "POST", f"/assignments/{asg41['id']}/periods/{p1['id']}/reopen-requests/", {"reason": "Synthetic correction"})
+        self.assertEqual(s, 201, req)
+
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900}); v = vc.new_page()
+        login(v, "vc", "demo.vc"); v.wait_for_url("**/vc/dashboard")
+        _, det = api(v, "GET", f"/submissions/{sid}/")
+        reason = f"Synthetic UI-2 reason {int(time.time())}"
+        self.assertEqual(api(v, "POST", f"/submissions/{sid}/review/", {"revision": det["current_revision"]["id"], "decision": "REJECT", "reason": reason})[0], 200)
+        self.assertEqual(api(v, "POST", f"/reopen-requests/{req['id']}/decision/", {"approve": True})[0], 200)
+
+        p.goto(f"{BASE}/dean/dashboard")
+        attn = p.get_by_role("region", name=re.compile("Needs your attention"))
+        kra42 = attn.get_by_role("listitem").filter(has_text="KRA 42 · P2")
+        expect(kra42).to_contain_text("Rejected by the Vice Chancellor")
+        expect(kra42).to_contain_text(reason)
+        expect(kra42).to_contain_text("Period closes")
+        expect(kra42.get_by_role("link", name=re.compile("^Correct & resubmit"))).to_be_visible()
+        kra41 = attn.get_by_role("listitem").filter(has_text="KRA 41 ·")
+        expect(kra41).to_contain_text("Reopening ends")
+        expect(kra41).to_contain_text("Reopened for correction")
+        cards = p.get_by_role("region", name=re.compile("reports by status"))
+        nums = [int(t) for t in re.findall(r"\b(\d+)\b", cards.inner_text())]
+        self.assertEqual(nums[0], sum(nums[1:6]))  # Assigned = Not submitted + Draft + Submitted + Rejected + Approved
+        self.assertEqual(nums[0], p.locator("table.report-table tbody tr").count())
+        row = p.locator("table.report-table tbody tr").filter(has=p.get_by_text("Rejected", exact=True)).first
+        expect(row).to_contain_text("by Demo Vice-Chancellor")
+        period = p.get_by_label("Reporting period")
+        period.select_option(str(p1["id"]))
+        period.select_option(next(str(x["id"]) for x in periods["results"] if x["index"] == 2))  # rapid switch back
+        expect(p.get_by_role("heading", name=re.compile("^P2 Reports"))).to_be_visible()
+        p.wait_for_timeout(800)
+        expect(p.get_by_role("heading", name=re.compile("^P2 Reports"))).to_be_visible()  # no late P1 response overwrote it
+        kra42.get_by_role("link", name=re.compile("^Correct & resubmit")).click()
+        p.wait_for_url(f"**/dean/kra/**")
+
+        v.reload(); v.wait_for_load_state("networkidle")  # after the API approvals above
+        cards_v = v.get_by_role("region", name="Report counts")
+        expect(cards_v.get_by_role("button", name=re.compile("Rejected"))).to_be_visible()
+        before = cards_v.inner_text()
+        v.get_by_role("button", name=re.compile("Rejected")).click()
+        expect(v.get_by_role("button", name=re.compile("Rejected"))).to_have_attribute("aria-pressed", "true")
+        self.assertIn("status=REJECTED", v.url)
+        expect(v.get_by_role("row", name=re.compile("Nil")).first).to_be_visible()
+        self.assertEqual(cards_v.inner_text(), before)  # counts ignore the status filter
+        v.get_by_role("button", name="Clear filters").click()
+        self.assertNotIn("status=", v.url)
+        expect(v.get_by_text(re.compile(r"page 1 of \d+"))).to_be_visible()
+        v.get_by_role("button", name="Next").click()
+        expect(v.get_by_text(re.compile(r"page 2 of \d+"))).to_be_visible()
+        for page in (p, v):
+            page.set_viewport_size({"width": 375, "height": 812})
+        p.goto(f"{BASE}/dean/dashboard"); p.wait_for_load_state("networkidle")
+        v.wait_for_timeout(300)
+        for page in (p, v):
+            self.assertEqual(page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0)
+        vc.close()
 
     # ---- Phase 3 templates ----
     def test_kra32_conditional_payment_fields(self):
