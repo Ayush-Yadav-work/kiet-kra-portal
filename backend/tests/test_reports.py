@@ -11,6 +11,7 @@ from unittest import skipUnless
 import pymupdf
 from django.conf import settings
 
+from apps.reports import artifacts
 from apps.reports.pdf import call_renderer
 from tests.base import PortalTestCase, frozen, ist
 from tests.fixtures import kra33_payload
@@ -80,13 +81,15 @@ class PdfExportTests(PortalTestCase):
             self.assertIn("Pending approval", html)
             self.assertNotIn("Historical", html)  # current revision is not labelled historical
             vc.post(f"/api/v1/submissions/{sid}/review/", {"revision": rev, "decision": "APPROVE"}, format="json")
+            self.assertEqual(artifacts.run_one("test-worker").state, "READY")  # the approved PDF is the worker's artifact (D-076)
             text = pdf_text(self.export(vc, sid))
             self.assertIn("Verified by VC - t.vc", text)
             self.assertIn("Synthetic Alumni Meet 1", text)
             vc.post(f"/api/v1/submissions/{sid}/review/", {"revision": rev, "decision": "RETURN", "reason": "fix"}, format="json")
             self.assertIn("Pending approval", pdf_text(self.export(a, sid)))  # returned -> current export pending
             hist = pdf_text(self.export(a, sid, f"?revision={rev}"))
-            self.assertIn("Historical revision 1: Verified by VC - t.vc", hist)
+            self.assertIn("Verified by VC - t.vc", hist)  # the original approval artifact, unchanged by the return
+            self.assertNotIn("Historical", hist)
 
     def test_c12_renderer_blocks_all_network_requests_and_keeps_branding(self):
         hits = []

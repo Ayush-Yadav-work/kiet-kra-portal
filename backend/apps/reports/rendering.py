@@ -170,8 +170,9 @@ def _prepare_activity(schema, act, snap):
     return out
 
 
-def build_context(submission, revision=None, draft=None):
-    """draft = unsaved {payload, is_nil, nil_reason, achievement_text} for preview only."""
+def build_context(submission, revision=None, draft=None, verified_as=None):
+    """draft = unsaved {payload, is_nil, nil_reason, achievement_text} for preview only. verified_as = frozen
+    (label, verified, verified_at) of an approval artifact, so its PDF never reads the live status (D-076)."""
     tv = submission.assignment.template_version
     schema = copy.deepcopy(tv.schema)  # display-only annotations must never touch the stored schema
     if revision is not None:
@@ -184,7 +185,7 @@ def build_context(submission, revision=None, draft=None):
         if draft:
             src.update({k: v for k, v in draft.items() if k in src})
         snap = snapshot_of(submission)
-    label, verified, verified_at = verification(submission, revision)
+    label, verified, verified_at = verified_as or verification(submission, revision)
     style = schema["page"].get("style", "report")
     page = dict(PAGES[schema["page"]["format"]], style=style, margins=STYLES[style]["margins"])
     if schema["page"].get("landscape"):

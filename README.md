@@ -60,7 +60,7 @@ npm --prefix frontend install
 ```
 `seed_demo` (DEBUG only) creates synthetic accounts `demo.vc`, `demo.dean.cse`, `demo.dean.ece` and writes their random passwords to `.work/demo-credentials.txt` (git-ignored). Real accounts: `manage.py provision_user --role DEAN --department CSE --username … --name "…"` prints a one-time password.
 
-## Run (three terminals)
+## Run (four terminals)
 
 ```bash
 .venv/Scripts/python renderer/server.py
@@ -69,8 +69,14 @@ npm --prefix frontend install
 .venv/Scripts/python backend/manage.py runserver 127.0.0.1:8000
 ```
 ```bash
+.venv/Scripts/python backend/manage.py run_artifact_worker
+```
+```bash
 npm --prefix frontend run dev
 ```
+The artifact worker turns approvals into retained approved PDFs (D-076). Without it approvals still work, but approved
+PDF downloads stay at "Preparing the approved PDF". Check it with `.venv/Scripts/python backend/manage.py artifact_jobs --check`
+or `http://127.0.0.1:8000/health/artifacts/`; stop it with Ctrl+C (it finishes the current job first).
 Open http://localhost:5173 → Dean login (`/dean/login`) or VC login (`/vc/login`). Vite proxies `/api` to Django, so the session cookie stays same-origin.
 
 ## Tests
@@ -203,6 +209,23 @@ exactly, filter *Changed targets*, tick drafts → *Review and finalise* → *Fi
 and appear for that Dean from their start period. Remove/restore drafts; tick departments under *Unallocated* to allocate.
 **Analytics** — choose scope, period, KRA and departments (two or more show the comparison table); *Export PDF/CSV* use
 the same filters. **KRAs** is read-only. API: `docs/api.md`. Decisions: D-073, D-074. Handover: `docs/vc-features-phase1-handover.md`.
+
+## VC Phase 2 review (bulk approval, approved PDFs, announcements)
+
+Upgrade (keeps all data; migrations `submissions.0003_bulk_approval`, `reports.0002_approval_artifacts` — queues a PDF job
+for every earlier approval unless an identical approved PDF is already stored — and `announcements.0001_initial`):
+
+```bash
+.venv/Scripts/python backend/manage.py migrate
+```
+
+Then start the four processes above (the worker is new). VC dashboard: tick reports awaiting review (or *Select this page*),
+*Approve selected* or *Approve all matching filters* → review the frozen list → *Approve N reports*; progress is reported
+per server batch of 50; an interrupted run shows *Resume*. *Quick preview* opens the exact submitted revision as HTML
+(no PDF is generated); *Download exact-revision PDF* is separate. **Announcements** (VC) — draft, preview, publish,
+edit, pin, expire, withdraw, history; Deans get an inbox, a dashboard panel and an unread count. Analytics →
+*Announce to pending departments* prepares a draft only. Worker operations: `docs/vc-features-phase2-handover.md`.
+Decisions: D-075–D-077.
 
 ## Browser tests and cleaning old test data
 

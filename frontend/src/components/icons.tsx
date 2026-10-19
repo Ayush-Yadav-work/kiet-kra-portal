@@ -16,6 +16,7 @@ const PATHS = {
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   calendar: <><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" /></>,
   download: <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />,
+  bell: <><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20a2 2 0 0 0 4 0" /></>,
 }
 export type IconName = keyof typeof PATHS
 

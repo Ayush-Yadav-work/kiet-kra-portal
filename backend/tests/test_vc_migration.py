@@ -51,3 +51,47 @@ class UpgradeTests(TransactionTestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():  # new three-way check is in force
             ReopenGrant.objects.create(submission_id=sub.pk, starts_at=NOW, expires_at=NOW + datetime.timedelta(hours=1),
                                        approved_by=vc, source="PUBLICATION", request_id=req.pk)
+
+
+PHASE1 = [("reports", "0001_initial"), ("submissions", "0002_publication_grant"), ("announcements", None)]
+
+
+class Phase2UpgradeTests(TransactionTestCase):
+    def test_upgrade_from_phase1_keeps_reports_pdfs_and_queues_artifacts(self):
+        from apps.catalogue.models import Department
+        from apps.reports.models import ApprovalArtifact, GeneratedDocument
+        from apps.submissions.models import Submission
+
+        call_command("seed_catalogue", stdout=io.StringIO())
+        vc, dean = PortalTestCase.make_user("t.vc", "VC"), PortalTestCase.make_user("t.dean", "DEAN", Department.objects.get(code="CSE"))
+        ex = MigrationExecutor(connection)
+        ex.migrate(PHASE1)
+        old = ex.loader.project_state([t for t in PHASE1 if t[1]]).apps
+        A, P = old.get_model("catalogue", "AnnualAssignment"), old.get_model("catalogue", "ReportingPeriod")
+        S, Rev, Dec = (old.get_model("submissions", m) for m in ("Submission", "SubmissionRevision", "ReviewDecision"))
+        Doc = old.get_model("reports", "GeneratedDocument")
+        p1 = P.objects.get(year__label="2026-27", index=1)
+        made = []
+        for kra in (24, 25):
+            a = A.objects.get(year__label="2026-27", department__code="CSE", kra__number=kra)
+            s = S.objects.create(assignment=a, period=p1, created_by_id=dean.id, status="APPROVED", edit_version=3)
+            rev = Rev.objects.create(submission=s, sequence=1, payload={}, is_nil=False, snapshot={"template": {"key": "k", "version": 1}},
+                                     evidence_manifest=[], manifest_hash="h", submitted_by_id=dean.id, submitted_at=NOW)
+            s.current_revision = rev
+            s.save()
+            d = Dec.objects.create(revision=rev, reviewer_id=vc.id, reviewer_name="Old VC", decision="APPROVE", created_at=NOW)
+            made.append((s, rev, d))
+        doc = Doc.objects.create(submission=made[0][0], revision=made[0][1], content_hash="c" * 64, status_snapshot="APPROVED",
+                                 verification_label="Verified by VC - Old VC", renderer_version="kiet-renderer-1",
+                                 storage_key="generated/" + "b" * 32 + ".pdf", bytes=10)
+        before = list(Submission.objects.order_by("pk").values_list("pk", "status", "current_revision_id"))
+        ex = MigrationExecutor(connection)
+        ex.loader.build_graph()
+        ex.migrate(ex.loader.graph.leaf_nodes())
+
+        self.assertEqual(list(Submission.objects.order_by("pk").values_list("pk", "status", "current_revision_id")), before)
+        self.assertEqual(GeneratedDocument.objects.get(pk=doc.pk).storage_key, "generated/" + "b" * 32 + ".pdf")  # untouched
+        kept = ApprovalArtifact.objects.get(decision_id=made[0][2].pk)
+        self.assertEqual((kept.state, kept.storage_key, kept.legacy_document_id), ("READY", doc.storage_key, doc.pk))
+        queued = ApprovalArtifact.objects.get(decision_id=made[1][2].pk)
+        self.assertEqual((queued.state, queued.reviewer_name, queued.template_key), ("PENDING", "Old VC", "k"))

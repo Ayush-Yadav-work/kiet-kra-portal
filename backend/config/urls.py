@@ -7,6 +7,8 @@ from apps.catalogue import admin_views as adm
 from apps.catalogue import views as cat
 from apps.evidence import views as ev
 from apps.submissions import analytics_views as sub_analytics
+from apps.submissions import bulk_views as bulk
+from apps.announcements import views as ann
 from apps.submissions import views as sub
 
 UUID = "<uuid:pk>"
@@ -61,6 +63,22 @@ api = [
     # views must never run inside a request-wide transaction (plan §8.1).
     path("analytics/", transaction.non_atomic_requests(sub_analytics.AnalyticsView.as_view())),
     path("analytics/export/", transaction.non_atomic_requests(sub_analytics.AnalyticsExportView.as_view())),
+    # Bulk approval (D-075): one transaction per item inside each request.
+    path("bulk-approvals/", bulk.BulkApprovalsView.as_view()),
+    path(f"bulk-approvals/{UUID}/", bulk.BulkApprovalView.as_view()),
+    path(f"bulk-approvals/{UUID}/confirm/", bulk.BulkConfirmView.as_view()),
+    path(f"bulk-approvals/{UUID}/process/", bulk.BulkProcessView.as_view()),
+    path(f"bulk-approvals/{UUID}/retry/", bulk.BulkRetryView.as_view()),
+    # Announcements (D-077); publish/pending-draft read the analytics snapshot, which must own its transaction.
+    path("announcements/", ann.AnnouncementsView.as_view()),
+    path("announcements/unread-count/", ann.UnreadCountView.as_view()),
+    path("announcements/recipients-preview/", ann.RecipientsPreviewView.as_view()),
+    path("announcements/pending-draft/", transaction.non_atomic_requests(ann.PendingDraftView.as_view())),
+    path(f"announcements/{UUID}/", ann.AnnouncementView.as_view()),
+    path(f"announcements/{UUID}/publish/", transaction.non_atomic_requests(ann.PublishView.as_view())),
+    path(f"announcements/{UUID}/withdraw/", ann.WithdrawView.as_view()),
+    path(f"announcements/{UUID}/read/", ann.ReadView.as_view()),
+    path(f"announcements/{UUID}/revisions/", ann.RevisionsView.as_view()),
 ]
 
 
@@ -68,7 +86,16 @@ def health(request):
     return JsonResponse({"ok": True})
 
 
+def artifact_health(request):
+    """Operator signal for the approved-PDF worker: live heartbeat, backlog, failed jobs (counts only)."""
+    from apps.reports.artifacts import health as h
+
+    data = h()
+    return JsonResponse(data, status=200 if data["ok"] else 503)
+
+
 urlpatterns = [
     path("api/v1/", include(api)),
     path("health/", health),
+    path("health/artifacts/", artifact_health),
 ]

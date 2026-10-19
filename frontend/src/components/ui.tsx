@@ -1,6 +1,7 @@
 import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import type { DisplayStatus, Role } from '../api/types'
+import { api } from '../api/client'
 import { homeFor, useAuth } from '../auth/AuthContext'
 import logo from '../assets/kiet-logo.png'
 import { Icon, type IconName } from './icons'
@@ -83,31 +84,49 @@ export function tabKeys(e: KeyboardEvent<HTMLElement>) {
 }
 
 const NAV: Record<Role, { to: string; label: string; icon: IconName }[]> = {
-  DEAN: [{ to: '/dean/dashboard', label: 'Dashboard', icon: 'home' }],
+  DEAN: [{ to: '/dean/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/dean/announcements', label: 'Announcements', icon: 'bell' }],
   VC: [{ to: '/vc/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/vc/analytics', label: 'Analytics', icon: 'doc' },
        { to: '/vc/reopen-requests', label: 'Reopening requests', icon: 'list' }, { to: '/vc/assignments', label: 'Annual assignments', icon: 'list' },
-       { to: '/vc/kras', label: 'KRAs', icon: 'list' }],
+       { to: '/vc/kras', label: 'KRAs', icon: 'list' }, { to: '/vc/announcements', label: 'Announcements', icon: 'bell' }],
 }
 const initials = (name: string) => name.replace(/^(Dr|Prof|Mr|Ms|Mrs)\.?\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
 /** Approved UI-0 header: logo, product name, existing destinations only, user and Sign out; on phones the links wrap below. */
+function useUnread(enabled: boolean) {
+  const { pathname } = useLocation()
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    if (!enabled) return
+    let live = true
+    const load = () => api<{ unread_count: number }>('/announcements/unread-count/').then((r) => live && setN(r.unread_count)).catch(() => {})
+    load()
+    window.addEventListener('focus', load)
+    window.addEventListener('kra:announcements-read', load)
+    return () => { live = false; window.removeEventListener('focus', load); window.removeEventListener('kra:announcements-read', load) }
+  }, [enabled, pathname])
+  return n
+}
+
 function Shell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
+  const unread = useUnread(user?.role === 'DEAN')
   if (!user) return null
   const links = [...NAV[user.role], { to: '/change-password', label: 'Change password', icon: 'lock' as IconName }]
   const roleLine = user.role === 'VC' ? 'Vice Chancellor' : `Dean, ${user.department?.code ?? ''}`
-  const vc = user.role === 'VC'  // the VC's six links fit on one row with the user block only from 2xl
+  const vc = user.role === 'VC'  // the VC's seven links always get their own row (one row overflowed at 1536 px)
   return (
     <div className="min-h-screen">
       <header className="border-b border-line bg-white">
-        <div className={`mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-7 gap-y-2 px-4 py-2 md:px-7 ${vc ? '2xl:min-h-[72px] 2xl:flex-nowrap 2xl:py-0' : 'xl:min-h-[72px] xl:flex-nowrap xl:py-0'}`}>
+        <div className={`mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-7 gap-y-2 px-4 py-2 md:px-7 ${vc ? '' : 'xl:min-h-[72px] xl:flex-nowrap xl:py-0'}`}>
           <Link to={homeFor(user)} aria-label="KIET KRA Reporting Portal — home" className="shrink-0"><img src={logo} width={974} height={360} alt="" className="h-auto w-28 md:w-[150px]" /></Link>
           <span className={`hidden whitespace-nowrap border-l border-line pl-6 text-xl font-bold text-heading ${vc ? '2xl:inline' : 'lg:inline'}`}>KRA Reporting Portal</span>
-          <nav aria-label="Main" className={`order-3 flex w-full flex-wrap gap-x-1 self-stretch ${vc ? '2xl:order-none 2xl:ml-2 2xl:w-auto 2xl:flex-nowrap' : 'xl:order-none xl:ml-2 xl:w-auto xl:flex-nowrap'}`}>
+          <nav aria-label="Main" className={`order-3 flex w-full flex-wrap gap-x-1 self-stretch ${vc ? '' : 'xl:order-none xl:ml-2 xl:w-auto xl:flex-nowrap'}`}>
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} end
                 className={({ isActive }) => `flex min-h-11 items-center gap-2 whitespace-nowrap border-b-[3px] px-3 text-[15px] ${isActive ? 'border-accent font-semibold text-action' : 'border-transparent font-medium text-heading hover:text-action'}`}>
                 <Icon name={l.icon} />{l.label}
+                {l.to === '/dean/announcements' && unread > 0 && <span className="sr-only"> </span>}
+                {l.to === '/dean/announcements' && unread > 0 && <span className="rounded-full bg-accent-btn px-1.5 text-xs font-bold text-white">{unread}<span className="sr-only"> unread</span></span>}
               </NavLink>
             ))}
           </nav>

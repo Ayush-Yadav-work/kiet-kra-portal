@@ -16,6 +16,7 @@ from apps.audit.errors import ApiError
 from apps.catalogue.allocations import NOT_ASSIGNED, applicability
 from apps.audit.models import record
 from apps.reports.schema import validate_payload
+from apps.reports import artifacts
 
 from .models import ReopenGrant, ReopenRequest, ReviewDecision, Status, Submission, SubmissionRevision
 
@@ -290,6 +291,8 @@ def review(user, submission_id, revision_id, decision, reason, grant_reopen, req
         if do_grant:
             ReopenGrant.objects.create(submission=sub, starts_at=at, expires_at=at + GRANT, approved_by=user,
                                        source=ReopenGrant.Source.REVIEW, review_decision=rd)
+        if decision == "APPROVE":  # durable job in the same commit; the worker renders it later (D-076)
+            artifacts.enqueue(rd)
         record(user, f"review_{decision.lower()}", sub, {"granted_reopen": do_grant}, request)
         return sub, rd
 

@@ -5,6 +5,7 @@ import type { Applicability, Assignment, DisplayStatus, Period, SubmissionSummar
 import { useAuth } from '../../auth/AuthContext'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatCard, StatusBadge, statusLabel, timeLeft, useServerClock } from '../../components/ui'
+import { DashboardNotices } from '../announcements/DeanAnnouncements'
 
 interface Row extends Assignment { submission: SubmissionSummary; applicability: Applicability | null }
 interface GrantRow { id: string; expires_at: string; kra_number: number; period: string; assignment_id: string; period_id: number; status: string; source: string }
@@ -103,6 +104,7 @@ export default function DeanDashboard() {
         </div>
         <YearPeriodPicker year={year} period={periodId} periods={periods} onChange={(y, p) => setParams(p ? { year: y, period: p } : { year: y })} />
       </div>
+      <DashboardNotices />
 
       {period && (
         <p className="flex flex-wrap gap-x-3 gap-y-1 text-[15px]">

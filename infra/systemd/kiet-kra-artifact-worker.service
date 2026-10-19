@@ -1,0 +1,36 @@
+# Approved-PDF artifact worker (D-076). Install alongside the web service, from the SAME release directory, virtualenv,
+# environment file and private storage as Django. Not yet exercised on Linux (see docs/vc-features-phase2-handover.md).
+#
+#   sudo cp infra/systemd/kiet-kra-artifact-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now kiet-kra-artifact-worker
+#   journalctl -u kiet-kra-artifact-worker -f        # logs
+#   /opt/kiet-kra/.venv/bin/python backend/manage.py artifact_jobs --check   # heartbeat / backlog / failed jobs
+#
+# Run `manage.py migrate` (the controlled release step) BEFORE (re)starting this unit.
+[Unit]
+Description=KIET KRA approved-PDF artifact worker
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kiet-kra
+Group=kiet-kra
+WorkingDirectory=/opt/kiet-kra/backend
+EnvironmentFile=/etc/kiet-kra/kiet-kra.env
+ExecStart=/opt/kiet-kra/.venv/bin/python manage.py run_artifact_worker
+# SIGTERM: finish the current job, then exit; after TimeoutStopSec systemd sends SIGKILL and the job's lease expires
+# (ARTIFACT_LEASE_SECONDS), so another worker or the restarted one recovers it.
+KillSignal=SIGTERM
+TimeoutStopSec=120
+Restart=always
+RestartSec=5
+# Least privilege: only the private storage root is writable.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/kiet-kra/private
+
+[Install]
+WantedBy=multi-user.target

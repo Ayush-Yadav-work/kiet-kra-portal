@@ -1,6 +1,7 @@
 from django.db.models import Exists, OuterRef
 from django.http import FileResponse, HttpResponse
 from django.utils import timezone
+from django.utils.html import escape
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,6 +11,7 @@ from apps.catalogue.allocations import NOT_ASSIGNED, applicability
 from apps.catalogue.models import ReportingPeriod
 from apps.catalogue.views import assignment_json, period_json
 from apps.evidence.models import Evidence
+from apps.reports import artifacts
 from apps.reports.pdf import call_renderer, export_pdf
 from apps.reports.rendering import build_context, progress_pdf_parts, render_html
 from apps.reports.schema import validate_payload
@@ -229,6 +231,40 @@ class PreviewView(APIView):
         return Response({"html": render_html(ctx, "preview")})
 
 
+PDF_WAIT_POLLS = 24  # bounded automatic refreshes (~2 minutes) before asking the user to try later
+
+
+def artifact_pending(request, art):
+    """Processing / failed answer for an approved PDF that is not ready. Never falls back to another document."""
+    failed = art.state == art.State.FAILED
+    retry = 5
+    body = {"code": "pdf_failed" if failed else "pdf_processing", "state": art.state, "retry_after": retry,
+            "message": ("The approved PDF could not be generated yet. The approval is recorded; the administrator can retry "
+                        "the PDF job. Try again later." if failed else
+                        "The approved PDF is being prepared. The approval is recorded; try again in a few seconds.")}
+    if "application/json" in request.headers.get("Accept", ""):
+        resp = Response(body, status=503 if failed else 202)
+    else:  # opened in a browser tab: a small self-refreshing page with a bounded number of refreshes
+        try:
+            n = min(max(int(request.query_params.get("wait", 0)), 0), PDF_WAIT_POLLS)
+        except ValueError:
+            n = 0
+        q = request.query_params.copy()
+        q["wait"] = n + 1
+        again = escape(f"?{q.urlencode()}")
+        refresh = f'<meta http-equiv="refresh" content="{retry};url={again}">' if not failed and n < PDF_WAIT_POLLS else ""
+        note = ("Still preparing after several attempts." if n >= PDF_WAIT_POLLS and not failed else "")
+        html = (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Approved PDF</title>{refresh}'
+                '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+                '<body style="font-family:system-ui,sans-serif;max-width:40rem;margin:3rem auto;padding:0 1rem;color:#1f2937">'
+                f'<h1 style="font-size:1.25rem">{"Approved PDF not available yet" if failed else "Preparing the approved PDF"}</h1>'
+                f'<p role="status">{escape(body["message"])} {note}</p><p><a href="{again}">Try again</a></p></body></html>')
+        resp = HttpResponse(html, status=503 if failed else 202, content_type="text/html; charset=utf-8")
+    resp["Retry-After"] = str(retry)
+    resp["Cache-Control"] = "private, no-store"
+    return resp
+
+
 class ExportView(APIView):
     permission_classes = [IsDeanOrVC]
 
@@ -237,8 +273,15 @@ class ExportView(APIView):
         revision = None
         if request.query_params.get("revision"):
             revision = get_or_404(sub.revisions.all(), pk=request.query_params["revision"])
-        doc, path, ctx = export_pdf(sub, revision)
-        snap = ctx["snap"]
+        approval = artifacts.approval_for(sub, revision)
+        if approval is not None:  # approved documents come only from the retained artifact (D-076)
+            art = artifacts.artifact_for(approval)
+            if art.state != art.State.READY:
+                return artifact_pending(request, art)
+            path, snap = artifacts.read_path(art.storage_key), art.revision.snapshot
+        else:
+            doc, path, ctx = export_pdf(sub, revision)
+            snap = ctx["snap"]
         name = f'KRA{snap["kra"]["number"]}_{snap["department"]["code"]}_{snap["year"]}_P{snap["period"]["index"]}'
         name = "".join(c if c.isalnum() or c in "-_" else "_" for c in name)
         if revision:

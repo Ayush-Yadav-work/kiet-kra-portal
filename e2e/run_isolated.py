@@ -6,8 +6,9 @@
 
 It recreates <working db name>_e2e on the same local PostgreSQL, migrates and seeds it (workbook catalogue + synthetic demo
 accounts written to .work/e2e/), starts its own Django (:8001) and Vite (:5174, proxying to :8001) with evidence stored
-under .work/e2e/private, runs e2e/test_browser.py, then stops both servers and drops the database. The PDF renderer is
-stateless and shared; it is started here only if none is running on :8790.
+under .work/e2e/private, plus the approved-PDF artifact worker on the same database and storage (D-076), runs
+e2e/test_browser.py, then stops them and drops the database. The PDF renderer is stateless and shared; it is started here
+only if none is running on :8790.
 """
 import os
 import shutil
@@ -86,6 +87,9 @@ def main():
             wait("http://127.0.0.1:8790/health", "Renderer")
         procs.append(subprocess.Popen(manage + ["runserver", "127.0.0.1:8001", "--noreload"], cwd=BACKEND, env=env,
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+        worker_log = (WORK / "artifact-worker.log").open("w")
+        procs.append(subprocess.Popen(manage + ["run_artifact_worker"], cwd=BACKEND, env={**env, "ARTIFACT_POLL_SECONDS": "1"},
+                                      stdout=worker_log, stderr=subprocess.STDOUT))
         procs.append(subprocess.Popen(["npx.cmd" if os.name == "nt" else "npx", "vite", "--port", "5174", "--strictPort"], cwd=FRONTEND,
                                       env={**env, "KRA_API_TARGET": "http://127.0.0.1:8001"},
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))

@@ -1,5 +1,40 @@
 # Validation log
 
+## VC features Phase 2 (2026-10-19)
+
+Isolated databases/media only (Django test database; `e2e/run_isolated.py`); the working database was not used.
+
+| Command | Result |
+|---|---|
+| `python backend/manage.py test tests --parallel 1` (renderer on :8790), final code | **Ran 546 tests, OK**, 0 skipped |
+| `python e2e/run_isolated.py` (isolated DB/media, Django + Vite + **artifact worker**), final code | **Ran 28 tests, OK** |
+| `npx tsc -b`, `npm run build` (frontend) | OK (Vite warns that the bundle exceeds 500 kB) |
+| Focused: `tests.test_vc_bulk` 5, `tests.test_vc_artifacts` 7, `tests.test_vc_worker_process` 1, `tests.test_vc_announcements` 5, `tests.test_vc_migration` 2 | all OK |
+
+Covered: 180-report all-filtered manifest processed 50/50/50/30 with one confirmation and accurate progress; reports
+submitted after selection not added; manifest cap refused without truncation; selection exclusions; individual approval,
+resubmission (newer revision) and a database error during a run → Skipped / Conflict / Failed with correct reasons and no
+duplicate decision; retry via a new confirmed manifest; double confirm; repeated process after completion; expiry;
+interruption + resume from a new session; ownership (404) and Dean refusal (403); two concurrent "tabs" on real connections
+(`TransactionTestCase`, threads) → each of 60 items approved exactly once. Artifacts: approval with the renderer down;
+202/HTML bounded-refresh processing state; worker output with the frozen reviewer label after a later return and an
+account rename; backoff, permanent failure (503), operator retry; lease expiry recovery, discarded late result, graceful
+release; `run_artifact_worker --once`, heartbeat and `/health/artifacts/`; legacy approval reusing a retained PDF; quick
+preview = HTML only with the renderer mocked out (never called). A **real worker subprocess** consumed a committed job
+automatically, was killed mid-render and a restarted worker finished it (attempts = 2, one artifact, file in the shared
+storage). Announcements: draft invisibility, all/selected audiences, non-recipient detail/read/history 404, list never
+marks read, content edits unread (counted once), pin/expiry/audience edits keep read state, added and re-added departments
+unread, removed department loses access, stale read 409, expiry and withdrawal, version conflicts, plain-text/link
+validation, pending-departments shortcut (only opened periods, draft only, eligibility revalidated, no grants created).
+Upgrade from the Phase 1 schema keeps submissions and existing PDFs and queues/reuses artifacts. Browser: quick preview
+with *Next report* and no `/export/` request, selection kept; 2 selected + 58 all-filtered approvals; the running worker
+produced the approved PDF (text checked); ECE-only notice hidden from CSE, unread badge, read on open, unread after edit;
+shortcut draft; no horizontal overflow at 375 px on the new pages. Screenshots of the dashboard selection, preview drawer,
+bulk result, announcement editor, Dean dashboard/notice and pending draft were inspected; fix made: the VC's seven header
+links now always use their own row (one row overflowed at 1536 px).
+
+Not executed: the systemd unit on Linux, Gunicorn, production timeouts/latency for 50-item batches, real screen readers.
+
 ## VC features Phase 1 (2026-10-19)
 
 All runs use isolated databases: Django's test database (`test_<db>`) and `e2e/run_isolated.py` (`<db>_e2e`, own media); the working database was not used.
