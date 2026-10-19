@@ -64,6 +64,14 @@ class PortalTestCase(TestCase):
         assert r.status_code in (200, 201), r.content
         return r.json()["submission_id"]
 
+    def finalise(self, client, year, drafts, start=None):
+        """VC selective finalisation (VC Phase 1): preview, then confirm with the returned token. Drafts must be fresh."""
+        items = [{"id": str(d.id), "edit_version": d.edit_version} for d in drafts]
+        pv = client.post(f"/api/v1/admin/years/{year}/finalise/preview/", {"items": items, "start": start}, format="json")
+        if pv.status_code != 200:
+            return pv
+        return client.post(f"/api/v1/admin/years/{year}/finalise/", {"token": pv.json()["token"]}, format="json")
+
     def detail(self, client, sid):
         return client.get(f"/api/v1/submissions/{sid}/").json()
 

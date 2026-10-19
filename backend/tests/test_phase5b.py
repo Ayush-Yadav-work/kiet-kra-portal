@@ -105,7 +105,8 @@ class Phase5BTests(PortalTestCase):
         DraftAssignment.objects.create(department=self.cse, kra=kra, year=y, target_text="draft only", template_version=kra.default_template, created_by=self.vc)
         self.assertEqual(self.progress(kra=46).json()["total"], 0)  # VC drafts never appear
         with frozen(NOW):
-            self.v.post("/api/v1/admin/years/2026-27/finalize/", {"expected_pending": 1}, format="json")
+            r = self.finalise(self.v, "2026-27", [DraftAssignment.objects.get(kra=kra, department=self.cse)])
+            self.assertEqual(r.status_code, 200, r.content)
         rows = self.progress(kra=46).json()["results"]
         self.assertEqual([(r["department"], r["display_status"], r["target_text"]) for r in rows], [("CSE", "NOT_SUBMITTED", "draft only")])
 

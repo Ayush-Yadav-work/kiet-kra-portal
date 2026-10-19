@@ -1045,65 +1045,84 @@ class BrowserTests(unittest.TestCase):
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
     def test_phase5a_vc_assignment_workflow(self):
-        """Phase 5A: Dean denied; VC copies 2026-27 into 2027-28 drafts (repeats show conflicts), edits an ECE target
-        (saved exactly), then adds and finalizes one ECE draft for 2028-29 through the review dialog; the Dean then sees it
-        and a finalized target cannot change. Rerunnable: each run finalizes the next free ECE KRA for 2028-29."""
+        """VC Phase 1 (supersedes the Phase 5A flow): Dean denied; VC copies 2026-27 into 2027-28 drafts through the copy review,
+        edits ECE's KRA 33 target exactly (Changed filter), finalises ECE KRA 33 only (starts in P1), the ECE Dean then sees exactly
+        that target while other drafts stay editable; remove/restore a draft; analytics with comparison and PDF/CSV exports."""
+        import pymupdf
+
         p = self.page
         login(p, "dean", "demo.dean.ece")
         p.wait_for_url("**/dean/dashboard")
-        status, _ = api(p, "GET", "/admin/years/")
-        self.assertEqual(status, 403)
-        p.goto(f"{BASE}/vc/assignments")
-        p.wait_for_url("**/dean/dashboard")  # VC screen not reachable for a Dean
+        self.assertEqual(api(p, "GET", "/admin/years/")[0], 403)
+        self.assertEqual(api(p, "GET", "/analytics/?year=2026-27")[0], 403)
+        for path in ("/vc/assignments", "/vc/analytics"):
+            p.goto(f"{BASE}{path}")
+            p.wait_for_url("**/dean/dashboard")  # VC screens are not reachable for a Dean
 
-        vc = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900}, accept_downloads=True)
         v = vc.new_page()
         login(v, "vc", "demo.vc")
         v.wait_for_url("**/vc/dashboard")
-        v.get_by_role("link", name="Assignments").click()
-        expect(v.get_by_role("heading", name="KRA assignments and targets")).to_be_visible()  # the dashboard also has a year picker
+        v.get_by_role("link", name="Annual assignments").click()
+        expect(v.get_by_role("heading", name="Annual assignments")).to_be_visible()
         v.get_by_label("Academic year").select_option("2027-28")
-        v.get_by_label("Department").select_option("ECE")
-        v.get_by_role("button", name="Copy 2026-27 assignments into drafts").click()
-        expect(v.get_by_role("status")).to_contain_text("into 2027-28 drafts")
+        v.get_by_role("button", name="Copy previous year setup").click()
+        review = v.get_by_role("region", name="Copy review")
+        expect(review).to_contain_text("new draft allocations to create")
+        review.get_by_role("button", name=re.compile(r"^Create \d+ drafts")).click()
+        expect(v.get_by_role("status")).to_contain_text("draft allocation(s) from 2026-27")
+        v.get_by_role("combobox", name=re.compile("^KRA")).select_option("33")
         target = f"Synthetic target {int(time.time())} — 50% / NA"
-        box = v.get_by_label("Target for KRA 1", exact=True)
+        box = v.get_by_label("New target for ECE KRA 33", exact=True)
         box.fill(target)
-        v.get_by_role("row", name=re.compile(r"^KRA 1 ")).get_by_role("button", name="Save").click()
-        v.reload()
-        v.get_by_label("Academic year").select_option("2027-28")
-        v.get_by_label("Department").select_option("ECE")
-        expect(v.get_by_label("Target for KRA 1", exact=True)).to_have_value(target)  # stored exactly
-        _, drafts = api(v, "GET", "/admin/drafts/?year=2027-28&department=ECE")
-        self.assertEqual(next(x for x in drafts if x["kra"]["number"] == 1)["target_text"], target)
-        _, again = api(v, "POST", "/admin/years/2027-28/copy/", {"source_year": "2026-27"})
-        self.assertEqual(again["created"], 0)  # repeated copy never overwrites
+        expect(v.get_by_text("Unsaved change")).to_be_visible()
+        v.get_by_role("button", name="Save ECE KRA 33").click()
+        expect(v.get_by_role("status")).to_contain_text("Saved the ECE KRA 33 draft target")
+        expect(v.get_by_role("button", name="Changed targets (1)")).to_be_visible()
 
-        v.get_by_label("Academic year").select_option("2028-29")
-        v.get_by_label("Department").select_option("ECE")
-        pick = v.get_by_label("New draft KRA")
-        expect(pick.locator("option").nth(1)).to_be_attached()
-        kra = pick.locator("option").nth(1).get_attribute("value")
-        pick.select_option(kra)
-        v.get_by_label("New draft target").fill("Synthetic 2028-29 target: 1 Per Year")
-        v.get_by_role("button", name="Add draft").click()
-        expect(v.get_by_label(f"Target for KRA {kra}", exact=True)).to_have_value("Synthetic 2028-29 target: 1 Per Year")
-        _, years = api(v, "GET", "/admin/years/")
-        pending = next(y for y in years if y["label"] == "2028-29")["drafts_pending"]
-        v.get_by_role("button", name=re.compile("Review and finalize")).click()
-        expect(v.get_by_role("region", name="Finalize review")).to_contain_text(f"Finalize {pending} draft")
-        v.get_by_role("button", name="Confirm finalize").click()
-        expect(v.get_by_role("status")).to_contain_text(f"Finalized {pending} assignment(s) for 2028-29")
-        expect(v.get_by_label(f"Target for KRA {kra}", exact=True)).to_have_count(0)  # finalized row is read-only
-        _, drafts = api(v, "GET", "/admin/drafts/?year=2028-29&department=ECE")
-        d = next(x for x in drafts if x["kra"]["number"] == int(kra))
-        status, body = api(v, "PATCH", f"/admin/drafts/{d['id']}/", {"target_text": "changed"})
-        self.assertEqual((status, body["code"]), (409, "finalized"))
+        v.get_by_label("Select ECE KRA 33 draft").check()
+        v.get_by_role("button", name="Review and finalise 1").click()
+        fin = v.get_by_role("region", name="Finalise review")
+        expect(fin).to_contain_text("Reporting starts in")
+        expect(fin).to_contain_text(target)
+        fin.get_by_role("button", name="Finalise and send 1").click()
+        expect(v.get_by_role("status")).to_contain_text("Finalised and sent 1 assignment(s) for 2027-28")
+        expect(v.get_by_label("New target for ECE KRA 33", exact=True)).to_have_count(0)  # finalised row is read-only
+        expect(v.get_by_label("New target for CSE KRA 33", exact=True)).to_be_visible()  # unselected drafts stay editable
+
+        v.get_by_label("Select ME KRA 33 draft").check()
+        v.get_by_role("button", name=re.compile("Remove 1 from this year")).click()
+        expect(v.get_by_role("status")).to_contain_text("Removed 1 draft")
+        v.get_by_role("button", name="Removed (1)").click()
+        v.get_by_role("button", name="Restore ME KRA 33").click()
+        expect(v.get_by_role("status")).to_contain_text("Restored")
+
+        _, rows = api(p, "GET", "/assignments/?year=2027-28")
+        self.assertEqual([(r["kra"]["number"], r["target_text"], r["effective_start_period"]["index"]) for r in rows["results"]], [(33, target, 1)])
+
+        v.get_by_role("link", name="Analytics").click()
+        expect(v.get_by_role("heading", name="Report approval analytics")).to_be_visible()
+        expect(v.get_by_text(re.compile(r"^\d+ of \d+ reports approved$"))).to_be_visible()
+        v.get_by_label("Scope").select_option("year")
+        v.get_by_text(re.compile("^Departments:")).click()
+        for code in ("CSE", "ECE"):  # URL-driven checkboxes update on the next render
+            box = v.get_by_label(f"{code} — ", exact=False).first
+            box.click()
+            expect(box).to_be_checked()
+        expect(v.get_by_text("Approved / expected by reporting period")).to_be_visible()  # comparison of two departments
+        expect(v.get_by_text(re.compile(r"of 540 reports approved$"))).to_be_visible()  # 2 departments × 45 KRAs × 6 periods
+        with v.expect_download() as dl:
+            v.get_by_role("button", name="Export PDF").click()
+        text = " ".join(pg.get_text() for pg in pymupdf.open(dl.value.path())).replace("\n", " ")
+        self.assertIn("of 540 reports approved", text)
+        with v.expect_download() as dl:
+            v.get_by_role("button", name="Export CSV").click()
+        self.assertEqual(len(Path(dl.value.path()).read_text(encoding="utf-8-sig").splitlines()), 541)  # header + every slot
+        v.set_viewport_size({"width": 375, "height": 812})
+        for path in ("/vc/analytics?year=2026-27", "/vc/assignments?year=2027-28&kra=33"):
+            v.goto(f"{BASE}{path}"); v.wait_for_load_state("networkidle")
+            self.assertEqual(v.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0, path)
         vc.close()
-
-        _, rows = api(p, "GET", "/assignments/?year=2028-29")
-        mine = [r for r in rows["results"] if r["kra"]["number"] == int(kra)]
-        self.assertEqual([(r["department"]["code"], r["target_text"]) for r in mine], [("ECE", "Synthetic 2028-29 target: 1 Per Year")])
 
     def test_phase5b_progress_filters_review_and_export(self):
         """Phase 5B: an ECE draft achievement appears under Department=ECE / Status=Draft marked as unsubmitted; the review

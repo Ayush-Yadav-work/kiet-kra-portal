@@ -265,6 +265,31 @@ def progress_pdf_parts(ctx):
             "footer": footer, "format": "A4", "landscape": True, "margin": m}
 
 
+def analytics_pdf_parts(d):
+    """VC analytics PDF (D-074): same A4-landscape sheet chrome as the progress PDF; the template draws charts as static HTML/CSS."""
+    from apps.submissions.analytics import BUCKETS, LABELS
+
+    rows = [{"code": b, "label": LABELS[b], "count": d["breakdown"][b]} for b in BUCKETS]
+    mark = lambda c: "N/A" if c is None else (LABELS.get(c["bucket"], "Not assigned") if d["filters"]["scope"] == "period"
+                                              else f'{c["approved"]}/{c["expected"]}')
+    depts = [r["department"] for r in d["matrix"]["rows"]]
+    matrix = [{"kra": k, "cells": [mark(r["cells"][i]) for r in d["matrix"]["rows"]]} for i, k in enumerate(d["matrix"]["kras"])]
+    ctx = {**d, "breakdown_rows": rows, "matrix_departments": depts, "matrix_rows": matrix,
+           "status_label": LABELS.get(d["filters"]["status"], ""),
+           "departments": [{**x, "breakdown_list": [x["breakdown"][b] for b in BUCKETS]} for x in d["departments"]],
+           "filters": d["filters"], "generated_at": d["generated_at"]}
+    a = assets()
+    regular, bold = a["font_css"].splitlines()[:2]
+    m = STYLES["sheet"]["margins"]
+    html = render_to_string("reports/analytics.html", {**ctx, "font_css": a["font_css"]})
+    footer = (f'<style>{regular}</style><div style="width:100%;font-family:Tinos,serif;font-size:9pt;color:#555;padding:0 {m["right"]} 18pt {m["left"]};'
+              'display:flex;justify-content:space-between;">'
+              f'<span>KRA approval analytics — generated {escape(d["generated_at"].strftime("%d %b %Y %H:%M"))} IST — confidential (VC)</span>'
+              '<span>Page <span class="pageNumber"></span> | <span class="totalPages"></span></span></div>')
+    return {"html": html, "header": f"<style>{regular}{bold}</style>" + header_html("sheet", a["logo_uri"], for_pdf=True),
+            "footer": footer, "format": "A4", "landscape": True, "margin": m}
+
+
 def content_hash(parts):
     blob = json.dumps({**parts, "renderer": settings.RENDERER_VERSION}, sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()

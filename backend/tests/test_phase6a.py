@@ -26,8 +26,10 @@ from tests.fixtures import kra33_payload
 PDF = b"%PDF-1.4\n% synthetic\n" + b"0" * 2000
 OCT1 = ist(2026, 10, 1)
 VC_ONLY = {"submissions/<uuid:pk>/review/", "reopen-requests/<uuid:pk>/decision/", "progress/", "progress/export/",
-           "admin/templates/", "admin/kras/", "admin/years/", "admin/years/<str:label>/copy/",
-           "admin/years/<str:label>/finalize/", "admin/drafts/", "admin/drafts/<uuid:pk>/"}
+           "admin/templates/", "admin/kras/", "admin/years/", "admin/allocations/", "admin/years/<str:label>/copy/",
+           "admin/years/<str:label>/finalise/preview/", "admin/years/<str:label>/finalise/", "admin/drafts/",
+           "admin/drafts/bulk-target/", "admin/drafts/remove/", "admin/drafts/restore/", "admin/drafts/<uuid:pk>/",
+           "analytics/", "analytics/export/"}
 
 
 def routes():

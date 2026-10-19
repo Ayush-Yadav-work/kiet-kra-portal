@@ -184,9 +184,25 @@ Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 14** — add a 
 
 Run `manage.py seed_catalogue`, restart Django. As a Dean: **KRA 40** — add an audit, findings with Refs (F1, F2) and actions naming those Refs; try an action Ref that does not exist, then *Submit* (refused); choose "Follow-up of an earlier audit" to report progress without a new audit. **KRAs 41/42** — add activities and tick the diversity / constitutional dimensions addressed. Samples: `.work/renders/kra{40,41,42}/{normal,multi,long,empty,nil}.pdf`. Decisions: D-062 to D-064. All 45 KRAs are implemented and tested; the Phase 4 gate stays open until the college reviews every format.
 
-## Phase 5A review (VC assignments and next-year targets)
+## Phase 5A review (VC assignments and next-year targets) — superseded by VC Phase 1 below
 
 Run `python backend/manage.py migrate`, restart Django and Vite. Sign in as the VC: **Assignments** — pick 2027-28, *Copy 2026-27 assignments into drafts* (run it twice to see the conflict list), choose a department, edit a target (any text, kept exactly) and *Save*, *Review and finalize* → the summary by department → *Confirm finalize*; finalized rows become read-only and appear for that department's Dean. Only ended years are read-only; in the current year (2026-27) the VC may add and finalize **new** department/KRA pairs, while targets of existing assignments stay immutable (D-066). **KRAs** — create a KRA by choosing an installed layout and ticking the confirmation. A Dean opening `/vc/assignments` is redirected, and `/api/v1/admin/...` returns 403. API reference: `docs/api.md`. Decision: D-065.
+
+## VC Phase 1 review (annual assignments and analytics)
+
+Upgrade an existing database (preserves all data; migrations `catalogue.0003_vc_phase1_allocations`, `submissions.0002_publication_grant`):
+
+```bash
+.venv/Scripts/python backend/manage.py migrate
+.venv/Scripts/python backend/manage.py seed_catalogue
+```
+
+`seed_catalogue` is safe to rerun (never overwrites targets). Restart Django, Vite and the renderer. Sign in as the VC:
+**Annual assignments** — pick 2027-28 and a KRA, *Copy previous year setup* (review, then *Create N drafts*), edit a target
+exactly, filter *Changed targets*, tick drafts → *Review and finalise* → *Finalise and send*; finalised rows become read-only
+and appear for that Dean from their start period. Remove/restore drafts; tick departments under *Unallocated* to allocate.
+**Analytics** — choose scope, period, KRA and departments (two or more show the comparison table); *Export PDF/CSV* use
+the same filters. **KRAs** is read-only. API: `docs/api.md`. Decisions: D-073, D-074. Handover: `docs/vc-features-phase1-handover.md`.
 
 ## Browser tests and cleaning old test data
 

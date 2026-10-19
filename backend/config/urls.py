@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import JsonResponse
 from django.urls import include, path
 
@@ -5,6 +6,7 @@ from apps.accounts import views as auth
 from apps.catalogue import admin_views as adm
 from apps.catalogue import views as cat
 from apps.evidence import views as ev
+from apps.submissions import analytics_views as sub_analytics
 from apps.submissions import views as sub
 
 UUID = "<uuid:pk>"
@@ -42,14 +44,23 @@ api = [
     path("reopen-grants/active/", sub.ActiveGrantsView.as_view()),
     path("progress/", sub.ProgressView.as_view()),
     path("progress/export/", sub.ProgressExportView.as_view()),
-    # Phase 5A — VC administration (D-065)
+    # VC annual assignments (VC features plan v2.3 Phase 1, D-073; supersedes the Phase 5A whole-year finalize)
     path("admin/templates/", adm.TemplatesView.as_view()),
     path("admin/kras/", adm.AdminKRAsView.as_view()),
     path("admin/years/", adm.AdminYearsView.as_view()),
+    path("admin/allocations/", adm.AllocationsView.as_view()),
     path("admin/years/<str:label>/copy/", adm.CopyYearView.as_view()),
-    path("admin/years/<str:label>/finalize/", adm.FinalizeYearView.as_view()),
+    path("admin/years/<str:label>/finalise/preview/", adm.FinalisePreviewView.as_view()),
+    path("admin/years/<str:label>/finalise/", adm.FinaliseView.as_view()),
     path("admin/drafts/", adm.DraftsView.as_view()),
+    path("admin/drafts/bulk-target/", adm.BulkTargetView.as_view()),
+    path("admin/drafts/remove/", adm.RemoveView.as_view()),
+    path("admin/drafts/restore/", adm.RestoreView.as_view()),
     path(f"admin/drafts/{UUID}/", adm.DraftItemView.as_view()),
+    # VC progress analytics and department comparison (Phase 1): the reader owns its REPEATABLE READ snapshot, so these
+    # views must never run inside a request-wide transaction (plan §8.1).
+    path("analytics/", transaction.non_atomic_requests(sub_analytics.AnalyticsView.as_view())),
+    path("analytics/export/", transaction.non_atomic_requests(sub_analytics.AnalyticsExportView.as_view())),
 ]
 
 

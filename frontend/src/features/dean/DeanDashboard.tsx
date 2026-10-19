@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
-import type { Assignment, DisplayStatus, Period, SubmissionSummary } from '../../api/types'
+import type { Applicability, Assignment, DisplayStatus, Period, SubmissionSummary } from '../../api/types'
 import { useAuth } from '../../auth/AuthContext'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatCard, StatusBadge, statusLabel, timeLeft, useServerClock } from '../../components/ui'
 
-interface Row extends Assignment { submission: SubmissionSummary }
-interface GrantRow { id: string; expires_at: string; kra_number: number; period: string; assignment_id: string; period_id: number; status: string }
+interface Row extends Assignment { submission: SubmissionSummary; applicability: Applicability | null }
+interface GrantRow { id: string; expires_at: string; kra_number: number; period: string; assignment_id: string; period_id: number; status: string; source: string }
 const YEARS = ['2026-27', '2027-28', '2028-29']
 
 export function usePeriods(year: string) {
@@ -85,12 +85,13 @@ export default function DeanDashboard() {
   }
   for (const g of liveGrants) {
     if (items.some((i) => i.key === g.assignment_id && String(g.period_id) === periodId)) continue
-    items.push({ key: g.id, ref: `KRA ${g.kra_number} · ${g.period.split(':')[0]}`, title: `Reopened for correction — ${timeLeft(g.expires_at, now).replace('Expires in ', '')} left`,
+    items.push({ key: g.id, ref: `KRA ${g.kra_number} · ${g.period.split(':')[0]}`, title: `${g.source === 'PUBLICATION' ? 'Assigned late — reporting window' : 'Reopened for correction'} — ${timeLeft(g.expires_at, now).replace('Expires in ', '')} left`,
       detail: `Current status: ${statusLabel(g.status as DisplayStatus)}`, deadline: ['Reopening ends', fmtDateTime(g.expires_at)],
       to: `/dean/kra/${g.assignment_id}/${g.period_id}`, action: 'Open report', primary: false })
   }
 
-  const counts = Object.fromEntries(STATUSES.map((s) => [s, rows?.filter((r) => r.submission.display_status === s).length ?? 0])) as Record<DisplayStatus, number>
+  const assigned = rows?.filter((r) => r.applicability !== 'NOT_ASSIGNED') ?? []  // only obligations of this period are counted (D-073)
+  const counts = Object.fromEntries(STATUSES.map((s) => [s, assigned.filter((r) => r.submission.display_status === s).length])) as Record<DisplayStatus, number>
   const days = period?.is_open ? Math.ceil((new Date(period.closes_at).getTime() - now) / 86_400_000) : 0
 
   return (
@@ -117,7 +118,7 @@ export default function DeanDashboard() {
         <section aria-labelledby="sum-h">
           <h2 id="sum-h" className="sr-only">{short} reports by status</h2>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6 xl:gap-3.5">
-            <StatCard kind="ASSIGNED" value={rows.length} label="Assigned" />
+            <StatCard kind="ASSIGNED" value={assigned.length} label="Assigned" />
             {STATUSES.map((s) => <StatCard key={s} kind={s} value={counts[s]} label={statusLabel(s)} />)}
           </div>
         </section>
@@ -145,7 +146,7 @@ export default function DeanDashboard() {
 
         <section aria-labelledby="rep-h" className="overflow-hidden rounded-[10px] border border-line bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2.5 px-4 py-4 md:px-5">
-            <h2 id="rep-h" className="flex items-center gap-3 text-xl font-bold md:text-2xl">{short} Reports <span className="rounded-full bg-neutral-bg px-3 py-0.5 text-sm font-medium">{rows.length} assigned</span></h2>
+            <h2 id="rep-h" className="flex items-center gap-3 text-xl font-bold md:text-2xl">{short} Reports <span className="rounded-full bg-neutral-bg px-3 py-0.5 text-sm font-medium">{assigned.length} assigned</span></h2>
             <p className="text-sm text-muted">Targets are shown exactly as assigned.</p>
           </div>
           {rows.length === 0 ? <p className="border-t border-line p-5 text-muted">No KRAs are assigned to your department for {year}.</p> : (
@@ -166,11 +167,14 @@ export default function DeanDashboard() {
                         <td role="cell" data-col="head" className="w-16 px-3.5 py-3 font-bold text-heading"><span className="md:hidden">KRA </span>{r.kra.number}</td>
                         <td role="cell" data-col="wide" className="px-3.5 py-3">{r.kra.activity_text.replace(/^KRA \d+:\s*/, '')}</td>
                         <td role="cell" data-col="wide" data-label="Annual target" className="w-56 whitespace-pre-wrap px-3.5 py-3">{r.target_text}</td>
-                        <td role="cell" data-col="status" className="whitespace-nowrap px-3.5 py-3"><StatusBadge status={st} />
+                        <td role="cell" data-col="status" className="whitespace-nowrap px-3.5 py-3">{r.applicability === 'NOT_ASSIGNED'
+                          ? <span className="text-sm text-muted">Not assigned for this period</span> : r.applicability === 'NOT_DUE' ? <span className="text-sm text-muted">Not due</span> : <StatusBadge status={st} />}
                           {r.submission.is_nil && <span className="ml-1.5 rounded border border-control px-1 text-xs font-bold text-heading" title="Nil report">Nil</span>}</td>
-                        <td role="cell" data-col="wide" className="w-56 px-3.5 py-3 text-sm">{detail}</td>
+                        <td role="cell" data-col="wide" className="w-56 px-3.5 py-3 text-sm">{r.applicability === 'NOT_ASSIGNED' ? `Applies from ${r.effective_start_period?.label}`
+                          : r.applicability === 'NOT_DUE' ? 'Period has not opened' : detail}</td>
                         <td role="cell" data-col="action" className="w-48 px-3.5 py-3 text-center">
-                          {!r.template ? <span className="text-sm text-muted">Template pending</span>
+                          {r.applicability !== 'APPLICABLE' ? <span className="text-sm text-muted">—</span>
+                            : !r.template ? <span className="text-sm text-muted">Template pending</span>
                             : label === 'View' ? <Link className="font-semibold underline underline-offset-2" to={to(r)}>View<span className="sr-only"> KRA {r.kra.number}</span></Link>
                             : <Link className="btn-secondary min-h-9 w-full border-action text-sm" to={to(r)}>{label}<span className="sr-only"> — KRA {r.kra.number}</span></Link>}
                         </td>

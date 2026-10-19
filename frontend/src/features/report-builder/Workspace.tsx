@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type F
 import { useForm } from 'react-hook-form'
 import { Link, useBlocker, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
-import type { Assignment, Payload, Period, Schema, SubmissionDetail } from '../../api/types'
+import type { Applicability, Assignment, Payload, Period, Schema, SubmissionDetail } from '../../api/types'
 import { ErrorBox, Loading, StatusBadge, tabKeys, timeLeft, useServerClock } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
 import EvidenceTab from '../evidence/EvidenceTab'
@@ -250,13 +250,13 @@ export function SubmissionLoader({ id, render }: { id: string; render: (d: Submi
 
 export default function WorkspaceRoute() {
   const { assignmentId, periodId } = useParams()
-  const [info, setInfo] = useState<{ assignment: Assignment; period: Period; submission_id: string | null; can_request_reopen?: boolean } | null>(null)
+  const [info, setInfo] = useState<{ assignment: Assignment; period: Period; submission_id: string | null; can_request_reopen?: boolean; applicability: Applicability } | null>(null)
   const [error, setError] = useState('')
   const load = useCallback(async (signal?: AbortSignal) => {
     try {
       const base = `/assignments/${assignmentId}/periods/${periodId}/`
       let r = await api<NonNullable<typeof info>>(base, { signal })
-      if (!r.submission_id && r.period.is_open && r.assignment.template) {
+      if (!r.submission_id && r.period.is_open && r.assignment.template && r.applicability === 'APPLICABLE') {
         const c = await api<{ submission_id: string }>(base, { method: 'POST', signal }) // Dean action creates the row (D-017)
         r = { ...r, submission_id: c.submission_id }
       }
@@ -273,7 +273,9 @@ export default function WorkspaceRoute() {
       <Link className="underline text-sm" to="/dean/dashboard">← Back</Link>
       <div className="card">
         <h1 className="text-lg font-semibold">KRA {info.assignment.kra.number} — {info.period.label}</h1>
-        <p className="text-sm"><StatusBadge status="NOT_SUBMITTED" /> {info.period.is_closed ? 'This period is closed and no report was started.' : 'This period has not opened yet.'}</p>
+        {info.applicability === 'NOT_ASSIGNED'
+          ? <p className="text-sm"><b className="text-heading">Not assigned for this period.</b> This KRA applies to your department from {info.assignment.effective_start_period?.label}.</p>
+          : <p className="text-sm"><StatusBadge status="NOT_SUBMITTED" /> {info.period.is_closed ? 'This period is closed and no report was started.' : 'Not due — this period has not opened yet.'}</p>}
       </div>
       {info.can_request_reopen && info.assignment.template && (
         <ReopenRequestForm path={`/assignments/${assignmentId}/periods/${periodId}/reopen-requests/`} onDone={() => load()} />
