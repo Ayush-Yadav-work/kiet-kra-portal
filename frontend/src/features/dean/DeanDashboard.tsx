@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
-import type { Applicability, Assignment, DisplayStatus, Period, SubmissionSummary } from '../../api/types'
+import type { Applicability, Assignment, DisplayStatus, Period, ReopenRequest, SubmissionSummary } from '../../api/types'
 import { useAuth } from '../../auth/AuthContext'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatCard, StatusBadge, statusLabel, timeLeft, useServerClock } from '../../components/ui'
 import { DashboardNotices } from '../announcements/DeanAnnouncements'
 
-interface Row extends Assignment { submission: SubmissionSummary; applicability: Applicability | null }
+interface Row extends Assignment { submission: SubmissionSummary; applicability: Applicability | null; latest_reopen_request: ReopenRequest | null }
 interface GrantRow { id: string; expires_at: string; kra_number: number; period: string; assignment_id: string; period_id: number; status: string; source: string }
 const YEARS = ['2026-27', '2027-28', '2028-29']
 
@@ -52,17 +52,26 @@ export default function DeanDashboard() {
   const [data, setData] = useState<Assignments | null>(null)
   const [error, setError] = useState('')
   const [grants, setGrants] = useState<{ server_time: string; results: GrantRow[] } | null>(null)
+  const [refresh, setRefresh] = useState(0)
+  const status = (STATUSES as string[]).includes(params.get('status') ?? '') ? params.get('status') as DisplayStatus : null
+  const loaded = useRef('')
 
-  useEffect(() => { api<typeof grants>('/reopen-grants/active/').then(setGrants).catch(() => setGrants(null)) }, [])
+  useEffect(() => {  // VC decisions made meanwhile (e.g. a denied reopening request) appear when the Dean returns to the tab
+    const again = () => setRefresh((n) => n + 1)
+    window.addEventListener('focus', again)
+    return () => window.removeEventListener('focus', again)
+  }, [])
+  useEffect(() => { api<typeof grants>('/reopen-grants/active/').then(setGrants).catch(() => setGrants(null)) }, [refresh])
   useEffect(() => {
     if (!periodId) return
-    setData(null); setError('')
+    const key = `${year}/${periodId}`
+    if (loaded.current !== key) { setData(null); setError('') }  // new year/period: never show the previous one's rows
     let live = true  // ignore a slower response for a previously selected period
     api<Assignments>(`/assignments/?year=${year}&period=${periodId}`)
-      .then((r) => live && setData(r))
+      .then((r) => { if (live) { loaded.current = key; setData(r) } })
       .catch((e) => live && setError(e instanceof ApiError ? e.message : 'Failed to load'))
     return () => { live = false }
-  }, [year, periodId])
+  }, [year, periodId, refresh])
   const now = useServerClock(data?.server_time ?? grants?.server_time)
 
   const rows = data?.results
@@ -84,6 +93,15 @@ export default function DeanDashboard() {
       to: to(r), action: editable(r) ? 'Correct & resubmit' : 'Open report', primary: editable(r),
     })
   }
+  for (const r of rows ?? []) {  // a denied reopening request stays listed until a newer request supersedes it
+    const q = r.latest_reopen_request
+    if (q?.state !== 'DENIED') continue
+    items.push({
+      key: `deny-${q.id}`, ref: `KRA ${r.kra.number} · ${short}`, title: 'Reopening request denied by the Vice Chancellor',
+      detail: `“${q.decision_reason}” — ${fmtDateTime(q.decided_at)}`, deadline: ['Requested', fmtDateTime(q.requested_at)],
+      to: to(r), action: 'View request history', primary: false,
+    })
+  }
   for (const g of liveGrants) {
     if (items.some((i) => i.key === g.assignment_id && String(g.period_id) === periodId)) continue
     items.push({ key: g.id, ref: `KRA ${g.kra_number} · ${g.period.split(':')[0]}`, title: `${g.source === 'PUBLICATION' ? 'Assigned late — reporting window' : 'Reopened for correction'} — ${timeLeft(g.expires_at, now).replace('Expires in ', '')} left`,
@@ -93,6 +111,8 @@ export default function DeanDashboard() {
 
   const assigned = rows?.filter((r) => r.applicability !== 'NOT_ASSIGNED') ?? []  // only obligations of this period are counted (D-073)
   const counts = Object.fromEntries(STATUSES.map((s) => [s, assigned.filter((r) => r.submission.display_status === s).length])) as Record<DisplayStatus, number>
+  const shown = status ? assigned.filter((r) => r.submission.display_status === status) : rows ?? []  // counts above never change with the filter
+  const setStatus = (s: DisplayStatus | null) => setParams(Object.fromEntries(Object.entries({ year, period: periodId, status: s ?? '' }).filter(([, v]) => v)))
   const days = period?.is_open ? Math.ceil((new Date(period.closes_at).getTime() - now) / 86_400_000) : 0
 
   return (
@@ -102,7 +122,8 @@ export default function DeanDashboard() {
           <h1 className="text-[28px] font-bold leading-tight md:text-4xl">KRA Reports</h1>
           <p className="mt-1 text-base text-muted md:text-xl">{user?.department?.name}</p>
         </div>
-        <YearPeriodPicker year={year} period={periodId} periods={periods} onChange={(y, p) => setParams(p ? { year: y, period: p } : { year: y })} />
+        <YearPeriodPicker year={year} period={periodId} periods={periods}
+          onChange={(y, p) => setParams((cur) => Object.fromEntries(Object.entries({ year: y, period: p, status: cur.get('status') ?? '' }).filter(([, v]) => v)))} />
       </div>
       <DashboardNotices />
 
@@ -120,9 +141,11 @@ export default function DeanDashboard() {
         <section aria-labelledby="sum-h">
           <h2 id="sum-h" className="sr-only">{short} reports by status</h2>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6 xl:gap-3.5">
-            <StatCard kind="ASSIGNED" value={assigned.length} label="Assigned" />
-            {STATUSES.map((s) => <StatCard key={s} kind={s} value={counts[s]} label={statusLabel(s)} />)}
+            <StatCard kind="ASSIGNED" value={assigned.length} label="Assigned" pressed={!status} onClick={() => setStatus(null)} />
+            {STATUSES.map((s) => <StatCard key={s} kind={s} value={counts[s]} label={statusLabel(s)} pressed={status === s}
+              onClick={() => setStatus(status === s ? null : s)} />)}
           </div>
+          <p className="mt-2 text-sm text-muted">Select a card to list only those reports; select it again (or Assigned) to show all.</p>
         </section>
 
         {items.length > 0 && (
@@ -130,7 +153,7 @@ export default function DeanDashboard() {
             <div className="flex items-center gap-3.5 pb-3">
               <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-btn text-xl font-extrabold text-white">!</span>
               <div><h2 id="attn-h" className="text-xl font-bold">Needs your attention ({items.length})</h2>
-                <p className="text-sm text-muted">Reopened reports and reports returned by the Vice Chancellor. These are also counted in the status totals above.</p></div>
+                <p className="text-sm text-muted">Reopened reports, reports returned by the Vice Chancellor and denied reopening requests. Reports are also counted in the status totals above.</p></div>
             </div>
             <ul>
               {items.map((i) => (
@@ -148,10 +171,12 @@ export default function DeanDashboard() {
 
         <section aria-labelledby="rep-h" className="overflow-hidden rounded-[10px] border border-line bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2.5 px-4 py-4 md:px-5">
-            <h2 id="rep-h" className="flex items-center gap-3 text-xl font-bold md:text-2xl">{short} Reports <span className="rounded-full bg-neutral-bg px-3 py-0.5 text-sm font-medium">{assigned.length} assigned</span></h2>
+            <h2 id="rep-h" className="flex items-center gap-3 text-xl font-bold md:text-2xl">{short} Reports <span className="rounded-full bg-neutral-bg px-3 py-0.5 text-sm font-medium">{status ? `${statusLabel(status)}: ${shown.length}` : `${assigned.length} assigned`}</span></h2>
             <p className="text-sm text-muted">Targets are shown exactly as assigned.</p>
           </div>
-          {rows.length === 0 ? <p className="border-t border-line p-5 text-muted">No KRAs are assigned to your department for {year}.</p> : (
+          {rows.length === 0 ? <p className="border-t border-line p-5 text-muted">No KRAs are assigned to your department for {year}.</p>
+            : shown.length === 0 ? <p role="status" className="border-t border-line p-5 text-muted">No {short} reports are {statusLabel(status!).toLowerCase()}.{' '}
+              <button type="button" className="font-semibold text-action underline" onClick={() => setStatus(null)}>Show all reports</button></p> : (
             <div className="overflow-x-auto">
               <table role="table" className="report-table w-full text-[15px]">
                 <thead role="rowgroup" className="bg-subtle text-left">
@@ -159,7 +184,7 @@ export default function DeanDashboard() {
                     <th role="columnheader" className="border-y border-line px-3.5 py-2.5 text-center font-semibold text-heading">Action</th></tr>
                 </thead>
                 <tbody role="rowgroup">
-                  {rows.map((r) => {
+                  {shown.map((r) => {
                     const st = r.submission.display_status, d = r.submission.latest_decision
                     const detail = st === 'REJECTED' && d ? <>{d.decision === 'RETURN' ? 'Returned' : 'Rejected'} {fmtDateTime(d.created_at)}<span className="block text-[13px] text-muted">by {d.reviewer_name}</span></>
                       : st === 'SUBMITTED' ? 'Awaiting VC review' : st === 'APPROVED' ? 'Approved by the VC' : st === 'DRAFT' ? 'Not yet submitted' : '—'
@@ -187,7 +212,7 @@ export default function DeanDashboard() {
               </table>
             </div>
           )}
-          <p className="border-t border-line px-4 py-3 text-sm text-muted md:px-5">Showing all {rows.length} KRAs in KRA order.</p>
+          <p className="border-t border-line px-4 py-3 text-sm text-muted md:px-5">{status ? `Showing ${shown.length} ${statusLabel(status).toLowerCase()} of ${assigned.length} assigned KRAs` : `Showing all ${rows.length} KRAs`} in KRA order.</p>
         </section>
       </>)}
     </div>

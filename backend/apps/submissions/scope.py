@@ -27,7 +27,7 @@ def submissions_for(user):
 
 def reopen_requests_for(user):
     qs = ReopenRequest.objects.select_related("submission__assignment__department", "submission__assignment__kra",
-                                              "submission__period", "requested_by", "decided_by")
+                                              "submission__period", "submission__assignment__year", "requested_by", "decided_by")
     if user.role == "VC":
         return qs
     return qs.filter(submission__assignment__department_id=user.department_id)

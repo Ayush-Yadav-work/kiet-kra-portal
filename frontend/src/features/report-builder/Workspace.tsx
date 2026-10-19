@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type F
 import { useForm } from 'react-hook-form'
 import { Link, useBlocker, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
-import type { Applicability, Assignment, Payload, Period, Schema, SubmissionDetail } from '../../api/types'
+import type { Applicability, Assignment, Payload, Period, ReopenRequest, Schema, SubmissionDetail } from '../../api/types'
 import { ErrorBox, Loading, StatusBadge, tabKeys, timeLeft, useServerClock } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
 import EvidenceTab from '../evidence/EvidenceTab'
@@ -75,6 +75,11 @@ function normalize(p: Payload | undefined, schema: Schema, editable: boolean): P
 function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; reload: () => void }) {
   const q = useMemo(() => new SaveQueue(d.id, d.edit_version), [d.id, d.edit_version])
   useEffect(() => () => q.dispose(), [q])
+  useEffect(() => {  // read-only report: pick up VC decisions (e.g. on a reopening request) when the Dean returns; never while editing
+    if (d.editable) return
+    window.addEventListener('focus', reload)
+    return () => window.removeEventListener('focus', reload)
+  }, [d.editable, reload])
   const qState = useSyncExternalStore((cb) => q.subscribe(cb), () => q.state)
   const form = useForm<Payload>({ defaultValues: normalize(d.payload, schema, d.editable) })
   const [draft, setDraft] = useState<Payload>(() => form.getValues())
@@ -188,7 +193,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
       <ErrorBox error={message} />
       {!editable && <p className="mb-3 rounded bg-slate-100 p-2 text-sm">Read-only: {d.status === 'SUBMITTED' ? 'submitted and awaiting VC review.' : d.status === 'APPROVED' ? 'approved by the VC.' : 'the reporting window is closed.'}</p>}
       {d.can_request_reopen && <div className="mb-3"><ReopenRequestForm path={`/submissions/${d.id}/reopen-requests/`} onDone={reload} /></div>}
-      {d.reopen_requests.some((r) => r.state === 'PENDING') && <p className="mb-3 rounded bg-amber-50 p-2 text-sm">Reopening request pending VC decision.</p>}
+      <ReopenRequests requests={d.reopen_requests} />
 
       <div hidden={tab !== 'report'} role="tabpanel" id="ws-panel-report" aria-labelledby="ws-tab-report">
         <div className="mb-2 flex gap-2 lg:hidden">
@@ -225,6 +230,25 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
         <AchievementTab detail={d} values={ach} onChange={setAchField} disabled={!editable} errors={errors} />
       </div>
     </div>
+  )
+}
+
+/** Reopening requests of this report: the newest one is the current state; earlier decisions stay in the history. */
+function ReopenRequests({ requests }: { requests: ReopenRequest[] }) {
+  if (!requests.length) return null
+  const [latest, ...older] = requests  // newest first (server ordering)
+  const tone = latest.state === 'DENIED' ? 'border-err bg-err-bg' : latest.state === 'APPROVED' ? 'border-ok bg-ok-bg' : 'border-warn bg-warn-bg'
+  const line = (r: ReopenRequest) => <>Requested {fmtDateTime(r.requested_at)} by {r.requested_by}: “{r.reason}”
+    {r.state !== 'PENDING' && <span className="block">{r.state === 'DENIED' ? 'Denied' : 'Approved'} {fmtDateTime(r.decided_at)} by {r.decided_by}{r.decision_reason ? `: “${r.decision_reason}”` : ''}</span>}</>
+  return (
+    <section aria-label="Reopening request" className={`mb-3 rounded border-l-4 p-3 text-sm ${tone}`}>
+      <p className="font-semibold text-heading">{latest.state === 'DENIED' ? 'Reopening request denied by the Vice Chancellor'
+        : latest.state === 'APPROVED' ? 'Reopening request approved' : 'Reopening request pending VC decision'} — KRA {latest.kra_number} · {latest.period}</p>
+      {latest.state === 'DENIED' && <p className="mt-1">Reason: <span className="whitespace-pre-wrap">{latest.decision_reason}</span></p>}
+      <p className="mt-1 text-muted">{line(latest)}</p>
+      {older.length > 0 && <details className="mt-2"><summary className="cursor-pointer font-semibold">Earlier requests ({older.length})</summary>
+        <ol className="mt-1 grid gap-1.5">{older.map((r) => <li key={r.id}><b>{r.state === 'DENIED' ? 'Denied' : r.state === 'APPROVED' ? 'Approved' : 'Pending'}.</b> {line(r)}</li>)}</ol></details>}
+    </section>
   )
 }
 
