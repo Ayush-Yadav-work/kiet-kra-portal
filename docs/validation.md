@@ -1,5 +1,20 @@
 # Validation log
 
+## Dean portal fixes (2026-10-19)
+
+| Command | Result |
+|---|---|
+| `python backend/manage.py test tests --parallel 1` (renderer running) | **Ran 550 tests, OK** (incl. new `tests.test_dean_reopen_feedback`, 4) |
+| `python e2e/run_isolated.py` | **Ran 29 tests, OK** (incl. new `test_dean_status_cards_filter_and_reopen_denial_feedback`) |
+| `npx tsc -b`, `npm run build` | OK |
+
+Covered: each Dean card filters to rows of that status (headline counts unchanged), active card/Assigned clears, Enter/Space
+activation, zero-match state, status kept across period switches, 375 px; VC denial with a reason (blank refused) shown with
+the exact reason on the dashboard attention list and the workspace, also after reload; a later request (pending, then approved)
+supersedes the denial while history keeps it; another department cannot reach the request, reason or report; a denial
+creates no grant and leaves status, edit version, C11 classification and target unchanged; dashboard query count does not
+grow with the number of requests. A first full-suite attempt was invalid (the local database stopped mid-run) and was rerun.
+
 ## VC features Phase 2 (2026-10-19)
 
 Isolated databases/media only (Django test database; `e2e/run_isolated.py`); the working database was not used.

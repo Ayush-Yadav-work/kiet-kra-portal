@@ -119,7 +119,7 @@ class AssignmentsView(APIView):
         qs = assignments_for(request.user).filter(year__label=year)
         period_id = request.query_params.get("period")
         period = get_or_404(ReportingPeriod.objects.filter(year__label=year), pk=period_id) if period_id else None
-        subs, decisions = {}, {}
+        subs, decisions, requests = {}, {}, {}
         if period:  # fixed number of queries however many rows (Phase 6B: was one query per Rejected/untouched row)
             subs = {s.assignment_id: s for s in Submission.objects.filter(period=period, assignment__in=qs).annotate(
                 has_ev=Exists(Evidence.objects.filter(submission=OuterRef("pk"), removed=False)))}
@@ -127,12 +127,16 @@ class AssignmentsView(APIView):
             for d in (ReviewDecision.objects.filter(revision__submission_id__in=rejected).select_related("revision")
                       .order_by("-created_at")):
                 decisions.setdefault(d.revision.submission_id, d)
+            # latest reopening request per report (one query): a denial stays visible until a newer request supersedes it
+            for r in reopen_requests_for(request.user).filter(submission__in=list(subs.values())).order_by("-requested_at"):
+                requests.setdefault(r.submission.assignment_id, r)
         at = timezone.now()
         return Response({
             "server_time": at,
             "period": period_json(period, at) if period else None,
             "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id), decisions) if period else None,
-                         "applicability": applicability(a, period, at) if period else None}
+                         "applicability": applicability(a, period, at) if period else None,
+                         "latest_reopen_request": request_json(requests[a.id]) if a.id in requests else None}
                         for a in qs],
         })
 

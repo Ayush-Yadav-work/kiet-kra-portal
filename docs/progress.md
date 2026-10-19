@@ -233,6 +233,11 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Checks: backend 546 OK (renderer running, 0 skipped); isolated browser suite 28 OK; `tsc -b` + build OK — `docs/validation.md`; handover `docs/vc-features-phase2-handover.md`
 - Not production-verified: Linux/systemd, Gunicorn, batch latency; web/renderer deployment definitions still missing.
 
+## Dean portal fixes (2026-10-19)
+- [x] Dean dashboard status cards are filter buttons (`aria-pressed`, URL `status`, Assigned/active card clears, counts stay those of the whole period, empty state, status kept across year/period changes); refresh on window focus
+- [x] Reopening-request decisions visible to the Dean: assignment rows carry `latest_reopen_request`; dashboard "Reopening request denied by the Vice Chancellor" attention item with the reason; workspace shows the latest request state with reason and earlier requests as history (denials were stored and returned before, but never displayed)
+- [x] Checks: see `docs/validation.md` (Dean portal fixes)
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).

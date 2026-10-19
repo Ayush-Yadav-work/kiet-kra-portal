@@ -1318,5 +1318,115 @@ class BrowserTests(unittest.TestCase):
         vc.close()
 
 
+    def test_dean_status_cards_filter_and_reopen_denial_feedback(self):
+        """Dean dashboard: every status card filters the report list (counts unchanged, toggle/Assigned clears, keyboard,
+        zero-match state, status kept across period changes). A VC denial of a reopening request shows its exact reason on
+        the dashboard and in the workspace, also after reload."""
+        import subprocess
+
+        seed = (
+            "from apps.catalogue.models import AnnualAssignment, ReportingPeriod\n"
+            "from apps.accounts.models import User\n"
+            "from apps.submissions.models import Submission, SubmissionRevision, ReviewDecision\n"
+            "from apps.submissions.services import snapshot_of\n"
+            "from django.utils import timezone\n"
+            "p2 = ReportingPeriod.objects.get(year__label='2026-27', index=2)\n"
+            "dean, vc = User.objects.get(username='demo.dean.cse'), User.objects.get(username='demo.vc')\n"
+            "a = {x.kra.number: x for x in AnnualAssignment.objects.filter(year=p2.year, department__code='CSE').select_related('kra')}\n"
+            "for kra, status, ev in ((1, 'SUBMITTED', 2), (2, 'APPROVED', 2), (3, 'REJECTED', 2), (4, 'DRAFT', 2), (5, 'DRAFT', 0)):\n"
+            "    s, _ = Submission.objects.get_or_create(assignment=a[kra], period=p2, defaults=dict(created_by=dean))\n"
+            "    s.status, s.edit_version, s.achievement_text = status, ev, 'synthetic'\n"
+            "    if status != 'DRAFT':\n"
+            "        r = SubmissionRevision.objects.create(submission=s, sequence=s.revisions.count() + 1, payload={}, is_nil=False, snapshot=snapshot_of(s),\n"
+            "            evidence_manifest=[], manifest_hash='h', submitted_by=dean, submitted_at=timezone.now())\n"
+            "        s.current_revision = r\n"
+            "        if status == 'REJECTED': ReviewDecision.objects.create(revision=r, reviewer=vc, reviewer_name='Demo', decision='REJECT', reason='synthetic', created_at=timezone.now())\n"
+            "    s.save()\n")
+        subprocess.run([sys.executable, str(ROOT / "backend" / "manage.py"), "shell", "-c", seed], cwd=ROOT / "backend", check=True, capture_output=True)
+
+        p = self.page
+        login(p, "dean", "demo.dean.cse")
+        p.wait_for_url("**/dean/dashboard")
+        _, periods = api(p, "GET", "/periods/?year=2026-27")
+        pid = {x["index"]: x["id"] for x in periods["results"]}
+        p.goto(f"{BASE}/dean/dashboard?year=2026-27&period={pid[2]}")
+        reports = p.get_by_role("region", name=re.compile("^P2 Reports"))
+        rows = reports.locator("tbody tr")
+        expect(rows.first).to_be_visible()
+
+        def card(label):
+            return p.get_by_role("button", name=re.compile(rf"^\d+\s*{label}$"))
+
+        def value(label):
+            return int(re.match(r"\d+", card(label).inner_text()).group(0))
+
+        labels = ("Assigned", "Not submitted", "Draft", "Submitted", "Rejected", "Approved")
+        counts = {l: value(l) for l in labels}
+        self.assertEqual(sum(counts[l] for l in labels[1:]), counts["Assigned"])
+        self.assertTrue(all(counts[l] >= 1 for l in labels))
+        expect(card("Assigned")).to_have_attribute("aria-pressed", "true")
+        for label in labels[1:]:
+            card(label).click()
+            expect(card(label)).to_have_attribute("aria-pressed", "true")
+            expect(card("Assigned")).to_have_attribute("aria-pressed", "false")
+            expect(rows).to_have_count(counts[label])
+            for i in range(counts[label]):
+                expect(rows.nth(i).locator("td[data-col=status]")).to_contain_text(label)
+            self.assertEqual({l: value(l) for l in labels}, counts)  # headline counts never follow the filter
+        card("Approved").click()  # active card again: cleared
+        expect(card("Assigned")).to_have_attribute("aria-pressed", "true")
+        card("Draft").focus()
+        p.keyboard.press("Enter")
+        expect(card("Draft")).to_have_attribute("aria-pressed", "true")
+        card("Assigned").focus()
+        p.keyboard.press("Space")  # Assigned clears the status filter
+        expect(card("Draft")).to_have_attribute("aria-pressed", "false")
+        expect(rows).to_have_count(counts["Assigned"])
+
+        card("Approved").click()
+        expect(card("Approved")).to_have_attribute("aria-pressed", "true")
+        p.get_by_label("Reporting period").select_option(str(pid[3]))  # upcoming period: the filter is kept, zero matches
+        expect(card("Approved")).to_have_attribute("aria-pressed", "true")
+        expect(p.get_by_text("No P3 reports are approved.")).to_be_visible()
+        p.get_by_label("Reporting period").select_option(str(pid[2]))
+        expect(p.get_by_role("region", name=re.compile("^P2 Reports")).locator("tbody tr")).to_have_count(counts["Approved"])
+
+        # reopening request for a closed period, denied by the VC with a reason
+        _, data = api(p, "GET", f"/assignments/?year=2026-27&period={pid[1]}")
+        asg = next(r for r in data["results"] if r["kra"]["number"] == 6)
+        reason = f"Synthetic denial {int(time.time())}: window closed on <time>"
+        status, req = api(p, "POST", f"/assignments/{asg['id']}/periods/{pid[1]}/reopen-requests/", {"reason": "Missed by a day (synthetic)"})
+        self.assertEqual(status, 201, req)
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        v = vc.new_page()
+        login(v, "vc", "demo.vc")
+        v.wait_for_url("**/vc/dashboard")
+        v.goto(f"{BASE}/vc/reopen-requests")
+        item = v.get_by_role("listitem").filter(has_text="Missed by a day (synthetic)").filter(has_text="CSE")
+        expect(item.get_by_role("button", name="Deny")).to_be_disabled()  # a reason is required
+        item.get_by_label("Decision reason").fill(reason)
+        item.get_by_role("button", name="Deny").click()
+        expect(item).to_have_count(0)  # decided: it leaves the Pending list
+        vc.close()
+
+        p.goto(f"{BASE}/dean/dashboard?year=2026-27&period={pid[1]}")
+        attention = p.get_by_role("region", name=re.compile("^Needs your attention"))
+        entry = attention.get_by_role("listitem").filter(has_text="KRA 6 · P1")
+        expect(entry).to_contain_text("Reopening request denied by the Vice Chancellor")
+        expect(entry).to_contain_text(reason)  # exact text, rendered as text
+        entry.get_by_role("link", name=re.compile("^View request history")).click()
+        box = p.get_by_role("region", name="Reopening request")
+        expect(box).to_contain_text("Reopening request denied by the Vice Chancellor — KRA 6")
+        expect(box).to_contain_text(f"Reason: {reason}")
+        p.reload()
+        expect(p.get_by_role("region", name="Reopening request")).to_contain_text(f"Reason: {reason}")  # persists after reload
+
+        p.set_viewport_size({"width": 375, "height": 812})
+        p.goto(f"{BASE}/dean/dashboard?year=2026-27&period={pid[2]}&status=SUBMITTED")
+        expect(card("Submitted")).to_have_attribute("aria-pressed", "true")
+        expect(p.get_by_role("region", name=re.compile("^P2 Reports")).locator("tbody tr")).to_have_count(counts["Submitted"])
+        self.assertEqual(p.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0)
+
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)
