@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-10-19 (VC features Phase 1; see the section near the end). Earlier header text describes 2026-10-17 (Phase 6C). Branch `phase2-kra33-pilot`; latest commit `71d326c` (Phase 6B), equal to `origin/phase2-kra33-pilot`
+Last updated: 2026-10-19 (VC features Phases 1 and 2; see the sections near the end). Earlier header text describes 2026-10-17 (Phase 6C). Branch `phase2-kra33-pilot`; latest commit `71d326c` (Phase 6B), equal to `origin/phase2-kra33-pilot`
 at `git fetch` on 2026-10-17. Phases 0–5 and 6A–6B are committed; **Phase 6C (usability/accessibility, documentation) is uncommitted**.
 Next bounded phase: **6D — production configuration**. Acceptance: the KRA 33 pilot was accepted by the project owner (2026-10-17);
 **institutional acceptance of all 45 report formats is still pending** (team checklist: `docs/acceptance-checklist.md`).
@@ -225,6 +225,13 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Analytics page and API: period / year-to-date / full-year completion of approved applicable report slots, workflow breakdown, department bars and comparison (≥ 2 departments), period trend, department × KRA matrix, paginated report slots with a status filter; PDF (static, script-free) and CSV exports from the same dataset in one REPEATABLE READ snapshot
 - [x] Checks: backend 527 OK (renderer running, 0 skipped); isolated browser suite 27 OK; `tsc -b` + build OK — details in `docs/validation.md`; handover `docs/vc-features-phase1-handover.md`
 - Deferred to Phase 2: bulk approval and its quick preview, approved-artifact jobs/worker, announcements, pinned notices, pending-department announcement shortcuts.
+
+## VC features — Phase 2 (plan v2.3 §9–10) ✅ (2026-10-19, pending owner review)
+- [x] Bulk approval: page selection and all-filtered manifests (exact revisions, cap 5,000, one confirmation), 50-item server batches with stored outcomes, resume, retry of failed items; submitted-revision context (target, achievement, Nil reason, evidence count) and HTML quick preview drawer; explicit exact-revision PDF download
+- [x] Durable approved PDFs: approval queues an artifact job atomically; `run_artifact_worker` (leases, backoff, operator retry, heartbeat, `/health/artifacts/`); approved downloads only from the retained artifact with a processing state; worker in the isolated runner and `infra/systemd/`
+- [x] Announcements: VC draft/edit/preview/publish/revise/pin/expire/withdraw/history; audience snapshots; Dean inbox, dashboard notices and unread badge with version-aware read state; Analytics "Announce to pending departments" draft shortcut
+- [x] Checks: backend 546 OK (renderer running, 0 skipped); isolated browser suite 28 OK; `tsc -b` + build OK — `docs/validation.md`; handover `docs/vc-features-phase2-handover.md`
+- Not production-verified: Linux/systemd, Gunicorn, batch latency; web/renderer deployment definitions still missing.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).

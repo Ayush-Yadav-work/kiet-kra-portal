@@ -4,6 +4,7 @@ import { api, ApiError, fmtDateTime } from '../../api/client'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading } from '../../components/ui'
 import { usePeriods } from '../dean/DeanDashboard'
+import PendingNotice from './PendingNotice'
 
 // VC features plan v2.3 §6–8 (D-074): approved applicable report slots ÷ expected applicable report slots. Charts are plain
 // HTML/CSS with text and table equivalents (no chart library); the PDF draws the same figures server-side.
@@ -40,6 +41,7 @@ export default function Analytics() {
   const [nonce, setNonce] = useState(0)
   const [exporting, setExporting] = useState('')
   const [exportError, setExportError] = useState('')
+  const [announce, setAnnounce] = useState(false)
 
   const query = (extra: Record<string, string> = {}) => {
     const q = new URLSearchParams({ year, scope, ...(scope === 'period' && period ? { period } : {}), ...(kra ? { kra } : {}), ...(status ? { status } : {}), page, ...extra })
@@ -111,11 +113,15 @@ export default function Analytics() {
         <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
           <button type="button" className="btn-primary" disabled={!!exporting || !data} onClick={() => exportFile('pdf')}><Icon name="download" />{exporting === 'pdf' ? 'Preparing PDF…' : 'Export PDF'}</button>
           <button type="button" className="btn-secondary" disabled={!!exporting || !data} onClick={() => exportFile('csv')}>{exporting === 'csv' ? 'Preparing CSV…' : 'Export CSV'}</button>
+          <button type="button" className="btn-secondary" disabled={!data || (scope === 'period' && !data.trend.find((t) => String(t.period_id) === period)?.opened)}
+            onClick={() => setAnnounce(true)}>Announce to pending departments</button>
         </div>
         <p className="w-full text-sm text-muted">Exports recompute every matching report slot at download time with these filters. {scope === 'ytd' ? 'Year to date counts periods that have opened, including the current one.'
           : scope === 'year' ? 'Full year counts all six periods; future periods are Not due but still expected.' : 'A period that has not opened shows its planned count and Not due.'}</p>
       </section>
       <ErrorBox error={exportError} />
+      {announce && data && <PendingNotice year={year} opened={data.trend.filter((t) => t.opened)} fixedPeriod={scope === 'period' ? Number(period) : null}
+        departments={depts} kra={kra} onClose={() => setAnnounce(false)} />}
       {error ? <div className="grid gap-2"><ErrorBox error={error} /><button className="btn-secondary w-fit" onClick={() => setNonce((n) => n + 1)}>Try again</button></div>
         : !data ? <Loading /> : (<>
         <section aria-label="Summary" className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">

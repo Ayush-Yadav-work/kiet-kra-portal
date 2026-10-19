@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "apps.evidence",
     "apps.reports",
     "apps.audit",
+    "apps.announcements",
 ]
 
 MIDDLEWARE = [
@@ -126,6 +127,20 @@ RENDERER_TIMEOUT_SECONDS = float(env("RENDERER_TIMEOUT_SECONDS", "45"))
 RENDERER_VERSION = "kiet-renderer-1"
 
 REOPEN_GRANT_HOURS = 72
+
+# Approved-PDF artifact worker (D-076): `manage.py run_artifact_worker`.
+ARTIFACT_POLL_SECONDS = float(env("ARTIFACT_POLL_SECONDS", "2"))
+ARTIFACT_LEASE_SECONDS = int(env("ARTIFACT_LEASE_SECONDS", str(int(RENDERER_TIMEOUT_SECONDS * 2 + 30))))
+ARTIFACT_MAX_ATTEMPTS = int(env("ARTIFACT_MAX_ATTEMPTS", "5"))
+ARTIFACT_BACKOFF_SECONDS = int(env("ARTIFACT_BACKOFF_SECONDS", "30"))  # doubles per attempt, capped at 15 minutes
+ARTIFACT_HEARTBEAT_STALE_SECONDS = int(env("ARTIFACT_HEARTBEAT_STALE_SECONDS", "60"))
+ARTIFACT_BACKLOG_WARN = int(env("ARTIFACT_BACKLOG_WARN", "200"))
+
+# Bulk approval (D-075).
+BULK_MANIFEST_CAP = int(env("BULK_MANIFEST_CAP", "5000"))
+BULK_BATCH_SIZE = min(int(env("BULK_BATCH_SIZE", "50")), 50)  # processing request size, not the manifest size
+BULK_CONFIRM_MINUTES = 15
+BULK_RETENTION_DAYS = 7
 MAX_ACTIVITIES = int(env("KRA_MAX_ACTIVITIES", "20"))
 MAX_TABLE_ROWS = int(env("KRA_MAX_TABLE_ROWS", "100"))
 

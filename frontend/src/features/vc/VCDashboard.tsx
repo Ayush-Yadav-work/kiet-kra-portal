@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { DisplayStatus } from '../../api/types'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatCard, StatusBadge, statusLabel } from '../../components/ui'
 import { usePeriods, YearPeriodPicker } from '../dean/DeanDashboard'
+import { BulkPanel, type BulkRun, type Prepare, PreviewDrawer, type PreviewTarget } from './BulkApproval'
 
 interface Row { assignment_id: string; department: string; kra_number: number; kra_text: string; target_text: string; has_template: boolean; submission_id: string | null; display_status: DisplayStatus; achievement_text: string; is_nil: boolean
-  achievement_source: 'submitted' | 'draft' | 'none'; revision_sequence: number | null; submitted_at: string | null; changed_since_submission: boolean }
+  achievement_source: 'submitted' | 'draft' | 'none'; revision_sequence: number | null; submitted_at: string | null; changed_since_submission: boolean
+  revision_id: string | null; nil_reason: string; evidence_count: number | null }
 interface Progress { counts: Record<DisplayStatus, number>; assigned: number; pending_reopen_requests: number; total: number; page: number; page_size: number; results: Row[] }
 const STATUSES: DisplayStatus[] = ['NOT_SUBMITTED', 'DRAFT', 'SUBMITTED', 'REJECTED', 'APPROVED']
 
@@ -23,6 +25,12 @@ export default function VCDashboard() {
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState('')
   const location = useLocation()
+  const [selected, setSelected] = useState<Map<string, string>>(new Map())  // submission -> exact submitted revision
+  const [bulk, setBulk] = useState<{ request: Prepare | null; resume: BulkRun | null } | null>(null)
+  const [resumable, setResumable] = useState<BulkRun | null>(null)
+  const [preview, setPreview] = useState<PreviewTarget | null>(null)
+  const [reload, setReload] = useState(0)
+  const closePreview = useCallback(() => setPreview(null), [])
   const set = (patch: Record<string, string>) => {
     // merge first, then drop empty values, so choosing "All …" clears that filter
     const next = Object.fromEntries(Object.entries({ ...Object.fromEntries(params.entries()), year, period, ...patch }).filter(([, v]) => v))
@@ -31,6 +39,11 @@ export default function VCDashboard() {
   }
   const filterQuery = () => new URLSearchParams(Object.entries({ year, period, department: get('department'), kra: get('kra'), status: get('status'), search: get('search'), page: get('page', '1') }).filter(([, v]) => v))
   useEffect(() => { api<typeof departments>('/departments/').then(setDepartments).catch(() => {}) }, [])
+  useEffect(() => {  // an approval run interrupted earlier (closed tab, lost session) can be resumed
+    api<{ results: BulkRun[] }>('/bulk-approvals/').then((r) => setResumable(r.results.find((b) => b.resumable) ?? null)).catch(() => {})
+  }, [reload])
+  const scopeKey = JSON.stringify([year, period, get('department'), get('kra'), get('search')])
+  useEffect(() => { setSelected(new Map()) }, [scopeKey])  // a selection belongs to the filters it was made under
   async function exportPdf() {  // all filtered rows, not just this page (D-068)
     setExporting(true); setExportError('')
     try {
@@ -51,11 +64,21 @@ export default function VCDashboard() {
     api<Progress>(`/progress/?${q}`).then((d) => live && setData(d)).catch((e) => live && setError(e instanceof ApiError ? e.message : 'Failed to load'))
     return () => { live = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, period])
+  }, [params, period, reload])
 
   const statusSel = get('status') as DisplayStatus | ''
   const filtered = !!(get('department') || get('kra') || get('search') || statusSel)
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
+  const eligible = (data?.results ?? []).filter((r) => r.display_status === 'SUBMITTED' && r.revision_id && r.submission_id)
+  const pageSelected = eligible.length > 0 && eligible.every((r) => selected.has(r.submission_id!))
+  const toggle = (r: Row) => setSelected((m) => { const n = new Map(m); if (n.has(r.submission_id!)) n.delete(r.submission_id!); else n.set(r.submission_id!, r.revision_id!); return n })
+  const togglePage = () => setSelected((m) => { const n = new Map(m); eligible.forEach((r) => { if (pageSelected) n.delete(r.submission_id!); else n.set(r.submission_id!, r.revision_id!) }); return n })
+  const scopeFilters = () => Object.fromEntries(Object.entries({ year, period, department: get('department'), kra: get('kra'), search: get('search') }).filter(([, v]) => v))
+  const awaiting = data?.counts.SUBMITTED ?? 0
+  const targetOf = (r: Row): PreviewTarget => ({ submission: r.submission_id!, revision: r.revision_id!, title: `${r.department} · KRA ${r.kra_number}`,
+    status: statusLabel(r.display_status), sequence: r.revision_sequence })
+  const previewable = (data?.results ?? []).filter((r) => r.revision_id && r.submission_id)
+  const at = preview ? previewable.findIndex((r) => r.revision_id === preview.revision) : -1
   const fld = 'grid gap-1.5 text-sm font-semibold text-heading'
   return (
     <div className="grid gap-[18px]">
@@ -103,18 +126,46 @@ export default function VCDashboard() {
         <p id="export-note" className="w-full text-sm text-muted">The PDF contains every row matching these filters, not only this page.</p>
       </section>
 
+      {resumable && !bulk && (
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-[10px] border border-warn bg-warn-bg px-4 py-3 text-[15px]">
+          <span>An approval run was interrupted: processed {resumable.processed} of {resumable.total}. Recorded approvals are kept.</span>
+          <button type="button" className="btn-primary min-h-9 text-sm" onClick={() => setBulk({ request: null, resume: resumable })}>Resume</button>
+        </div>
+      )}
+      {bulk && <BulkPanel request={bulk.request} resume={bulk.resume} onDone={() => { setSelected(new Map()); setReload((n) => n + 1) }}
+        onClose={() => { setBulk(null); setReload((n) => n + 1) }} />}
+      {!bulk && data && awaiting > 0 && (
+        <section aria-label="Bulk approval" className="flex flex-wrap items-center gap-2 rounded-[10px] border border-line bg-white px-4 py-3">
+          <span className="text-[15px]"><b>{selected.size}</b> selected</span>
+          {eligible.length > 0 && <button type="button" className="btn-quiet min-h-9 text-sm md:hidden" onClick={togglePage}>
+            {pageSelected ? 'Unselect this page' : `Select this page (${eligible.length})`}</button>}
+          <button type="button" className="btn-primary min-h-9 text-sm" disabled={!selected.size}
+            onClick={() => setBulk({ request: { scope: 'selection', items: [...selected].map(([submission, revision]) => ({ submission, revision })), filters: scopeFilters() }, resume: null })}>
+            Approve selected ({selected.size})</button>
+          <button type="button" className="btn-secondary min-h-9 text-sm"
+            onClick={() => setBulk({ request: { scope: 'filtered', filters: scopeFilters() }, resume: null })}>
+            Approve all matching filters ({awaiting} awaiting review)</button>
+          {selected.size > 0 && <button type="button" className="btn-quiet min-h-9 text-sm" onClick={() => setSelected(new Map())}>Clear selection</button>}
+          <p className="w-full text-sm text-muted">“All matching filters” includes every report awaiting review on all pages for this year, period and filters, not only this page.</p>
+        </section>
+      )}
       <ErrorBox error={error || exportError} />
       {!data ? (!error && <Loading />) : data.results.length === 0 ? <p className="rounded-[10px] border border-line bg-white p-5 text-muted">No assignments match these filters.</p> : (
         <section aria-label="Reports" className="overflow-hidden rounded-[10px] border border-line bg-white">
           <div className="overflow-x-auto">
             <table role="table" className="report-table w-full text-[15px]">
               <thead role="rowgroup" className="bg-subtle text-left">
-                <tr role="row">{['Dept', 'KRA', 'Annual target', 'Achievement (this period)', 'Status'].map((h) => <th role="columnheader" key={h} className="whitespace-nowrap border-b border-line px-3.5 py-2.5 font-semibold text-heading">{h}</th>)}
+                <tr role="row"><th role="columnheader" className="w-10 border-b border-line px-2 py-2.5">
+                  {eligible.length > 0 && <input type="checkbox" className="h-5 w-5" checked={pageSelected} onChange={togglePage} aria-label="Select this page (reports awaiting review)" />}</th>
+                  {['Dept', 'KRA', 'Annual target', 'Achievement (this period)', 'Status'].map((h) => <th role="columnheader" key={h} className="whitespace-nowrap border-b border-line px-3.5 py-2.5 font-semibold text-heading">{h}</th>)}
                   <th role="columnheader" className="border-b border-line px-3.5 py-2.5 text-center font-semibold text-heading">Action</th></tr>
               </thead>
               <tbody role="rowgroup">
                 {data.results.map((r) => (
                   <tr role="row" key={r.assignment_id} className="border-b border-line align-top last:border-b-0">
+                    <td role="cell" data-col="select" className="w-10 px-2 py-3">{r.display_status === 'SUBMITTED' && r.revision_id && r.submission_id &&
+                      <input type="checkbox" className="h-5 w-5" checked={selected.has(r.submission_id)} onChange={() => toggle(r)}
+                        aria-label={`Select ${r.department} KRA ${r.kra_number} for approval`} />}</td>
                     <td role="cell" data-col="head" className="whitespace-nowrap px-3.5 py-3 font-bold text-heading">{r.department}<span className="md:hidden"> · KRA {r.kra_number}</span></td>
                     <td role="cell" data-col="wide" className="px-3.5 py-3"><b className="mr-1 text-heading max-md:hidden">{r.kra_number}</b>
                       <span className="text-sm">{r.kra_text.replace(/^KRA \d+:\s*/, '')}</span></td>
@@ -122,6 +173,8 @@ export default function VCDashboard() {
                     <td role="cell" data-col="wide" className="px-3.5 py-3">
                       <span className="whitespace-pre-wrap">{r.achievement_text || '—'}</span>
                       {r.is_nil && <span className="ml-1.5 rounded border border-control px-1 text-xs font-bold text-heading" title="Nil report">Nil</span>}
+                      {r.is_nil && r.nil_reason && <span className="mt-1 block whitespace-pre-wrap text-[13px]">Nil reason: {r.nil_reason}</span>}
+                      {r.achievement_source === 'submitted' && r.evidence_count != null && <span className="mt-1 block text-[13px] text-muted">Evidence items submitted: {r.evidence_count}</span>}
                       {r.achievement_source === 'submitted' && <span className="mt-1 block text-[13px] text-muted">Submitted revision {r.revision_sequence}{r.submitted_at ? ` · ${fmtDateTime(r.submitted_at)}` : ''}</span>}
                       {r.achievement_source === 'draft' && <span className="mt-1 inline-block rounded bg-warn-bg px-2 py-0.5 text-[13px] font-semibold text-warn">Unsubmitted draft — not reviewed</span>}
                       {r.changed_since_submission && <span className="mt-1 block text-[13px] font-semibold text-warn">Edited after submission; not resubmitted</span>}
@@ -132,6 +185,9 @@ export default function VCDashboard() {
                         ? <Link className={`${r.display_status === 'SUBMITTED' ? 'btn-primary' : 'btn-secondary border-action'} min-h-9 w-full text-sm`} to={`/vc/review/${r.submission_id}`}
                             state={{ back: location.pathname + location.search }}>{r.display_status === 'SUBMITTED' ? 'Review' : 'View & history'}</Link>
                         : <span className="text-sm text-muted">No report yet</span>}
+                      {r.revision_id && r.submission_id && <button type="button" className="btn-quiet mt-1 min-h-9 w-full text-sm"
+                        onClick={() => setPreview(targetOf(r))}>
+                        Quick preview<span className="sr-only"> of {r.department} KRA {r.kra_number}</span></button>}
                     </td>
                   </tr>
                 ))}
@@ -147,6 +203,9 @@ export default function VCDashboard() {
           </div>
         </section>
       )}
+      {preview && <PreviewDrawer target={preview} onClose={closePreview}
+        onPrev={at > 0 ? () => setPreview(targetOf(previewable[at - 1])) : undefined}
+        onNext={at >= 0 && at < previewable.length - 1 ? () => setPreview(targetOf(previewable[at + 1])) : undefined} />}
     </div>
   )
 }

@@ -57,8 +57,58 @@ Legacy assignments (no start period) apply to every period.
 Both run in one `REPEATABLE READ, READ ONLY` transaction owned by the reader (the routes are `non_atomic_requests`); called
 inside another transaction the reader raises instead of silently running at a weaker isolation.
 
+## Bulk approval (VC Phase 2; D-075)
+
+VC only; session + CSRF; a manifest belongs to the VC who created it (another user's id is 404). Approval goes through the
+same `review` service as a single approval (exact-revision check, row lock, `review_approve` audit, approved-PDF job).
+
+| Method & path | Body | Result / rules |
+|---|---|---|
+| `POST bulk-approvals/` | `{idempotency_key, scope: "selection", items: [{submission, revision}], filters?}` or `{idempotency_key, scope: "filtered", filters: {year, period, department?, kra?, search?}}` | 201 summary + `excluded` (selected rows not awaiting review / newer revision) + first 50 items. Freezes exact (submission, submitted revision) pairs. `filtered` = every report awaiting review matching the progress filters across all pages (the shown Status filter never widens it). More than `BULK_MANIFEST_CAP` (5,000) → 400 `too_many`, nothing created (never truncated). Same key again → the same manifest. 409 `nothing_eligible` |
+| `GET bulk-approvals/` | — | The VC's 20 most recent runs (`resumable` = confirmed, unfinished, within 7 days) |
+| `GET bulk-approvals/<id>/?outcome=&page=` | — | Summary `{total, processed, remaining, counts{APPROVED, SKIPPED, CONFLICT, FAILED}, confirmed_at, completed_at, expired, resumable, batch_size}` + items (50 per page) |
+| `POST bulk-approvals/<id>/confirm/` | — | Once; repeat is a no-op. 409 `expired` after 15 minutes unconfirmed |
+| `POST bulk-approvals/<id>/process/` | — | Processes up to `BULK_BATCH_SIZE` (≤ 50) unprocessed items, one transaction each, claimed with `FOR UPDATE SKIP LOCKED` in order; returns the summary + `batch` outcomes actually committed. Call until `remaining` is 0. Stale revision → `CONFLICT`; no longer Submitted → `SKIPPED`; database error → `FAILED` (others unaffected). 409 `not_confirmed`, 409 `expired` (resume window 7 days) |
+| `POST bulk-approvals/<id>/retry/` | `{idempotency_key}` | New manifest (needs its own confirmation) from this run's `FAILED` items whose exact revision is still awaiting review. Conflicts/skips are never retried automatically |
+
+Progress rows (`GET progress/`) now include `revision_id`, `nil_reason` and `evidence_count` of the submitted revision.
+
+## Approved PDFs (VC Phase 2; D-076)
+
+`GET submissions/<id>/export/[?revision=]` is unchanged for drafts and reports awaiting review. When the export is an
+**approved** document (the current export of an Approved report, or an explicit revision that received an approval) it is
+served only from that approval's retained artifact:
+
+- ready → the PDF (`private, no-store`);
+- pending/running → **202** `pdf_processing` with `Retry-After: 5` (JSON when `Accept: application/json`; otherwise a small
+  page that refreshes itself at most 24 times, then offers *Try again*);
+- failed after the retry budget → **503** `pdf_failed` (the approval stands; an operator retries the job).
+
+Never another revision's file or a Pending-approval PDF. `GET /health/artifacts/` (outside `/api/v1/`) →
+`{ok, problems[no_live_worker|backlog|failed_jobs], live_workers, pending, failed, oldest_pending_seconds}`, 503 when not ok
+(counts only; restrict to internal monitoring at the proxy).
+
+## Announcements (VC Phase 2; D-077)
+
+| Method & path | Who | Rules |
+|---|---|---|
+| `GET announcements/?state=DRAFT\|ACTIVE\|EXPIRED\|PUBLISHED\|WITHDRAWN&page=` | VC | All announcements (20 per page) with state, audience, recipients, `read_count` (current version) |
+| `GET announcements/?unread=1&page=` | Dean | Active (published, not expired/withdrawn) announcements addressed to the Dean's department, pinned first, then newest; `read` flags and `unread_count`. Never marks anything read |
+| `POST announcements/` | VC | `{title ≤200, body ≤10000, audience: {all: true} \| {departments: [codes]}, pinned?, expires_at?}` → 201 draft. Plain text only: HTML tags and non-http(s) links are 400 |
+| `GET announcements/<id>/` | both | Dean: 404 unless currently addressed to their department and active. Loading never marks read |
+| `PATCH announcements/<id>/` | VC | `{edit_version, …}`; 409 `version_conflict` (with `current`). Published: title/body change → new `content_version` (unread again); audience/pin/expiry-only → read state kept, added departments start unread, removed ones lose access (also to history). 409 `withdrawn` |
+| `DELETE announcements/<id>/` | VC | Drafts only (`{edit_version}`); published history is kept |
+| `POST announcements/<id>/publish/` | VC | `{edit_version, acknowledge_eligibility?}`. Resolves the audience to a recipient snapshot ("all" = active departments now). A pending-shortcut draft is revalidated: changed eligibility → 409 `eligibility_changed` `{eligible, audience, newly_pending, no_longer_pending}` unless acknowledged |
+| `POST announcements/<id>/withdraw/` | VC | Published → withdrawn (leaves Dean views; history kept) |
+| `POST announcements/<id>/read/` | Dean | `{content_version}` — the version actually shown; 409 `stale_read` if it changed meanwhile |
+| `GET announcements/unread-count/` | Dean | `{unread_count}` (each active announcement at most once) |
+| `GET announcements/<id>/revisions/` | both | VC: every revision with audience; Dean: content revisions, only while currently a recipient |
+| `POST announcements/recipients-preview/` | VC | `{audience}` → departments it resolves to now |
+| `POST announcements/pending-draft/` | VC | `{year, period_ids: [opened periods], departments?, kras?, preview?}` → departments with ≥1 applicable Not submitted / Draft / Rejected / Returned slot in those periods; `preview: true` returns `{eligible, counts, periods, title, body}`, otherwise creates a **draft** (201). Never publishes, never reopens. 400 for unopened periods, 409 `nothing_pending` |
+
 ## Development commands (not HTTP)
 
-- `python e2e/run_isolated.py [-k NAME] [--keep]` — browser suite on a disposable database (D-067).
+- `python e2e/run_isolated.py [-k NAME] [--keep]` — browser suite on a disposable database (D-067); also runs the artifact worker.
+- `python backend/manage.py run_artifact_worker [--once]` — approved-PDF worker (D-076); `artifact_jobs [--check] [--retry-failed [ID …]]` — queue status, health check, operator retry.
 - `python backend/manage.py cleanup_e2e_data [--execute] [--copy-event ID]` — DEBUG only; report or remove browser-test residue with demonstrable provenance (D-067).
 - `python e2e/run_perf.py [--seconds N] [--keep]` — Phase 6B local PDF-reliability, failure and mixed-workload measurements on a disposable `<db>_perf` database with its own Django (:8002) and renderer (:8791) (D-070).

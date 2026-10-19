@@ -5,7 +5,7 @@ assignment drafts are a separate model and never appear. Status follows the C11 
 submitted); achievements of Submitted/Rejected/Approved rows come from the submitted revision, Draft rows are marked as
 unsubmitted. Targets and achievements are returned exactly as stored; nothing is totalled or ranked.
 """
-from django.db.models import BooleanField, Case, Exists, F, FilteredRelation, OuterRef, Q, Value, When
+from django.db.models import BooleanField, Case, Exists, F, FilteredRelation, Func, IntegerField, OuterRef, Q, Value, When
 
 from apps.audit.errors import ApiError
 from apps.catalogue.models import AcademicYear, AnnualAssignment, Department, ReportingPeriod
@@ -78,10 +78,12 @@ def build(f):
     data = list(qs.annotate(
         has_ev=Exists(Evidence.objects.filter(submission=OuterRef("sub__id"), removed=False)),
         same_as_revision=Case(When(same, then=Value(True)), default=Value(False), output_field=BooleanField()),
+        manifest_count=Func(F("sub__current_revision__evidence_manifest"), function="jsonb_array_length", output_field=IntegerField()),
     ).order_by("kra__number", "department__code", "id").values(
         "id", "department__code", "department__name", "kra__number", "kra__activity_text", "target_text", "template_version_id",
         "sub__id", "sub__status", "sub__edit_version", "sub__is_nil", "sub__achievement_text", "sub__current_revision__sequence",
         "sub__current_revision__submitted_at", "sub__current_revision__achievement_text", "sub__current_revision__is_nil",
+        "sub__current_revision_id", "sub__current_revision__nil_reason", "manifest_count",
         "has_ev", "same_as_revision")[:MAX_ROWS + 1])
     if len(data) > MAX_ROWS:
         raise ApiError(400, "too_many_rows", f"More than {MAX_ROWS} rows match; narrow the filters.")
@@ -95,15 +97,21 @@ def build(f):
         seq = a["sub__current_revision__sequence"]
         if status in REVIEWED and seq:
             achievement, nil, source = a["sub__current_revision__achievement_text"], a["sub__current_revision__is_nil"], "submitted"
+            nil_reason, evidence_count = a["sub__current_revision__nil_reason"] if nil else "", a["manifest_count"] or 0
         elif status == Status.DRAFT:
             achievement, nil, source = a["sub__achievement_text"], a["sub__is_nil"], "draft"
+            nil_reason, evidence_count = "", None
         else:
             achievement, nil, source = "", False, "none"
+            nil_reason, evidence_count = "", None
         rows.append({"assignment_id": str(a["id"]), "department": a["department__code"], "department_name": a["department__name"],
                      "kra_number": a["kra__number"], "kra_text": a["kra__activity_text"], "target_text": a["target_text"],
                      "has_template": a["template_version_id"] is not None,
                      "submission_id": str(a["sub__id"]) if a["sub__id"] else None, "display_status": status,
                      "status_label": STATUS_LABELS[status], "achievement_text": achievement, "is_nil": bool(nil),
                      "achievement_source": source, "revision_sequence": seq, "submitted_at": a["sub__current_revision__submitted_at"],
-                     "changed_since_submission": bool(seq and status in REVIEWED and not a["same_as_revision"])})
+                     "changed_since_submission": bool(seq and status in REVIEWED and not a["same_as_revision"]),
+                     # submitted-revision context for review/bulk approval (D-075); never the newer draft values
+                     "revision_id": str(a["sub__current_revision_id"]) if seq and status in REVIEWED else None,
+                     "nil_reason": nil_reason, "evidence_count": evidence_count})
     return rows, counts

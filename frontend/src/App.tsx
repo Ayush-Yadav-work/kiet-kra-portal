@@ -3,6 +3,8 @@ import { AuthProvider } from './auth/AuthContext'
 import ChangePassword from './auth/ChangePassword'
 import LoginPage, { Landing } from './auth/LoginPage'
 import { RequireRole } from './components/ui'
+import { DeanInbox, DeanNotice } from './features/announcements/DeanAnnouncements'
+import { VCAnnouncementEditor, VCAnnouncementList } from './features/announcements/VCAnnouncements'
 import DeanDashboard from './features/dean/DeanDashboard'
 import WorkspaceRoute from './features/report-builder/Workspace'
 import AdminAssignments from './features/vc/AdminAssignments'
@@ -21,6 +23,8 @@ const router = createBrowserRouter([
     path: '/dean', element: <RequireRole role="DEAN" />, children: [
       { path: 'dashboard', element: <DeanDashboard /> },
       { path: 'kra/:assignmentId/:periodId', element: <WorkspaceRoute /> },
+      { path: 'announcements', element: <DeanInbox /> },
+      { path: 'announcements/:id', element: <DeanNotice /> },
       { index: true, element: <Navigate to="dashboard" replace /> },
     ],
   },
@@ -32,6 +36,8 @@ const router = createBrowserRouter([
       { path: 'assignments', element: <AdminAssignments /> },
       { path: 'analytics', element: <Analytics /> },
       { path: 'kras', element: <AdminKRAs /> },
+      { path: 'announcements', element: <VCAnnouncementList /> },
+      { path: 'announcements/:id', element: <VCAnnouncementEditor /> },
       { index: true, element: <Navigate to="dashboard" replace /> },
     ],
   },

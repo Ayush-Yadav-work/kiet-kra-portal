@@ -4,7 +4,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-KEY_RE = re.compile(r"^(evidence|generated)/[0-9a-f]{32}\.(pdf|jpg|png)$")
+KEY_RE = re.compile(r"^(evidence|generated|approved)/[0-9a-f]{32}\.(pdf|jpg|png)$")
 
 
 def read_path(key) -> Path:

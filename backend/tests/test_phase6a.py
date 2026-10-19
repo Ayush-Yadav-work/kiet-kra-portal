@@ -19,6 +19,7 @@ from apps.audit.models import AuditEvent
 from apps.catalogue.models import AnnualAssignment, Department, ReportingPeriod
 from apps.evidence.models import Evidence
 from apps.submissions.models import ReopenGrant, ReopenRequest, ReviewDecision, Submission, SubmissionRevision
+from apps.reports import artifacts
 from config.urls import api
 from tests.base import TEST_STORAGE, PortalTestCase, frozen, ist
 from tests.fixtures import kra33_payload
@@ -29,7 +30,9 @@ VC_ONLY = {"submissions/<uuid:pk>/review/", "reopen-requests/<uuid:pk>/decision/
            "admin/templates/", "admin/kras/", "admin/years/", "admin/allocations/", "admin/years/<str:label>/copy/",
            "admin/years/<str:label>/finalise/preview/", "admin/years/<str:label>/finalise/", "admin/drafts/",
            "admin/drafts/bulk-target/", "admin/drafts/remove/", "admin/drafts/restore/", "admin/drafts/<uuid:pk>/",
-           "analytics/", "analytics/export/"}
+           "analytics/", "analytics/export/", "bulk-approvals/", "bulk-approvals/<uuid:pk>/", "bulk-approvals/<uuid:pk>/confirm/",
+           "bulk-approvals/<uuid:pk>/process/", "bulk-approvals/<uuid:pk>/retry/", "announcements/recipients-preview/",
+           "announcements/pending-draft/", "announcements/<uuid:pk>/publish/", "announcements/<uuid:pk>/withdraw/"}
 
 
 def routes():
@@ -207,13 +210,14 @@ class TransitionAndDeadlineTests(PortalTestCase):
         seen = []
         vc = self.client_for(self.vc)
         with mock.patch("apps.reports.pdf.call_renderer", side_effect=lambda p: seen.append(p["html"]) or b"%PDF-1.4 s"):
+            self.assertEqual(artifacts.run_one("test-worker").state, "READY")  # approved PDF comes from the worker (D-076)
             for q in (f"?revision={rev1}", f"?revision={rev2}", ""):
                 self.assertEqual(vc.get(f"/api/v1/submissions/{sid}/export/{q}").status_code, 200)
-        self.assertIn("Historical revision 1: not approved", seen[0])
-        self.assertIn("1 event (synthetic)", seen[0])
-        self.assertIn("Verified by VC", seen[1])
-        self.assertIn("2 events (synthetic)", seen[1])
-        self.assertEqual(len(seen), 2)  # current export is the identical approved document, reused from cache
+        self.assertIn("Verified by VC", seen[0])
+        self.assertIn("2 events (synthetic)", seen[0])
+        self.assertIn("Historical revision 1: not approved", seen[1])
+        self.assertIn("1 event (synthetic)", seen[1])
+        self.assertEqual(len(seen), 2)  # revision 2 and the current export both serve the one retained approved artifact
         self.assertEqual(SubmissionRevision.objects.get(pk=rev1).achievement_text, "1 event (synthetic)")
 
     def test_request_grant_exactly_72h_and_scoped_to_one_report(self):

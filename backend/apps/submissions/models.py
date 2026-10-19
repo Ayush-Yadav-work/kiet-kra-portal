@@ -138,3 +138,55 @@ class ReopenGrant(models.Model):
         if not self._state.adding:
             raise RuntimeError("Reopen grants are immutable history")
         super().save(*args, **kwargs)
+
+
+class BulkApproval(models.Model):
+    """Server-owned manifest of exact (submission, submitted revision) pairs frozen at selection (D-075). Confirmed once;
+    then processed in requests of at most BULK_BATCH_SIZE items until every item has an outcome."""
+
+    class Scope(models.TextChoices):
+        SELECTION = "SELECTION", "Selected reports"
+        FILTERED = "FILTERED", "All eligible reports matching filters"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    idempotency_key = models.CharField(max_length=64)
+    scope = models.CharField(max_length=9, choices=Scope.choices)
+    filters = models.JSONField(default=dict)  # descriptive scope (year/period/department/KRA/search) shown to the VC
+    total = models.PositiveIntegerField()
+    created_at = models.DateTimeField()
+    expires_at = models.DateTimeField()  # confirmation deadline
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    retry_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["actor", "idempotency_key"], name="one_manifest_per_key")]
+        indexes = [models.Index(fields=["actor", "completed_at", "created_at"], name="bulk_actor_idx")]
+
+
+class BulkApprovalItem(models.Model):
+    class Outcome(models.TextChoices):
+        PENDING = "", "Not processed"
+        APPROVED = "APPROVED", "Approved"
+        SKIPPED = "SKIPPED", "Skipped"
+        CONFLICT = "CONFLICT", "Conflict"
+        FAILED = "FAILED", "Failed"
+
+    bulk = models.ForeignKey(BulkApproval, on_delete=models.PROTECT, related_name="items")
+    position = models.PositiveIntegerField()
+    submission = models.ForeignKey(Submission, on_delete=models.PROTECT, related_name="+")
+    revision = models.ForeignKey(SubmissionRevision, on_delete=models.PROTECT, related_name="+")
+    outcome = models.CharField(max_length=8, choices=Outcome.choices, blank=True, default="")
+    reason = models.CharField(max_length=300, blank=True)
+    decision = models.OneToOneField(ReviewDecision, null=True, blank=True, on_delete=models.PROTECT, related_name="bulk_item")
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["position"]
+        constraints = [
+            models.UniqueConstraint(fields=["bulk", "submission"], name="bulk_item_unique_submission"),
+            models.UniqueConstraint(fields=["bulk", "position"], name="bulk_item_unique_position"),
+            models.CheckConstraint(condition=~Q(outcome="APPROVED") | Q(decision__isnull=False), name="bulk_approved_has_decision"),
+        ]
+        indexes = [models.Index(fields=["bulk", "outcome", "position"], name="bulk_item_queue_idx")]

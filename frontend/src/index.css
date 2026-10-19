@@ -58,4 +58,6 @@ h1, h2, h3 { @apply text-heading; }
   .report-table td[data-label]::before { content: attr(data-label) ": "; font-weight: 600; color: var(--color-muted); }
   .report-table td[data-col=action] { grid-column: 1 / -1; }
   .report-table td[data-col=action] > * { width: 100%; }
+  .report-table td[data-col=select] { grid-column: 1 / -1; }
+  .report-table td[data-col=select]:empty { display: none; }
 }

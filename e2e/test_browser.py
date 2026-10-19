@@ -57,6 +57,19 @@ def open_info(page, assignment_id, period_id):
     return info["submission_id"]
 
 
+def approved_pdf(page, sid, seconds=240):
+    """Approved PDFs come from the artifact worker started by run_isolated (D-076): 202 "processing" until ready, never
+    another document. Returns the PDF bytes."""
+    deadline = time.time() + seconds
+    while True:
+        r = page.request.get(f"{BASE}/api/v1/submissions/{sid}/export/", headers={"Accept": "application/json"})
+        if r.status == 200:
+            return r.body()
+        assert r.status == 202 and r.json()["code"] == "pdf_processing", (r.status, r.text()[:200])
+        assert time.time() < deadline, "approved PDF not produced by the worker in time"
+        time.sleep(2)
+
+
 class BrowserTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -492,8 +505,7 @@ class BrowserTests(unittest.TestCase):
         expect(vp.get_by_text("Approved", exact=True).first).to_be_visible(timeout=10000)
         vc.close()
 
-        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
-        text = "".join(pg.get_text() for pg in pymupdf.open(stream=r.body(), filetype="pdf"))
+        text = "".join(pg.get_text() for pg in pymupdf.open(stream=approved_pdf(p, sid), filetype="pdf"))  # from the worker (D-076)
         self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
 
     def test_kra8_9_10_surveys_save_reload_preview_export(self):
@@ -601,8 +613,7 @@ class BrowserTests(unittest.TestCase):
         expect(vp.get_by_text("Approved", exact=True).first).to_be_visible(timeout=10000)
         vc.close()
 
-        r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
-        text = "".join(pg.get_text() for pg in pymupdf.open(stream=r.body(), filetype="pdf"))
+        text = "".join(pg.get_text() for pg in pymupdf.open(stream=approved_pdf(p, sid), filetype="pdf"))  # from the worker (D-076)
         self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
         self.assertIn(name, text)
 
@@ -1170,6 +1181,142 @@ class BrowserTests(unittest.TestCase):
         self.assertIn("Unsubmitted draft", text)
         self.assertTrue(dl.value.suggested_filename.startswith("KRA_progress_2026-27_P"))
         vc.close()
+
+    def test_phase2_bulk_approval_preview_artifacts_and_announcements(self):
+        """VC Phase 2: quick previews of exact revisions never request a PDF; selected and all-filtered bulk approval
+        (60 synthetic Nil reports in the closed P1 -> 50 + 10 server batches); the running artifact worker produces the
+        approved PDF without any manual step; an ECE-only announcement is invisible to CSE, unread for ECE until opened,
+        unread again after a content edit; the Analytics shortcut only prepares a draft; no overflow at 375 px."""
+        import subprocess
+
+        import pymupdf
+
+        seed = (
+            "from apps.catalogue.models import AnnualAssignment, ReportingPeriod\n"
+            "from apps.accounts.models import User\n"
+            "from apps.submissions.models import Submission, SubmissionRevision\n"
+            "from apps.submissions.services import snapshot_of\n"
+            "from django.utils import timezone\n"
+            "p1 = ReportingPeriod.objects.get(year__label='2026-27', index=1)\n"
+            "dean = User.objects.get(username='demo.dean.ece')\n"
+            "qs = AnnualAssignment.objects.filter(year=p1.year, department__code__in=['ME', 'IT']).order_by('department__code', 'kra__number')[:60]\n"
+            "for a in qs:\n"
+            "    if Submission.objects.filter(assignment=a, period=p1).exists(): continue\n"
+            "    s = Submission.objects.create(assignment=a, period=p1, status='SUBMITTED', edit_version=2, created_by=dean, is_nil=True,\n"
+            "                                  nil_reason='Synthetic nil for bulk approval')\n"
+            "    r = SubmissionRevision.objects.create(submission=s, sequence=1, payload={}, is_nil=True, nil_reason='Synthetic nil for bulk approval',\n"
+            "        snapshot=snapshot_of(s), evidence_manifest=[], manifest_hash='h', submitted_by=dean, submitted_at=timezone.now())\n"
+            "    s.current_revision = r; s.save()\n")
+        subprocess.run([sys.executable, str(ROOT / "backend" / "manage.py"), "shell", "-c", seed], cwd=ROOT / "backend", check=True,
+                       capture_output=True)
+
+        vc = self.browser.new_context(viewport={"width": 1400, "height": 900})
+        v = vc.new_page()
+        pdf_requests = []
+        v.on("request", lambda r: pdf_requests.append(r.url) if "/export/" in r.url else None)
+        login(v, "vc", "demo.vc")
+        v.wait_for_url("**/vc/dashboard")
+        _, periods = api(v, "GET", "/periods/?year=2026-27")
+        p1 = next(p for p in periods["results"] if p["index"] == 1)["id"]
+        v.goto(f"{BASE}/vc/dashboard?year=2026-27&period={p1}&department=IT&status=SUBMITTED")
+        expect(v.get_by_text("Nil reason: Synthetic nil for bulk approval").first).to_be_visible()
+        expect(v.get_by_text("Evidence items submitted: 0").first).to_be_visible()
+
+        # quick preview: exact revision HTML in the sandboxed frame; switching rows and closing never requests a PDF
+        v.get_by_role("button", name="Quick preview of IT KRA 1", exact=True).click()
+        drawer = v.get_by_role("complementary", name="IT · KRA 1", exact=True)
+        expect(drawer).to_contain_text("Submitted revision 1")
+        expect(v.frame_locator("iframe[title='Report preview']").locator("body")).to_contain_text("NIL REPORT")
+        v.get_by_role("checkbox", name="Select IT KRA 2 for approval").check()  # selection survives the drawer
+        drawer.get_by_role("button", name="Next report").click()  # switch inside the drawer
+        expect(v.get_by_role("complementary", name="IT · KRA 2", exact=True)).to_be_visible()
+        v.keyboard.press("Escape")
+        expect(v.get_by_role("complementary")).to_have_count(0)
+        self.assertEqual(pdf_requests, [])
+        expect(v.get_by_role("checkbox", name="Select IT KRA 2 for approval")).to_be_checked()
+
+        # selected reports: one confirmation, then the server processes them
+        v.get_by_role("checkbox", name="Select IT KRA 1 for approval").check()
+        v.get_by_role("button", name="Approve selected (2)").click()
+        panel = v.get_by_role("region", name="Bulk approval")
+        panel.get_by_role("button", name="Approve 2 reports").click()
+        expect(panel.get_by_role("status")).to_have_text("Finished: processed 2 of 2.")
+        panel.get_by_role("button", name="Close").click()
+
+        # all reports matching the filters, across pages: 58 left -> batches of 50 and 8, reported only when complete
+        v.goto(f"{BASE}/vc/dashboard?year=2026-27&period={p1}&status=SUBMITTED")
+        btn = v.get_by_role("button", name=re.compile(r"^Approve all matching filters \((\d+) awaiting review\)"))
+        total = int(re.search(r"\((\d+) awaiting", btn.inner_text()).group(1))
+        self.assertGreaterEqual(total, 58)
+        btn.click()
+        panel = v.get_by_role("region", name="Bulk approval")
+        expect(panel).to_contain_text(f"All eligible reports matching filters — {total} reports awaiting review")
+        panel.get_by_role("button", name=f"Approve {total} reports").click()
+        expect(panel.get_by_role("status")).to_have_text(f"Finished: processed {total} of {total}.", timeout=60000)
+        expect(panel).to_contain_text(f"Approved: {total}")
+        _, runs = api(v, "GET", "/bulk-approvals/")
+        self.assertEqual((runs["results"][0]["total"], runs["results"][0]["counts"]["APPROVED"]), (total, total))
+
+        # the configured worker renders the retained approved PDF on its own (no manual step)
+        _, rows = api(v, "GET", f"/progress/?year=2026-27&period={p1}&department=IT&kra=1")
+        sid = rows["results"][0]["submission_id"]
+        text = " ".join(pg.get_text() for pg in pymupdf.open(stream=approved_pdf(v, sid), filetype="pdf"))
+        self.assertIn("Verified by VC - Demo Vice-Chancellor", text)
+
+        # announcement to ECE only
+        v.goto(f"{BASE}/vc/announcements/new")
+        title = f"Synthetic notice {int(time.time())}"
+        v.get_by_label("Title").fill(title)
+        v.get_by_label(re.compile("^Message")).fill("Please check https://example.org/kra before Friday.")
+        v.get_by_label("Selected departments").check()
+        v.get_by_label(re.compile("^ECE — ")).check()
+        v.get_by_role("button", name="Save draft").click()
+        expect(v.get_by_role("status")).to_contain_text("Draft saved.")
+        v.get_by_role("button", name="Review and publish").click()
+        review = v.get_by_role("region", name="Publish review")
+        expect(review).to_contain_text("Publish to 1 department(s): ECE")
+        review.get_by_role("button", name="Publish now").click()
+        expect(v.get_by_role("status")).to_contain_text("Published.")
+        nid = v.url.rsplit("/", 1)[1]
+
+        cse = self.page
+        login(cse, "dean", "demo.dean.cse")
+        cse.wait_for_url("**/dean/dashboard")
+        self.assertEqual(api(cse, "GET", f"/announcements/{nid}/")[0], 404)  # not a recipient, even by URL
+        ece = self.browser.new_context(viewport={"width": 1400, "height": 900}).new_page()
+        login(ece, "dean", "demo.dean.ece")
+        ece.wait_for_url("**/dean/dashboard")
+        nav = ece.get_by_role("navigation", name="Main")
+        expect(nav.get_by_role("link", name=re.compile(r"^Announcements \d+ unread$"))).to_be_visible()
+        notices = ece.get_by_role("region", name=re.compile("^Announcements"))
+        notices.get_by_role("link", name=title).click()
+        expect(ece.get_by_role("heading", name=title)).to_be_visible()
+        expect(ece.locator('a[href="https://example.org/kra"]')).to_have_attribute("rel", "noopener noreferrer")  # plain text, http(s) links only
+        ece.goto(f"{BASE}/dean/announcements")
+        expect(ece.get_by_role("link", name=re.compile(re.escape(title)))).not_to_contain_text("Unread")
+        _, n = api(v, "GET", f"/announcements/{nid}/")
+        self.assertEqual(api(v, "PATCH", f"/announcements/{nid}/", {"edit_version": n["edit_version"], "body": "Changed: please check today."})[0], 200)
+        ece.reload()
+        expect(ece.get_by_role("link", name=re.compile(re.escape(title)))).to_contain_text("Unread")  # content edit: unread again
+
+        # Analytics shortcut: an editable draft only
+        v.goto(f"{BASE}/vc/analytics?year=2026-27&scope=period&period={p1}")
+        v.get_by_role("button", name="Announce to pending departments").click()
+        box = v.get_by_role("region", name="Announce to pending departments")
+        box.get_by_role("button", name="Find pending departments").click()
+        expect(box).to_contain_text("department(s):")
+        box.get_by_role("button", name="Create draft announcement").click()
+        expect(v.get_by_text("Prepared from Analytics for departments with pending reports")).to_be_visible()
+        expect(v.get_by_role("button", name="Review and publish")).to_be_visible()  # still a draft
+
+        for page, path in ((v, "/vc/announcements"), (v, f"/vc/dashboard?year=2026-27&period={p1}"), (ece, "/dean/announcements")):
+            page.set_viewport_size({"width": 375, "height": 812})
+            page.goto(f"{BASE}{path}")
+            page.wait_for_load_state("networkidle")
+            self.assertEqual(page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0, path)
+        ece.context.close()
+        vc.close()
+
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)
