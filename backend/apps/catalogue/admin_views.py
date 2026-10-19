@@ -1,6 +1,6 @@
-"""Phase 5A — VC KRA management, draft assignments and next-year targets (D-065). Every view is VC-only."""
-from django.db import IntegrityError, transaction
-from django.db.models import Max
+"""VC annual assignments (VC features plan v2.3 Phase 1, D-073; replaces the Phase 5A whole-year finalize and VC KRA creation).
+Every view is VC-only; every write goes through apps.catalogue.allocations. The KRA catalogue and report templates are
+developer-installed: the VC can read them but not create, edit or delete them."""
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils import timezone
@@ -8,29 +8,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.auth import IsVC
-from apps.audit.models import record
 from apps.audit.errors import ApiError
 from apps.reports.schema import validate_payload
 from apps.submissions.scope import get_or_404
 
+from . import allocations as svc
 from .models import KRA, AcademicYear, AnnualAssignment, Department, DraftAssignment, TemplateVersion
 from .views import kra_json
-
-MAX_TARGET = 500
-
-
-def err(code, message, status=400, field_errors=None):
-    return ApiError(status, code, message, field_errors)
-
-
-def today():
-    return timezone.localdate()
-
-
-def year_elapsed(y):
-    """An ended academic year is read-only. The current and future years accept drafts for unassigned pairs; finalized
-    assignments stay immutable in every year (D-066)."""
-    return y.end_date < today()
 
 
 def template_problem(tv):
@@ -52,16 +36,6 @@ def template_json(tv, kras=None):
             **({"used_by_kras": kras} if kras is not None else {})}
 
 
-def find_template(key, version):
-    tv = TemplateVersion.objects.filter(key=key, version=version).first()
-    if not tv:
-        raise err("invalid", "Choose an installed template version.", field_errors={"template": ["Unknown template version."]})
-    problem = template_problem(tv)
-    if problem:
-        raise err("invalid", problem, field_errors={"template": [problem]})
-    return tv
-
-
 def default_template(kra):
     if kra.default_template_id:
         return kra.default_template
@@ -69,34 +43,19 @@ def default_template(kra):
     return a.template_version if a else None
 
 
-def clean_target(value):
-    """Target strings are stored exactly as typed (percentages, NA/Nil, policy wording); only emptiness and length are checked."""
-    if not isinstance(value, str) or not value.strip():
-        raise err("invalid", "Enter the target text.", field_errors={"target_text": ["Required."]})
-    if len(value) > MAX_TARGET:
-        raise err("invalid", f"Target text is limited to {MAX_TARGET} characters.", field_errors={"target_text": ["Too long."]})
-    return value
+def year_get(label):
+    return get_or_404(AcademicYear.objects.prefetch_related("periods"), label=label or "")
 
 
-def open_year(label, lock=False):
-    qs = AcademicYear.objects.select_for_update() if lock else AcademicYear.objects
-    y = get_or_404(qs, label=label)
-    if year_elapsed(y):
-        raise err("year_locked", f"{y.label} has ended; its assignments are read-only.",
-                       status=409)
-    return y
+def period_label(p):
+    return {"index": p.index, "label": p.label} if p else None
 
 
-def draft_json(d):
-    return {"id": str(d.id), "year": d.year.label, "department": {"code": d.department.code, "name": d.department.name},
-            "kra": kra_json(d.kra), "target_text": d.target_text,
-            "template": {"key": d.template_version.key, "version": d.template_version.version, "title": d.template_version.title},
-            "copied_from_year": d.copied_from.year.label if d.copied_from_id else None,
-            "finalized": d.finalized_assignment_id is not None, "updated_at": d.updated_at}
-
-
-def drafts_qs():
-    return DraftAssignment.objects.select_related("department", "kra", "year", "template_version", "copied_from__year")
+def year_json(y, at):
+    drafts = DraftAssignment.objects.filter(year=y, finalized_assignment__isnull=True)
+    return {"label": y.label, "start_date": y.start_date, "end_date": y.end_date, "state": svc.year_state(y, at),
+            "drafts": drafts.filter(removed_at__isnull=True).count(), "removed": drafts.filter(removed_at__isnull=False).count(),
+            "finalised": AnnualAssignment.objects.filter(year=y).count()}
 
 
 class TemplatesView(APIView):
@@ -110,163 +69,140 @@ class TemplatesView(APIView):
 
 
 class AdminKRAsView(APIView):
+    """Read-only installed catalogue. New KRAs need a developer-built editor, preview, validation and PDF (plan §1)."""
+
     permission_classes = [IsVC]
 
     def get(self, request):
-        return Response([{**kra_json(k), "active": k.active,
-                          "default_template": (lambda tv: tv and {"key": tv.key, "version": tv.version, "title": tv.title})(default_template(k))}
-                         for k in KRA.objects.select_related("default_template").order_by("number")])
-
-    def post(self, request):
-        d = request.data
-        title = d.get("title")
-        if not isinstance(title, str) or not title.strip():
-            raise err("invalid", "Enter the KRA activity text.", field_errors={"title": ["Required."]})
-        tv = find_template(d.get("template_key"), d.get("template_version"))
-        if d.get("confirm_layout") is not True:
-            raise err("invalid", f"Confirm that this activity is reported with the existing layout \"{tv.title}\". A different layout "
-                                      "needs a software update.", field_errors={"confirm_layout": ["Confirmation required."]})
-        with transaction.atomic():
-            number = d.get("number") or (KRA.objects.aggregate(m=Max("number"))["m"] or 0) + 1
-            if not isinstance(number, int) or number < 1 or KRA.objects.filter(number=number).exists():
-                raise err("invalid", f"KRA {number} already exists or is not a valid number.", field_errors={"number": ["Not available."]})
-            kra = KRA.objects.create(number=number, activity_text=f"KRA {number}: {title.strip()}", nba_ref=str(d.get("nba_ref", ""))[:20],
-                                     naac_ref=str(d.get("naac_ref", ""))[:20], default_template=tv)
-            record(request.user, "kra.create", kra, {"number": number, "template": f"{tv.key} v{tv.version}"}, request)
-        return Response({**kra_json(kra), "default_template": {"key": tv.key, "version": tv.version, "title": tv.title}}, status=201)
+        out = []
+        for k in KRA.objects.select_related("default_template").order_by("number"):
+            tv = default_template(k)
+            out.append({**kra_json(k), "active": k.active, "installed": bool(tv and not template_problem(tv)),
+                        "default_template": tv and {"key": tv.key, "version": tv.version, "title": tv.title}})
+        return Response(out)
 
 
 class AdminYearsView(APIView):
     permission_classes = [IsVC]
 
     def get(self, request):
-        out = []
-        for y in AcademicYear.objects.order_by("label"):
-            drafts = DraftAssignment.objects.filter(year=y)
-            out.append({"label": y.label, "start_date": y.start_date, "end_date": y.end_date, "locked": year_elapsed(y),
-                        "current": y.start_date <= today() <= y.end_date,
-                        "finalized_assignments": AnnualAssignment.objects.filter(year=y).count(),
-                        "drafts_pending": drafts.filter(finalized_assignment__isnull=True).count(),
-                        "drafts_finalized": drafts.filter(finalized_assignment__isnull=False).count()})
-        return Response(out)
+        at = timezone.now()
+        return Response([year_json(y, at) for y in AcademicYear.objects.prefetch_related("periods").order_by("label")])
 
 
-class DraftsView(APIView):
+class AllocationsView(APIView):
+    """Everything the annual-assignments screen needs for one year: departments, installed KRAs and every allocation
+    row (drafts, removed drafts, finalised assignments). Pairs without a row are Unallocated."""
+
     permission_classes = [IsVC]
 
     def get(self, request):
-        qs = drafts_qs().filter(year__label=request.query_params.get("year", ""))
-        if request.query_params.get("department"):
-            qs = qs.filter(department__code=request.query_params["department"])
-        return Response([draft_json(d) for d in qs])
+        y = year_get(request.query_params.get("year"))
+        at = timezone.now()
+        previous = AcademicYear.objects.filter(label__lt=y.label).order_by("-label").first()
+        prev_targets = {(a.department_id, a.kra_id): a.target_text for a in AnnualAssignment.objects.filter(year=previous)} if previous else {}
+        rows, seen = [], set()
+        for d in (DraftAssignment.objects.filter(year=y).select_related("department", "kra", "source_year", "removed_by",
+                  "finalized_assignment__finalised_by", "finalized_assignment__effective_start_period")):
+            a = d.finalized_assignment
+            seen.add((d.department_id, d.kra_id))
+            rows.append({"id": str(d.pk), "assignment_id": str(a.id) if a else None, "state": svc.state_of(d),
+                         "department": d.department.code, "kra": d.kra.number, "target_text": a.target_text if a else d.target_text,
+                         "previous_target": d.source_target, "source_year": d.source_year.label if d.source_year_id else None,
+                         "edit_version": d.edit_version, "removed_at": d.removed_at, "removed_by": d.removed_by.display_name if d.removed_by_id else None,
+                         "finalised_at": a.finalised_at if a else None, "finalised_by": a.finalised_by.display_name if a and a.finalised_by_id else None,
+                         "effective_start_period": period_label(a.effective_start_period) if a else None})
+        for a in (AnnualAssignment.objects.filter(year=y).select_related("department", "kra", "finalised_by", "effective_start_period")):
+            if (a.department_id, a.kra_id) in seen:
+                continue
+            rows.append({"id": None, "assignment_id": str(a.id), "state": "FINALISED", "department": a.department.code, "kra": a.kra.number,
+                         "target_text": a.target_text, "previous_target": prev_targets.get((a.department_id, a.kra_id)),
+                         "source_year": previous.label if (a.department_id, a.kra_id) in prev_targets else None, "edit_version": None,
+                         "removed_at": None, "removed_by": None, "finalised_at": a.finalised_at or a.assigned_at,
+                         "finalised_by": a.finalised_by.display_name if a.finalised_by_id else "Migrated assignment",
+                         "effective_start_period": period_label(a.effective_start_period)})
+        rows.sort(key=lambda r: (r["kra"], r["department"]))
+        opts = svc.start_options(y, at)
+        return Response({
+            "year": year_json(y, at), "previous_year": previous.label if previous else None,
+            "departments": [{"code": d.code, "name": d.name} for d in Department.objects.filter(active=True).order_by("code")],
+            "kras": AdminKRAsView().get(request).data, "allocations": rows,
+            "start": {"kind": opts["kind"], "default": opts["default"],
+                      "choices": {k: {"period": svc.period_json_short(p), "grant": g} for k, (p, g) in opts["choices"].items()}},
+            "server_time": at})
+
+
+class DraftsView(APIView):
+    """POST: create draft allocations for the explicitly selected departments of one KRA."""
+
+    permission_classes = [IsVC]
 
     def post(self, request):
         d = request.data
-        with transaction.atomic():
-            y = open_year(d.get("year", ""), lock=True)
-            dept = get_or_404(Department.objects.filter(active=True), code=d.get("department"))
-            kra = get_or_404(KRA.objects.filter(active=True), number=d.get("kra"))
-            target = clean_target(d.get("target_text"))
-            tv = find_template(d["template_key"], d.get("template_version")) if d.get("template_key") else default_template(kra)
-            if tv is None:
-                raise err("invalid", "Choose a template for this KRA.", field_errors={"template": ["Required."]})
-            if AnnualAssignment.objects.filter(department=dept, kra=kra, year=y).exists():
-                raise err("conflict", f"{dept.code} KRA {kra.number} is already finalized for {y.label}.", status=409)
-            existing = DraftAssignment.objects.filter(department=dept, kra=kra, year=y).first()
-            if existing:
-                raise err("conflict", f"A draft for {dept.code} KRA {kra.number} in {y.label} already exists; edit it instead.",
-                               status=409, field_errors={"draft": [str(existing.id)]})
-            draft = DraftAssignment.objects.create(department=dept, kra=kra, year=y, target_text=target, template_version=tv,
-                                                   created_by=request.user)
-            record(request.user, "assignment_draft.create", draft, {"year": y.label, "department": dept.code, "kra": kra.number}, request)
-        return Response(draft_json(draft), status=201)
+        y = year_get(d.get("year"))
+        kra = get_or_404(KRA.objects.filter(active=True), number=d.get("kra"))
+        created, skipped = svc.add_departments(y, kra, d.get("departments"), request.user, d.get("target_text"), request)
+        return Response({"created": [str(x.pk) for x in created], "skipped": skipped}, status=201)
 
 
 class DraftItemView(APIView):
     permission_classes = [IsVC]
 
-    def _editable(self, pk, lock=True):
-        draft = get_or_404(drafts_qs().select_for_update(of=("self",)) if lock else drafts_qs(), pk=pk)
-        if draft.finalized_assignment_id:
-            raise err("finalized", "This assignment is finalized; its target and template can no longer change.", status=409)
-        if year_elapsed(draft.year):
-            raise err("year_locked", f"{draft.year.label} has ended; drafts can no longer change.", status=409)
-        return draft
-
     def patch(self, request, pk):
-        with transaction.atomic():
-            draft = self._editable(pk)
-            changes = {}
-            if "target_text" in request.data:
-                draft.target_text = clean_target(request.data["target_text"]); changes["target_text"] = True
-            if request.data.get("template_key"):
-                draft.template_version = find_template(request.data["template_key"], request.data.get("template_version"))
-                changes["template"] = f"{draft.template_version.key} v{draft.template_version.version}"
-            draft.save()
-            record(request.user, "assignment_draft.update", draft, changes, request)
-        return Response(draft_json(draft))
+        d = svc.edit_target(pk, request.data.get("edit_version"), request.data.get("target_text"), request.user, request)
+        return Response({"id": str(d.pk), "target_text": d.target_text, "edit_version": d.edit_version})
 
-    def delete(self, request, pk):
-        with transaction.atomic():
-            draft = self._editable(pk)
-            record(request.user, "assignment_draft.delete", draft,
-                   {"year": draft.year.label, "department": draft.department.code, "kra": draft.kra.number}, request)
-            draft.delete()  # an unfinalized draft is referenced by nothing
-        return Response(status=204)
+
+class BulkTargetView(APIView):
+    permission_classes = [IsVC]
+
+    def post(self, request):
+        apply = request.data.get("apply") is True
+        rows = svc.bulk_target(request.data.get("items"), request.data.get("target_text"), request.user, apply, request)
+        return Response({"applied": apply, "affected": rows})
+
+
+class RemoveView(APIView):
+    permission_classes = [IsVC]
+    removed = True
+
+    def post(self, request):
+        rows = svc.set_removed(request.data.get("items"), self.removed, request.user, request)
+        return Response({"changed": [{"id": str(d.pk), "edit_version": d.edit_version} for d in rows]})
+
+
+class RestoreView(RemoveView):
+    removed = False
 
 
 class CopyYearView(APIView):
-    """Copy a year's finalized assignments into drafts for a later, not-ended year. Never overwrites: existing drafts or
-    finalized assignments are reported as conflicts and left unchanged."""
+    """POST ?preview=1 → classification only; otherwise create drafts. Repeatable: existing drafts, removed drafts and
+    finalised assignments are never overwritten or resurrected."""
 
     permission_classes = [IsVC]
 
     def post(self, request, label):
+        target = year_get(label)
         source = get_or_404(AcademicYear.objects.all(), label=request.data.get("source_year", ""))
-        with transaction.atomic():
-            target = open_year(label, lock=True)
+        if request.query_params.get("preview") == "1":
             if source.label >= target.label:
-                raise err("invalid", "Copy from an earlier year.", field_errors={"source_year": ["Must be before the target year."]})
-            have_draft = set(DraftAssignment.objects.filter(year=target).values_list("department_id", "kra_id"))
-            have_final = set(AnnualAssignment.objects.filter(year=target).values_list("department_id", "kra_id"))
-            created, conflicts = 0, []
-            src = AnnualAssignment.objects.filter(year=source, department__active=True, kra__active=True, template_version__isnull=False)
-            for a in src.select_related("department", "kra", "template_version"):
-                pair = (a.department_id, a.kra_id)
-                if pair in have_final or pair in have_draft:
-                    conflicts.append({"department": a.department.code, "kra": a.kra.number,
-                                      "reason": "finalized" if pair in have_final else "draft exists"})
-                    continue
-                DraftAssignment.objects.create(department=a.department, kra=a.kra, year=target, target_text=a.target_text,
-                                               template_version=a.template_version, copied_from=a, created_by=request.user)
-                created += 1
-            record(request.user, "assignments.copy", target, {"source_year": source.label, "created": created, "conflicts": len(conflicts)}, request)
-        return Response({"year": target.label, "source_year": source.label, "created": created, "conflicts": conflicts})
+                raise ApiError(400, "invalid", "Copy from an earlier year.", {"source_year": ["Must be before the target year."]})
+            plan = svc.copy_plan(source, target)
+        else:
+            plan = svc.copy(source, target, request.user, request)
+        return Response({"year": target.label, "source_year": source.label, "preview": request.query_params.get("preview") == "1",
+                         **svc.plan_json(plan), "created": len(plan["create"])})
 
 
-class FinalizeYearView(APIView):
-    """Turn every pending draft of a year into operational assignments in one transaction. The year row is locked, so a
-    double click or a concurrent request waits and then finds nothing pending; expected_pending guards a stale review."""
-
+class FinalisePreviewView(APIView):
     permission_classes = [IsVC]
 
     def post(self, request, label):
-        expected = request.data.get("expected_pending")
-        try:
-            with transaction.atomic():
-                y = open_year(label, lock=True)
-                pending = list(drafts_qs().filter(year=y, finalized_assignment__isnull=True))
-                if not pending:
-                    raise err("nothing_pending", f"There are no draft assignments to finalize for {y.label}.", status=409)
-                if expected != len(pending):
-                    raise err("stale", f"The drafts changed since your review ({len(pending)} pending now). Review again before finalizing.",
-                                   status=409)
-                for d in pending:
-                    a = AnnualAssignment.objects.create(department=d.department, kra=d.kra, year=y, target_text=d.target_text,
-                                                        template_version=d.template_version)
-                    d.finalized_assignment = a
-                    d.save(update_fields=["finalized_assignment", "updated_at"])
-                record(request.user, "assignments.finalize", y, {"finalized": len(pending)}, request)
-        except IntegrityError:
-            raise err("conflict", "An assignment for one of these department/KRA pairs already exists; nothing was finalized.", status=409)
-        return Response({"year": y.label, "finalized": len(pending)})
+        return Response(svc.finalise_preview(year_get(label), request.data.get("items"), request.data.get("start"), request.user))
+
+
+class FinaliseView(APIView):
+    permission_classes = [IsVC]
+
+    def post(self, request, label):
+        return Response(svc.finalise(year_get(label), request.data.get("token"), request.user, request=request))

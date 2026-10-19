@@ -12,7 +12,7 @@ from apps.catalogue.models import AcademicYear, AnnualAssignment, Department, Re
 from apps.evidence.models import Evidence
 
 from .models import Status
-from .services import NOT_SUBMITTED
+from .services import NOT_SUBMITTED, is_untouched
 
 STATUSES = (NOT_SUBMITTED, Status.DRAFT, Status.SUBMITTED, Status.REJECTED, Status.APPROVED)
 STATUS_LABELS = {NOT_SUBMITTED: "Not submitted", Status.DRAFT: "Draft", Status.SUBMITTED: "Submitted",
@@ -64,7 +64,8 @@ def build(f):
 
     One SQL statement (assignments LEFT JOIN this period's submission and its current revision), so rows and counts
     always come from a single database snapshot, for the page and the PDF alike."""
-    qs = AnnualAssignment.objects.filter(year=f["year"]).annotate(
+    qs = AnnualAssignment.objects.filter(year=f["year"]).filter(  # no obligation before the frozen start period (D-073)
+        Q(effective_start_period__isnull=True) | Q(effective_start_period__index__lte=f["period"].index)).annotate(
         sub=FilteredRelation("submissions", condition=Q(submissions__period=f["period"])))
     if f["department"]:
         qs = qs.filter(department__code=f["department"])
@@ -87,7 +88,7 @@ def build(f):
     rows, counts = [], {s: 0 for s in STATUSES}
     for a in data:
         st = a["sub__status"]
-        status = NOT_SUBMITTED if st is None or (st == Status.DRAFT and a["sub__edit_version"] == 0 and not a["has_ev"]) else st
+        status = NOT_SUBMITTED if st is None or is_untouched(st, a["sub__edit_version"], a["has_ev"]) else st
         counts[status] += 1
         if f["status"] and f["status"] != status:
             continue

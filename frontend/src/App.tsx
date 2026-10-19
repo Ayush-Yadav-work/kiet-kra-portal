@@ -7,6 +7,7 @@ import DeanDashboard from './features/dean/DeanDashboard'
 import WorkspaceRoute from './features/report-builder/Workspace'
 import AdminAssignments from './features/vc/AdminAssignments'
 import AdminKRAs from './features/vc/AdminKRAs'
+import Analytics from './features/vc/Analytics'
 import ReopenQueue from './features/vc/ReopenQueue'
 import ReviewPage from './features/vc/ReviewPage'
 import VCDashboard from './features/vc/VCDashboard'
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { path: 'review/:submissionId', element: <ReviewPage /> },
       { path: 'reopen-requests', element: <ReopenQueue /> },
       { path: 'assignments', element: <AdminAssignments /> },
+      { path: 'analytics', element: <Analytics /> },
       { path: 'kras', element: <AdminKRAs /> },
       { index: true, element: <Navigate to="dashboard" replace /> },
     ],

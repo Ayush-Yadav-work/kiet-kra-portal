@@ -86,6 +86,13 @@ class AnnualAssignment(models.Model):
     target_text = models.TextField()  # immutable once assigned (plan 2.2)
     template_version = models.ForeignKey(TemplateVersion, null=True, blank=True, on_delete=models.PROTECT)
     assigned_at = models.DateTimeField(auto_now_add=True)
+    # First reporting period with an obligation (VC Phase 1, D-073). NULL = every period of the year: all assignments that
+    # existed before this field (seeded and Phase 5A) keep their full-year obligations.
+    effective_start_period = models.ForeignKey(ReportingPeriod, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    finalised_by = models.ForeignKey("accounts.User", null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    finalised_at = models.DateTimeField(null=True, blank=True)  # NULL for migrated rows; assigned_at is their creation time
+
+    LOCKED = ("target_text", "template_version_id", "effective_start_period_id", "department_id", "kra_id", "year_id")
 
     class Meta:
         ordering = ["kra__number"]
@@ -93,11 +100,13 @@ class AnnualAssignment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self._state.adding:
-            old = AnnualAssignment.objects.only("target_text", "template_version_id").get(pk=self.pk)
+            old = AnnualAssignment.objects.only(*self.LOCKED).get(pk=self.pk)
             if old.target_text != self.target_text:
                 raise ValidationError("Assigned annual targets are fixed for the year.")
             if old.template_version_id and old.template_version_id != self.template_version_id:
                 raise ValidationError("Template version cannot change once assigned.")
+            if any(getattr(old, f) != getattr(self, f) for f in ("effective_start_period_id", "department_id", "kra_id", "year_id")):
+                raise ValidationError("A finalised assignment cannot change its year, department, KRA or start period.")
         super().save(*args, **kwargs)
 
 
@@ -112,6 +121,12 @@ class DraftAssignment(models.Model):
     target_text = models.TextField()  # exact text, never parsed
     template_version = models.ForeignKey(TemplateVersion, on_delete=models.PROTECT, related_name="+")
     copied_from = models.ForeignKey(AnnualAssignment, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    # Stored snapshot of the source year's target (changed-target comparison never reads another year's live data).
+    source_year = models.ForeignKey(AcademicYear, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    source_target = models.TextField(null=True, blank=True)
+    edit_version = models.PositiveIntegerField(default=0)  # optimistic concurrency for VC edits across tabs
+    removed_at = models.DateTimeField(null=True, blank=True)  # Removed state: kept for restore, excluded from finalisation
+    removed_by = models.ForeignKey("accounts.User", null=True, blank=True, on_delete=models.PROTECT, related_name="+")
     finalized_assignment = models.OneToOneField(AnnualAssignment, null=True, blank=True, on_delete=models.PROTECT, related_name="draft")
     created_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT, related_name="+")
     created_at = models.DateTimeField(auto_now_add=True)

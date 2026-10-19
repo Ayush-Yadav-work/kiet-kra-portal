@@ -34,7 +34,8 @@ export default function AchievementTab({ detail, values, onChange, disabled, err
               <tr key={e.period.id} className={`border-t border-slate-100 ${e.period.id === detail.period.id ? 'bg-blue-50' : ''}`}>
                 <td className="p-1">{e.period.label}</td>
                 <td className="p-1 whitespace-pre-wrap">{e.period.id === detail.period.id ? values.achievement_text : e.achievement_text}{e.is_nil && ' (Nil)'}</td>
-                <td className="p-1"><StatusBadge status={e.display_status} /></td>
+                <td className="p-1">{e.applicability === 'NOT_ASSIGNED' ? <span className="text-sm text-muted">Not assigned for this period</span>
+                  : e.applicability === 'NOT_DUE' ? <span className="text-sm text-muted">Not due</span> : <StatusBadge status={e.display_status} />}</td>
               </tr>
             ))}
           </tbody>

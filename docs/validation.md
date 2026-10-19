@@ -1,5 +1,33 @@
 # Validation log
 
+## VC features Phase 1 (2026-10-19)
+
+All runs use isolated databases: Django's test database (`test_<db>`) and `e2e/run_isolated.py` (`<db>_e2e`, own media); the working database was not used.
+
+| Command | Result |
+|---|---|
+| `python backend/manage.py test tests --parallel 1` (renderer on :8790) | **Ran 527 tests, OK**, 0 skipped (before the final CSS-only PDF template fix; the analytics/snapshot tests were rerun after it) |
+| `python backend/manage.py test tests.test_vc_assignments tests.test_vc_analytics tests.test_vc_snapshot tests.test_vc_migration` | 21 OK (rerun after the final template change: assignments + analytics + snapshot 20 OK) |
+| `python backend/manage.py test tests.test_phase5a tests.test_cleanup_e2e tests.test_phase5b tests.test_phase6a` | 41 OK, 1 skipped (renderer stopped at that time; passes in the full run) |
+| `python e2e/run_isolated.py` | **Ran 27 tests, OK** — twice: before the layout/PDF fixes and again on the final code |
+| `python e2e/run_isolated.py -k phase5a` (Phase 1 flow) | OK after each layout/PDF fix |
+| `npx tsc -b`, `npm run build` (frontend) | OK |
+
+Covered: clean install (test DB from migrations + seed) and upgrade preservation (`test_vc_migration`: real migrate back to
+`catalogue 0002` / `submissions 0001` with data, forward again, data and back-filled source snapshots intact; `seed_catalogue`
+rerun preserves drafts, removed and finalised allocations in `test_vc_assignments`); VC-only permissions on every new route; copy preview/idempotency and preservation of drafts/removed/finalised;
+draft version conflicts; finalisation conflict, double submit and retry; grant constraint (every invalid source/FK combination
+rejected by the database) and one-publication-grant uniqueness; effective-period boundaries at exactly 72 h, just under, final
+period and closed year; Dean applicability on dashboard/report/reopen endpoints; analytics known-fixture totals per bucket,
+unequal department assignments, YTD/full-year denominators, zero denominator, PDF/CSV equal to the API; CSV formula
+neutralisation; snapshot ownership with `TransactionTestCase` (refuses inside `atomic`, isolation and read-only verified on the
+connection, settings do not leak, a concurrent committed write between reads is not seen, `ATOMIC_REQUESTS=True` patched still works).
+Browser: Dean denied; VC copy → edit → Changed filter → finalise one → Dean sees exactly that target, others stay editable;
+remove/restore; analytics comparison of two departments, PDF text and CSV row count (541 = header + 540 slots); no horizontal
+overflow at 375 px. Screenshots at 1280/1440/1400/375 px and a 57-page analytics PDF were inspected; fixes made: the VC header
+now keeps its six links on a second row below 1536 px, the department filter opens as an overlay, PDF table headers no longer
+break mid-word and the period chart stays with its heading.
+
 ## Current summary (2026-10-17)
 
 | Check | Recorded result | When |

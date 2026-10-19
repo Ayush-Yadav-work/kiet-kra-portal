@@ -29,19 +29,20 @@ class CleanupE2ETests(PortalTestCase):
             # what a browser-test run leaves: a copy batch, one marked edit, a marked finalized assignment
             self.v.post("/api/v1/admin/years/2027-28/copy/", {"source_year": "2026-27"}, format="json")
             self.edited = DraftAssignment.objects.get(year__label="2027-28", department=self.ece, kra__number=1)
-            self.v.patch(f"/api/v1/admin/drafts/{self.edited.id}/", {"target_text": "Synthetic target 1 — 50% / NA"}, format="json")
-            self.v.post("/api/v1/admin/drafts/", {"year": "2028-29", "department": "ECE", "kra": 1, "target_text": "Synthetic 2028-29 target"}, format="json")
-            self.v.post("/api/v1/admin/years/2028-29/finalize/", {"expected_pending": 1}, format="json")
-            self.v.post("/api/v1/admin/drafts/", {"year": "2028-29", "department": "CSE", "kra": 3, "target_text": "2 Per Year"}, format="json")
+            self.v.patch(f"/api/v1/admin/drafts/{self.edited.id}/", {"target_text": "Synthetic target 1 — 50% / NA", "edit_version": 0}, format="json")
+            self.v.post("/api/v1/admin/drafts/", {"year": "2028-29", "departments": ["ECE"], "kra": 1, "target_text": "Synthetic 2028-29 target"}, format="json")
+            r = self.finalise(self.v, "2028-29", [DraftAssignment.objects.get(year__label="2028-29", department=self.ece, kra__number=1)])
+            assert r.status_code == 200, r.content
+            self.v.post("/api/v1/admin/drafts/", {"year": "2028-29", "departments": ["CSE"], "kra": 3, "target_text": "2 Per Year"}, format="json")
         User.objects.filter(pk=self.demo_vc.pk).update(is_active=False)  # later, a real VC works in the same database
         User.objects.filter(pk=self.vc.pk).update(is_active=True)
         self.real = self.client_for(self.vc)
         with frozen(NOW):
             # look-alikes that must survive
-            self.real.post("/api/v1/admin/drafts/", {"year": "2028-29", "department": "CSE", "kra": 2, "target_text": "Synthetic but real VC"}, format="json")
+            self.real.post("/api/v1/admin/drafts/", {"year": "2028-29", "departments": ["CSE"], "kra": 2, "target_text": "Synthetic but real VC"}, format="json")
             hand = DraftAssignment.objects.get(year__label="2027-28", department=self.ece, kra__number=2)
-            self.real.patch(f"/api/v1/admin/drafts/{hand.id}/", {"target_text": "Synthetic edited by the real VC"}, format="json")
-            self.real.post("/api/v1/admin/drafts/", {"year": "2028-29", "department": "ECE", "kra": 5, "target_text": "4"}, format="json")
+            self.real.patch(f"/api/v1/admin/drafts/{hand.id}/", {"target_text": "Synthetic edited by the real VC", "edit_version": 0}, format="json")
+            self.real.post("/api/v1/admin/drafts/", {"year": "2028-29", "departments": ["ECE"], "kra": 5, "target_text": "4"}, format="json")
         self.final = AnnualAssignment.objects.get(year__label="2028-29", department=self.ece, kra__number=1)
         self.copy_event = AuditEvent.objects.get(action="assignments.copy").id
 

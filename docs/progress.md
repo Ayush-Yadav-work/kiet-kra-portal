@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-10-17 (Phase 6C). Branch `phase2-kra33-pilot`; latest commit `71d326c` (Phase 6B), equal to `origin/phase2-kra33-pilot`
+Last updated: 2026-10-19 (VC features Phase 1; see the section near the end). Earlier header text describes 2026-10-17 (Phase 6C). Branch `phase2-kra33-pilot`; latest commit `71d326c` (Phase 6B), equal to `origin/phase2-kra33-pilot`
 at `git fetch` on 2026-10-17. Phases 0–5 and 6A–6B are committed; **Phase 6C (usability/accessibility, documentation) is uncommitted**.
 Next bounded phase: **6D — production configuration**. Acceptance: the KRA 33 pilot was accepted by the project owner (2026-10-17);
 **institutional acceptance of all 45 report formats is still pending** (team checklist: `docs/acceptance-checklist.md`).
@@ -217,6 +217,14 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Phones: report tables become labelled cards; no page overflow at 375 px; explicit table roles kept for screen readers
 - [x] Checks: `tsc -b` + build OK; full isolated browser suite 27/27 (new `test_ui2_dashboards_counts_attention_filters`); 0 overflow / 0 contrast failures on both dashboards at 1440 and 375 px
 - Not changed: backend, APIs, permissions, workspace, review page, PDFs.
+
+## VC features — Phase 1 (plan `docs/vc-features-implementation-plan.md` v2.3) ✅ (2026-10-19, pending owner review)
+- [x] Annual assignments page: year/KRA picker, copy review (create / drafts preserved / removed preserved / finalised skipped / unavailable), department checkboxes that create drafts only for selected departments, exact text targets with previous/new comparison, filters (All, Changed targets, Unfinished drafts, Finalised, Removed, Unallocated) with counts, bulk target preview/apply, remove/restore, selective "Review and finalise" → "Finalise and send" with optimistic versions and idempotent retry
+- [x] Effective start periods and the 72-hour rule (near-deadline next/current choice; mandatory publication grant in the final period; closed year refused); `PUBLICATION` grants with the exact three-way source constraint and one-per-submission uniqueness; migrations preserve existing data
+- [x] Applicability (Not assigned for this period / Not due) on the Dean dashboard, report workspace, Achievement view and the report/reopen endpoints; KRAs page is read-only (developer-installed KRAs/templates)
+- [x] Analytics page and API: period / year-to-date / full-year completion of approved applicable report slots, workflow breakdown, department bars and comparison (≥ 2 departments), period trend, department × KRA matrix, paginated report slots with a status filter; PDF (static, script-free) and CSV exports from the same dataset in one REPEATABLE READ snapshot
+- [x] Checks: backend 527 OK (renderer running, 0 skipped); isolated browser suite 27 OK; `tsc -b` + build OK — details in `docs/validation.md`; handover `docs/vc-features-phase1-handover.md`
+- Deferred to Phase 2: bulk approval and its quick preview, approved-artifact jobs/worker, announcements, pinned notices, pending-department announcement shortcuts.
 
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).

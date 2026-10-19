@@ -1,5 +1,7 @@
 export type Role = 'VC' | 'DEAN'
 export type DisplayStatus = 'NOT_SUBMITTED' | 'DRAFT' | 'SUBMITTED' | 'REJECTED' | 'APPROVED'
+/** Shared rule (D-073): periods before an assignment's start are not assigned; applicable periods not yet open are not due. */
+export type Applicability = 'APPLICABLE' | 'NOT_ASSIGNED' | 'NOT_DUE'
 
 export interface User {
   id: string; username: string; name: string; role: Role
@@ -10,15 +12,16 @@ export interface Kra { number: number; activity_text: string; nba_ref: string; n
 export interface Assignment {
   id: string; department: { code: string; name: string }; kra: Kra; year: string; target_text: string
   template: { key: string; version: number; title: string } | null
+  effective_start_period: { index: number; label: string } | null
 }
 export interface Decision { id: string; decision: 'APPROVE' | 'REJECT' | 'RETURN'; reason: string; reviewer_name: string; granted_reopen: boolean; created_at: string; revision_sequence: number }
 export interface SubmissionSummary { id: string | null; display_status: DisplayStatus; status?: string; achievement_text?: string; is_nil?: boolean; latest_decision?: Decision | null }
-export interface Grant { id: string; starts_at: string; expires_at: string; source: 'REQUEST' | 'REVIEW'; active: boolean }
+export interface Grant { id: string; starts_at: string; expires_at: string; source: 'REQUEST' | 'REVIEW' | 'PUBLICATION'; active: boolean }
 export interface ReopenRequest {
   id: string; submission_id: string; reason: string; state: 'PENDING' | 'APPROVED' | 'DENIED'; requested_at: string; requested_by: string
   decided_at: string | null; decided_by: string | null; decision_reason: string; department: string; kra_number: number; period: string; year: string
 }
-export interface PeriodEntry { period: Period; submission_id: string | null; display_status: DisplayStatus; achievement_text: string; remarks: string; is_nil: boolean }
+export interface PeriodEntry { period: Period; submission_id: string | null; display_status: DisplayStatus; achievement_text: string; remarks: string; is_nil: boolean; applicability: Applicability }
 export interface Activity { [field: string]: unknown }
 export interface Payload { activities: Activity[] }
 export interface SubmissionDetail {
@@ -27,7 +30,7 @@ export interface SubmissionDetail {
   editable: boolean; active_grant: Grant | null; grants: Grant[]; reopen_requests: ReopenRequest[]; can_request_reopen: boolean
   current_revision: { id: string; sequence: number; submitted_at: string; achievement_text: string; remarks: string; is_nil: boolean; nil_reason: string
     evidence: { id: string; source_type: string; category: string; label: string; original_filename: string; drive_url: string }[] } | null; latest_decision: Decision | null
-  grant_option_available: boolean; period_entries: PeriodEntry[]
+  grant_option_available: boolean; period_entries: PeriodEntry[]; applicability: Applicability
 }
 
 export type FieldType = 'text' | 'longtext' | 'integer' | 'decimal' | 'date' | 'select' | 'multiselect' | 'checklist' | 'ratings' | 'table' | 'auto'

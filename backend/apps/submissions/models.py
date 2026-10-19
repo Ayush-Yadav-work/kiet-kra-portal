@@ -107,13 +107,14 @@ class ReopenGrant(models.Model):
     class Source(models.TextChoices):
         REQUEST = "REQUEST", "Reopen request"
         REVIEW = "REVIEW", "Review decision"
+        PUBLICATION = "PUBLICATION", "Assignment publication"  # late publication with a 72-hour window (D-073)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.PROTECT, related_name="grants")
     starts_at = models.DateTimeField()
     expires_at = models.DateTimeField()
     approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
-    source = models.CharField(max_length=8, choices=Source.choices)
+    source = models.CharField(max_length=12, choices=Source.choices)
     request = models.OneToOneField(ReopenRequest, null=True, blank=True, on_delete=models.PROTECT,
                                    related_name="grant")
     review_decision = models.OneToOneField(ReviewDecision, null=True, blank=True, on_delete=models.PROTECT,
@@ -123,11 +124,13 @@ class ReopenGrant(models.Model):
     class Meta:
         ordering = ["-starts_at"]
         constraints = [
-            models.CheckConstraint(
+            models.CheckConstraint(  # exactly one source; a publication grant references neither a request nor a decision
                 condition=(Q(source="REQUEST", request__isnull=False, review_decision__isnull=True)
-                           | Q(source="REVIEW", request__isnull=True, review_decision__isnull=False)),
-                name="grant_source_matches_fk",
+                           | Q(source="REVIEW", request__isnull=True, review_decision__isnull=False)
+                           | Q(source="PUBLICATION", request__isnull=True, review_decision__isnull=True)),
+                name="grant_source_three_way",
             ),
+            models.UniqueConstraint(fields=["submission"], condition=Q(source="PUBLICATION"), name="one_publication_grant_per_submission"),
             models.CheckConstraint(condition=Q(starts_at__lt=models.F("expires_at")), name="grant_window_valid"),
         ]
 

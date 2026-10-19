@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.auth import IsDean, IsDeanOrVC, IsVC
 from apps.audit.errors import ApiError
+from apps.catalogue.allocations import NOT_ASSIGNED, applicability
 from apps.catalogue.models import ReportingPeriod
 from apps.catalogue.views import assignment_json, period_json
 from apps.evidence.models import Evidence
@@ -86,7 +87,9 @@ def detail_json(sub, user):
         "active_grant": grant_json(active, at) if active else None,
         "grants": [grant_json(g, at) for g in grants],
         "reopen_requests": [request_json(r) for r in requests],
+        "applicability": applicability(a, sub.period, at),
         "can_request_reopen": (user.role == "DEAN" and at >= sub.period.closes_at and active is None
+                               and applicability(a, sub.period, at) != NOT_ASSIGNED
                                and not pending and sub.status in svc.EDITABLE_STATUSES),
         "current_revision": (lambda r: r and {  # what was submitted: review reads only these values (D-068)
             "id": str(r.id), "sequence": r.sequence, "submitted_at": r.submitted_at, "achievement_text": r.achievement_text,
@@ -95,7 +98,7 @@ def detail_json(sub, user):
         "grant_option_available": svc.grant_option_available(sub, at),
         "period_entries": [
             {"period": period_json(p, at), "submission_id": str(others[p.id].id) if p.id in others else None,
-             "display_status": svc.display_status(others.get(p.id)),
+             "display_status": svc.display_status(others.get(p.id)), "applicability": applicability(a, p, at),
              "achievement_text": others[p.id].achievement_text if p.id in others else "",
              "remarks": others[p.id].remarks if p.id in others else "",
              "is_nil": others[p.id].is_nil if p.id in others else False}
@@ -126,7 +129,8 @@ class AssignmentsView(APIView):
         return Response({
             "server_time": at,
             "period": period_json(period, at) if period else None,
-            "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id), decisions) if period else None}
+            "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id), decisions) if period else None,
+                         "applicability": applicability(a, period, at) if period else None}
                         for a in qs],
         })
 
@@ -141,10 +145,10 @@ class AssignmentPeriodView(APIView):
         p = get_or_404(ReportingPeriod.objects.filter(year=a.year), pk=period_id)
         sub = Submission.objects.filter(assignment=a, period=p).first()
         at = timezone.now()
-        body = {"assignment": assignment_json(a), "period": period_json(p, at), "server_time": at,
+        body = {"assignment": assignment_json(a), "period": period_json(p, at), "server_time": at, "applicability": applicability(a, p, at),
                 "submission_id": str(sub.id) if sub else None}
         if sub is None:
-            body["can_request_reopen"] = request.user.role == "DEAN" and at >= p.closes_at
+            body["can_request_reopen"] = request.user.role == "DEAN" and at >= p.closes_at and applicability(a, p, at) != NOT_ASSIGNED
         return Response(body)
 
     def post(self, request, assignment_id, period_id):

@@ -8,11 +8,11 @@ from apps.catalogue.models import AnnualAssignment
 from .models import ReopenRequest, Submission
 
 SUB_RELATED = ("assignment__department", "assignment__kra", "assignment__year", "assignment__template_version",
-               "period", "current_revision")
+               "assignment__effective_start_period", "period", "current_revision")
 
 
 def assignments_for(user):
-    qs = AnnualAssignment.objects.select_related("department", "kra", "year", "template_version")
+    qs = AnnualAssignment.objects.select_related("department", "kra", "year", "template_version", "effective_start_period")
     if user.role == "VC":
         return qs
     return qs.filter(department_id=user.department_id)

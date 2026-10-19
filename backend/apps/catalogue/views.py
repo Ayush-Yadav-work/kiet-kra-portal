@@ -22,7 +22,8 @@ def assignment_json(a):
     tv = a.template_version
     return {"id": str(a.id), "department": {"code": a.department.code, "name": a.department.name},
             "kra": kra_json(a.kra), "year": a.year.label, "target_text": a.target_text,
-            "template": {"key": tv.key, "version": tv.version, "title": tv.title} if tv else None}
+            "template": {"key": tv.key, "version": tv.version, "title": tv.title} if tv else None,
+            "effective_start_period": (lambda p: p and {"index": p.index, "label": p.label})(a.effective_start_period)}
 
 
 class YearsView(APIView):

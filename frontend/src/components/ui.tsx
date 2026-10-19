@@ -84,8 +84,9 @@ export function tabKeys(e: KeyboardEvent<HTMLElement>) {
 
 const NAV: Record<Role, { to: string; label: string; icon: IconName }[]> = {
   DEAN: [{ to: '/dean/dashboard', label: 'Dashboard', icon: 'home' }],
-  VC: [{ to: '/vc/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/vc/reopen-requests', label: 'Reopening requests', icon: 'list' },
-       { to: '/vc/assignments', label: 'Assignments', icon: 'list' }, { to: '/vc/kras', label: 'KRAs', icon: 'list' }],
+  VC: [{ to: '/vc/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/vc/analytics', label: 'Analytics', icon: 'doc' },
+       { to: '/vc/reopen-requests', label: 'Reopening requests', icon: 'list' }, { to: '/vc/assignments', label: 'Annual assignments', icon: 'list' },
+       { to: '/vc/kras', label: 'KRAs', icon: 'list' }],
 }
 const initials = (name: string) => name.replace(/^(Dr|Prof|Mr|Ms|Mrs)\.?\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
@@ -95,13 +96,14 @@ function Shell({ children }: { children: ReactNode }) {
   if (!user) return null
   const links = [...NAV[user.role], { to: '/change-password', label: 'Change password', icon: 'lock' as IconName }]
   const roleLine = user.role === 'VC' ? 'Vice Chancellor' : `Dean, ${user.department?.code ?? ''}`
+  const vc = user.role === 'VC'  // the VC's six links fit on one row with the user block only from 2xl
   return (
     <div className="min-h-screen">
       <header className="border-b border-line bg-white">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-7 gap-y-2 px-4 py-2 md:px-7 xl:min-h-[72px] xl:flex-nowrap xl:py-0">
+        <div className={`mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-7 gap-y-2 px-4 py-2 md:px-7 ${vc ? '2xl:min-h-[72px] 2xl:flex-nowrap 2xl:py-0' : 'xl:min-h-[72px] xl:flex-nowrap xl:py-0'}`}>
           <Link to={homeFor(user)} aria-label="KIET KRA Reporting Portal — home" className="shrink-0"><img src={logo} width={974} height={360} alt="" className="h-auto w-28 md:w-[150px]" /></Link>
-          <span className={`hidden whitespace-nowrap border-l border-line pl-6 text-xl font-bold text-heading ${user.role === 'VC' ? '2xl:inline' : 'lg:inline'}`}>KRA Reporting Portal</span>
-          <nav aria-label="Main" className="order-3 flex w-full flex-wrap gap-x-1 self-stretch xl:order-none xl:ml-2 xl:w-auto xl:flex-nowrap">
+          <span className={`hidden whitespace-nowrap border-l border-line pl-6 text-xl font-bold text-heading ${vc ? '2xl:inline' : 'lg:inline'}`}>KRA Reporting Portal</span>
+          <nav aria-label="Main" className={`order-3 flex w-full flex-wrap gap-x-1 self-stretch ${vc ? '2xl:order-none 2xl:ml-2 2xl:w-auto 2xl:flex-nowrap' : 'xl:order-none xl:ml-2 xl:w-auto xl:flex-nowrap'}`}>
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} end
                 className={({ isActive }) => `flex min-h-11 items-center gap-2 whitespace-nowrap border-b-[3px] px-3 text-[15px] ${isActive ? 'border-accent font-semibold text-action' : 'border-transparent font-medium text-heading hover:text-action'}`}>

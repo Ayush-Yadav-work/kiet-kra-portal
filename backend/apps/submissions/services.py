@@ -13,6 +13,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from apps.audit.errors import ApiError
+from apps.catalogue.allocations import NOT_ASSIGNED, applicability
 from apps.audit.models import record
 from apps.reports.schema import validate_payload
 
@@ -45,6 +46,22 @@ def is_editable(submission, at=None):
 
 def has_active_evidence(submission):
     return submission.evidence.filter(removed=False).exists()
+
+
+def is_untouched(status, edit_version, has_ev):
+    """C11 predicate shared by dashboards, progress and analytics: a Draft never saved (edit_version 0) and without active
+    evidence (files or Drive links — evidence never bumps edit_version) is an untouched shell, i.e. Not submitted."""
+    return status == Status.DRAFT and edit_version == 0 and not has_ev
+
+
+def classify(status, edit_version, has_ev, last_decision):
+    """Analytics bucket of an opened, applicable slot (plan §6.3). Database statuses are unchanged; "Returned for
+    correction" is derived from the latest review decision on the current revision being RETURN."""
+    if status is None or is_untouched(status, edit_version, has_ev):
+        return "NOT_SUBMITTED"
+    if status == Status.REJECTED:
+        return "RETURNED" if last_decision == "RETURN" else "REJECTED"
+    return {Status.DRAFT: "DRAFT", Status.SUBMITTED: "AWAITING_REVIEW", Status.APPROVED: "APPROVED"}[status]
 
 
 def display_status(submission):
@@ -93,7 +110,7 @@ def evidence_manifest(submission):
 def _locked(submission_id):
     return (Submission.objects.select_for_update(of=("self",))
             .select_related("assignment__department", "assignment__kra", "assignment__year",
-                            "assignment__template_version", "period")
+                            "assignment__template_version", "assignment__effective_start_period", "period")
             .get(pk=submission_id))
 
 
@@ -104,7 +121,17 @@ def _check_version(sub, expected):
                        "reload the saved copy to continue.", extra={"edit_version": sub.edit_version})
 
 
+def not_applicable():
+    return ApiError(409, "not_applicable", "This KRA is not assigned to your department for this reporting period.")
+
+
+def _require_applicable(assignment, period):
+    if applicability(assignment, period) == NOT_ASSIGNED:  # periods before the assignment's frozen start (D-073)
+        raise not_applicable()
+
+
 def _require_editable(sub, at):
+    _require_applicable(sub.assignment, sub.period)
     if sub.status not in EDITABLE_STATUSES:
         raise ApiError(409, "not_editable", f"A {sub.get_status_display().lower()} report cannot be edited.")
     if not window_open(sub, at):
@@ -118,6 +145,7 @@ def get_or_create_for_dean(user, assignment, period):
     """Rows are created only by a Dean action and only while the period is open (D-017)."""
     if period.year_id != assignment.year_id:
         raise ApiError(400, "invalid", "Period does not belong to the assignment year.")
+    _require_applicable(assignment, period)
     existing = Submission.objects.filter(assignment=assignment, period=period).first()
     if existing:
         return existing, False
@@ -218,6 +246,7 @@ def request_reopen(user, assignment, period, reason, request=None):
         raise ApiError(400, "invalid", "A reason is required.", {"reason": ["Required."]})
     if period.year_id != assignment.year_id:
         raise ApiError(400, "invalid", "Period does not belong to the assignment year.")
+    _require_applicable(assignment, period)
     with transaction.atomic():
         sub, created = Submission.objects.get_or_create(assignment=assignment, period=period,
                                                         defaults={"created_by": user})
