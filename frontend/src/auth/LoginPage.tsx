@@ -13,29 +13,27 @@ const ROLES: { role: Role; to: string; label: string; sr?: string; icon: 'person
   { role: 'VC', to: '/vc/login', label: 'VC', sr: 'Vice Chancellor', icon: 'people' },
 ]
 
-/** Sign-in layout matching reference/ui/redesign-v2/login-reference.png. The campus photograph is always shown complete:
- *  an <img> in a box with the photo's own aspect ratio, never larger than its native 1672 px (no cropping, stretching or
- *  upscaling), on a solid sky colour. From 1280 px the title and the card sit over the photo as in the reference; below that
- *  title, photo and card stack. Used by "/", /dean/login, /vc/login and /change-password; styles are local to this file. */
+/** Sign-in layout matching reference/ui/redesign-v2/login-reference.png: the campus photograph (original PNG, no CSS filter)
+ *  fills the whole page at every size (`object-cover`, anchored to the top so the buildings, tower and sky stay in view),
+ *  title on the left and a compact card on the right; stacked on phones and tablets over the same photograph. Only local
+ *  overlays: a patch over the logo printed in the photo's corner and a light haze behind the title. Used by "/",
+ *  /dean/login, /vc/login and /change-password; styles are local to this file. */
 export function LoginLayout({ title = 'Welcome Back', subtitle, children }: { title?: string; subtitle: string; children: ReactNode }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#E3EEF9] px-4 py-6 sm:px-8 xl:p-0">
-      <div className="@container relative flex w-full max-w-[1672px] flex-col gap-5 xl:block xl:aspect-[1672/941] xl:w-[min(100vw,1672px,calc(100vh*1672/941))]">
-        <div className="relative xl:absolute xl:inset-0">
-          <img src={background} width={1672} height={941} alt="" className="mx-auto block h-auto w-full rounded-2xl shadow-[0_8px_24px_rgba(12,45,71,.12)] xl:h-full xl:rounded-none xl:shadow-none" />
-          {/* local, not full-photo: hides the small logo printed in the photo's corner, and lifts the sky behind the title */}
-          <div aria-hidden="true" className="absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_18%_19%_at_5%_7%,rgba(227,238,249,1)_0,rgba(227,238,249,.98)_68%,transparent_100%)] xl:rounded-none xl:bg-[radial-gradient(ellipse_18%_19%_at_5%_7%,rgba(255,255,255,1)_0,rgba(255,255,255,.98)_68%,transparent_100%),radial-gradient(ellipse_40%_36%_at_19%_30%,rgba(255,255,255,.84)_0,rgba(255,255,255,.66)_55%,transparent_100%)]" />
-        </div>
-        <div className="relative -order-1 xl:absolute xl:left-[5.7%] xl:top-[4.3%] xl:order-none">
-          <img src={logo} width={974} height={360} alt="KIET Deemed to be University" className="h-auto w-[170px] mix-blend-multiply md:w-[220px] xl:w-[15.7cqw]" />
-          <div className="mt-4 xl:mt-[4.6cqw] xl:[text-shadow:0_0_10px_rgba(255,255,255,.95),0_0_2px_rgba(255,255,255,.9)]">
-            <p className="text-[42px] font-extrabold leading-[.95] tracking-[-.02em] text-heading sm:text-[56px] xl:text-[6.2cqw]">KRA <span className="text-accent">Tracker</span></p>
-            <span aria-hidden="true" className="mt-2.5 block h-[5px] w-16 rounded-full bg-accent xl:mt-[1.1cqw] xl:w-[4.9cqw]" />
-            <p className="mt-2.5 text-base font-medium tracking-[.3em] text-heading sm:text-xl xl:mt-[1.2cqw] xl:text-[1.8cqw]">Key Result Area Portal</p>
-            <p className="mt-1.5 text-sm font-medium tracking-[.36em] text-heading xl:mt-[1.4cqw] xl:text-[1.2cqw]">Track. Review. Lead.</p>
+    <main className="relative isolate min-h-screen overflow-hidden bg-[#E3EEF9]">
+      <img src={background} width={1672} height={941} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-[50%_0%]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_20%_17%_at_5%_6%,rgba(255,255,255,1)_0,rgba(255,255,255,.97)_66%,transparent_100%),linear-gradient(180deg,rgba(255,255,255,.8)_0%,rgba(255,255,255,.55)_26%,rgba(255,255,255,0)_44%)] lg:bg-[radial-gradient(ellipse_20%_17%_at_5%_6%,rgba(255,255,255,1)_0,rgba(255,255,255,.97)_66%,transparent_100%),radial-gradient(ellipse_42%_38%_at_19%_30%,rgba(255,255,255,.84)_0,rgba(255,255,255,.62)_55%,transparent_100%)]" />
+      <div className="grid min-h-screen w-full items-center gap-6 px-4 py-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-10 lg:px-[5.7%] lg:py-[5vh]">
+        <div className="self-start lg:self-stretch [text-shadow:0_0_10px_rgba(255,255,255,.95),0_0_2px_rgba(255,255,255,.9)]">
+          <img src={logo} width={974} height={360} alt="KIET Deemed to be University" className="h-auto w-[170px] mix-blend-multiply md:w-[230px] xl:w-[262px]" />
+          <div className="mt-5 md:mt-8 lg:mt-[7vh]">
+            <p className="text-[42px] font-extrabold leading-[.95] tracking-[-.02em] text-heading sm:text-[56px] xl:text-[96px]">KRA <span className="text-accent">Tracker</span></p>
+            <span aria-hidden="true" className="mt-2.5 block h-[5px] w-16 rounded-full bg-accent md:mt-4 md:w-20" />
+            <p className="mt-2.5 text-base font-medium tracking-[.3em] text-heading sm:text-xl md:mt-4 xl:text-[28px]">Key Result Area Portal</p>
+            <p className="mt-1.5 text-sm font-medium tracking-[.36em] text-heading md:mt-4 xl:text-lg">Track. Review. Lead.</p>
           </div>
         </div>
-        <section className="relative mx-auto grid w-full max-w-[440px] gap-[18px] rounded-3xl bg-white px-5 pb-6 pt-7 shadow-[0_20px_50px_rgba(12,45,71,.2)] sm:px-9 sm:pb-7 sm:pt-10 xl:absolute xl:right-[4.3%] xl:top-1/2 xl:mx-0 xl:-translate-y-1/2">
+        <section className="relative mx-auto grid w-full max-w-[440px] gap-[18px] rounded-3xl bg-white px-5 pb-6 pt-7 shadow-[0_20px_50px_rgba(12,45,71,.22)] sm:px-9 sm:pb-7 sm:pt-10 lg:mx-0">
           <div>
             <h1 className="text-[30px] font-extrabold leading-tight tracking-[-.01em] text-[#0A1A3A] sm:text-[38px]">{title}</h1>
             <p className="mt-0.5 text-lg text-muted sm:text-xl">{subtitle}</p>
