@@ -28,7 +28,7 @@ export function StatCard({ kind, value, label, onClick, pressed, total }: { kind
   const body = <>
     <span className="flex items-center gap-3">
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full md:h-12 md:w-12 ${tone}`}><Icon name={icon} /></span>
-      <span className="text-left"><span className="block text-2xl font-bold leading-tight text-heading md:text-[30px]">{value}</span><span className="text-sm text-ink md:text-[15px]">{label}</span></span>
+      <span className="min-w-0 break-words text-left"><span className="block text-2xl font-bold leading-tight text-heading md:text-[30px]">{value}</span><span className="text-sm text-ink md:text-[15px]">{label}</span></span>
     </span>
     {share !== null && <span className="mt-2 block">
       <span className="block text-right text-[13px] font-semibold text-heading">{share.toFixed(1)}%</span>

@@ -1429,5 +1429,106 @@ class BrowserTests(unittest.TestCase):
         self.assertEqual(p.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0)
 
 
+    def test_ui_polish_table_cells_contain_text_and_department_list_is_on_top(self):
+        """UI polish (reference/ui/bugs): announcement rows with long text and long audiences keep every cell's content inside
+        its own cell (no text drawn over neighbouring columns); the Analytics department list opens above the cards below it,
+        fits the viewport (scrolling internally), works with the keyboard and closes with Escape — at the bug screenshots'
+        viewports, at 200% zoom (half-width CSS viewport) and near the bottom of the viewport."""
+        v = self.page
+        login(v, "vc", "demo.vc"); v.wait_for_url("**/vc/dashboard")
+        body = ("Our records show at least one report for your assigned KRAs in P2: September – October 2026 that is not yet submitted, "
+                "is still a draft, or was rejected or returned for correction. Please review your KRA dashboard. ") * 2
+        many = ["ASH", "CS", "CSE", "CSE (AI)", "CSE (AIML)", "CSIT", "ECE", "EEE", "IT", "KSOM", "KSOP", "MCA", "ME"]
+        for i in range(3):
+            st, _ = api(v, "POST", "/announcements/", {"title": f"Reports pending for 2026-27 ({i})", "body": body,
+                                                         "audience": {"departments": many[:11]} if i < 2 else {"all": True}, "pinned": i == 2})
+            self.assertEqual(st, 201)
+        contained = """() => [...document.querySelectorAll('main table td')].flatMap((td) => {
+            const c = td.getBoundingClientRect();
+            return [...td.querySelectorAll('*')].filter((e) => getComputedStyle(e).position !== 'absolute' && e.getClientRects().length)
+              .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < c.left - 1 || r.right > c.right + 1) })
+              .map((e) => `${e.tagName}:${e.textContent.slice(0, 30)}`) })"""
+        in_panel = """() => [...document.querySelectorAll('main .panel')].flatMap((p) => {
+            const c = p.getBoundingClientRect();
+            return [...p.querySelectorAll('*')].filter((e) => !e.closest('.overflow-x-auto, details') && getComputedStyle(e).position !== 'absolute'
+              && e.getClientRects().length).filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < c.left - 1 || r.right > c.right + 1) })
+              .map((e) => `${e.tagName}:${e.textContent.slice(0, 30)}`) })"""
+        for w, h in ((1507, 710), (1440, 900), (1024, 768), (768, 1024), (720, 450), (375, 812)):
+            v.set_viewport_size({"width": w, "height": h})
+            v.goto(f"{BASE}/vc/announcements"); v.wait_for_load_state("networkidle")
+            self.assertEqual(v.evaluate(in_panel), [], f"text outside its panel at {w}px")
+            expect(v.get_by_role("link", name="Reports pending for 2026-27 (0)", exact=True)).to_be_visible()
+            self.assertEqual(v.evaluate(contained), [], f"text outside its cell at {w}px")
+            self.assertEqual(v.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0, w)
+
+        on_top = """(el) => { const r = el.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            return !!hit && (hit === el || el.contains(hit) || hit.contains(el)) }"""
+        for w, h, scroll in ((1520, 710, 0), (1440, 900, 0), (1024, 768, 0), (768, 1024, 0), (720, 450, 0), (375, 812, 0), (1440, 900, 1)):
+            v.set_viewport_size({"width": w, "height": h})
+            v.goto(f"{BASE}/vc/analytics?year=2026-27&scope=ytd"); v.wait_for_load_state("networkidle")
+            expect(v.get_by_text(re.compile(r"reports approved$"))).to_be_visible()
+            self.assertEqual(v.evaluate(in_panel), [], f"analytics text outside its panel at {w}px")
+            summary = v.get_by_text(re.compile("^Departments:"))
+            if scroll:  # trigger near the bottom edge of the viewport: the list must still fit on screen
+                v.evaluate("(y) => window.scrollTo(0, y)", summary.bounding_box()["y"] + v.evaluate("window.scrollY") - (h - 80))
+            summary.click()
+            panel = v.locator("details[open] > div").first
+            expect(panel).to_be_visible()
+            box = panel.bounding_box()
+            self.assertGreaterEqual(box["y"], 0, f"list above the viewport at {w}px")
+            self.assertLessEqual(box["y"] + box["height"], h + 1, f"list below the viewport at {w}px")
+            self.assertLessEqual(box["x"] + box["width"], w + 1, f"list past the right edge at {w}px")
+            first, last = v.get_by_label("ASH — ", exact=False), v.get_by_label("ME — ", exact=False)
+            self.assertTrue(first.evaluate(on_top), f"first option hidden at {w}px")
+            last.scroll_into_view_if_needed()
+            self.assertTrue(last.evaluate(on_top), f"last option hidden at {w}px")
+            last.focus(); v.keyboard.press("Space")  # keyboard selection
+            v.wait_for_url(re.compile("department=ME"))
+            expect(v.locator("details[open]")).to_have_count(1)  # the list stays open while choosing
+            v.keyboard.press("Escape")
+            expect(v.locator("details[open]")).to_have_count(0)
+            expect(summary).to_be_focused()  # focus returns to the trigger
+            self.assertEqual(v.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0, w)
+
+
+    def test_login_pages_required_fields_keyboard_and_roles(self):
+        """Login (reference/ui/redesign-v2/login-reference.png): both role pages render their own role; empty fields are
+        named rather than silently refused; Enter submits; the password can be shown; a wrong password is rejected without a
+        session; the correct account signs in from the keyboard; no page overflow on a phone."""
+        p = self.page
+        for portal, other in (("dean", "VC"), ("vc", "Dean")):
+            p.goto(f"{BASE}/{portal}/login")
+            expect(p.get_by_role("heading", name="Welcome Back")).to_be_visible()
+            nav = p.get_by_role("navigation", name="Sign in as")
+            expect(nav.locator("[aria-current=page]")).to_contain_text("Dean" if portal == "dean" else "VC")
+            expect(nav.get_by_role("link", name=re.compile(f"^{other}"))).to_have_attribute("href", "/vc/login" if portal == "dean" else "/dean/login")
+        p.goto(f"{BASE}/dean/login")
+        p.get_by_role("button", name="Sign In").click()
+        expect(p.get_by_text("Enter your username.")).to_be_visible()
+        expect(p.get_by_text("Enter your password.")).to_be_visible()
+        expect(p.get_by_label("Username")).to_be_focused()
+        expect(p.get_by_label("Username")).to_have_attribute("aria-invalid", "true")
+        p.keyboard.type("demo.dean.ece")
+        expect(p.get_by_text("Enter your username.")).to_have_count(0)
+        p.keyboard.press("Enter")  # keyboard submission with the password still empty
+        expect(p.get_by_label("Password", exact=True)).to_be_focused()
+        p.keyboard.type("not-the-password")
+        p.get_by_role("button", name="Show password").click()
+        expect(p.get_by_label("Password", exact=True)).to_have_attribute("type", "text")
+        expect(p.get_by_role("button", name="Hide password")).to_have_attribute("aria-pressed", "true")
+        p.get_by_label("Password", exact=True).press("Enter")
+        expect(p.get_by_role("alert")).to_contain_text(re.compile("Invalid username or password for this portal|Too many failed attempts"))
+        self.assertEqual(p.request.get(f"{BASE}/api/v1/auth/me/").status, 401)
+        p.get_by_label("Password", exact=True).fill(CREDS["demo.dean.ece"])
+        p.get_by_label("Password", exact=True).press("Enter")
+        p.wait_for_url("**/dean/dashboard")
+        ctx = self.browser.new_context(viewport={"width": 375, "height": 812}); m = ctx.new_page()
+        for portal in ("dean", "vc"):
+            m.goto(f"{BASE}/{portal}/login"); m.wait_for_load_state("networkidle")
+            self.assertEqual(m.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth"), 0, portal)
+            box = m.get_by_role("button", name="Sign In").bounding_box()
+            self.assertLessEqual(box["x"] + box["width"], 375)
+        ctx.close()
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv[:1], verbosity=2)

@@ -39,32 +39,32 @@ export function VCAnnouncementList() {
     <div className="grid gap-[18px]">
       <PageHero icon="megaphone" photo={false} title="Announcements" description="In-portal notices to all or selected departments. No email or SMS is sent."
         aside={<Link to="/vc/announcements/new" className="btn-primary min-h-12 w-full px-5 sm:w-auto"><Icon name="plus" />New announcement</Link>} />
-      {totals && <section aria-label="Announcement totals" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {totals && <section aria-label="Announcement totals" className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-4">
         {COUNTS.map(([st, label, icon, tone]) => <div key={st} className="panel flex items-center gap-3.5 px-4 py-4">
           <span aria-hidden="true" className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${tone}`}><Icon name={icon} /></span>
-          <span><span className="block text-sm text-muted">{label}</span><span className="text-2xl font-bold text-heading">{totals[st]}</span></span></div>)}
+          <span className="min-w-0"><span className="block text-sm text-muted">{label}</span><span className="text-2xl font-bold text-heading">{totals[st]}</span></span></div>)}
       </section>}
-      <section aria-label="Announcement filters" className="panel flex flex-wrap items-end gap-3 p-4 md:p-5">
-        <IconSelect label="Show" icon="list" className="w-full sm:w-64" value={state} onChange={(e) => { setState(e.target.value); setPage(1) }}>
-          <option value="">All</option><option value="DRAFT">Drafts</option><option value="ACTIVE">Published (active)</option>
-          <option value="EXPIRED">Expired</option><option value="WITHDRAWN">Withdrawn</option></IconSelect>
-      </section>
       <ErrorBox error={error} />
-      <Panel title="Announcements" icon="doc" labelledBy="ann-list" description="Manage and view every announcement in the portal." className="overflow-hidden">
+      <Panel title="Announcements" icon="doc" labelledBy="ann-list" className="overflow-hidden"
+        description="Manage every announcement. Read = Deans who opened the current version."
+        actions={<IconSelect label="Show" icon="list" className="w-full sm:w-60" value={state} onChange={(e) => { setState(e.target.value); setPage(1) }}>
+          <option value="">All</option><option value="DRAFT">Drafts</option><option value="ACTIVE">Published (active)</option>
+          <option value="EXPIRED">Expired</option><option value="WITHDRAWN">Withdrawn</option></IconSelect>}>
         {!data ? (!error && <Loading />) : data.results.length === 0 ? <EmptyState icon="megaphone" title="No announcements.">{state ? 'None in this view.' : 'Create the first one with New announcement.'}</EmptyState> : (
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[760px] text-[15px]"><caption className="sr-only">Announcements</caption>
-              <thead className="thead-soft"><tr>{['Title', 'State', 'Audience', 'Read (current version)', 'Updated', 'Action'].map((h) =>
+            <table className="w-full min-w-[880px] text-[15px]"><caption className="sr-only">Announcements</caption>
+              <thead className="thead-soft"><tr>{['Title', 'State', 'Audience', 'Read', 'Updated', 'Action'].map((h) =>
                 <th key={h} scope="col" className="border-y border-line px-4 py-3">{h}</th>)}</tr></thead>
               <tbody>{data.results.map((n) => <tr key={n.id} className="border-b border-line align-top last:border-b-0">
-                <td className="max-w-md px-4 py-3"><span className="flex items-start gap-2">{n.pinned && <span className="text-accent-btn" title="Pinned"><Icon name="pin" size={18} /></span>}
-                  <span><Link className="font-semibold text-action underline-offset-2 hover:underline" to={`/vc/announcements/${n.id}`}>{n.title}</Link>
+                <td className="w-[36%] min-w-64 px-4 py-3"><span className="flex items-start gap-2">{n.pinned && <span className="shrink-0 text-accent-btn" title="Pinned"><Icon name="pin" size={18} /></span>}
+                  <span className="min-w-0 break-words"><Link className="font-semibold text-action underline-offset-2 hover:underline" to={`/vc/announcements/${n.id}`}>{n.title}</Link>
                     {n.pinned && <span className="ml-2 rounded-full bg-err-bg px-2 py-0.5 text-xs font-semibold text-err">Pinned</span>}
-                    <span className="mt-0.5 block truncate text-sm text-muted">{n.body}</span></span></span></td>
+                    {/* wraps to two lines inside its own column (a one-line `truncate` here could not shrink and ran across the next columns) */}
+                    <span className="mt-0.5 line-clamp-2 text-sm text-muted">{n.body}</span></span></span></td>
                 <td className="whitespace-nowrap px-4 py-3"><span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${STATE_PILL[LABEL(n)]}`}>
                   <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{LABEL(n)}</span></td>
-                <td className="px-4 py-3 text-sm"><span className="flex items-start gap-1.5"><span className="text-muted" aria-hidden="true"><Icon name="people" size={18} /></span>
-                  {n.state === 'DRAFT' ? (n.audience.all ? 'All departments' : n.audience.departments.join(', ')) : n.recipients.join(', ')}</span></td>
+                <td className="w-[24%] min-w-44 px-4 py-3 text-sm"><span className="flex items-start gap-1.5"><span className="shrink-0 text-muted" aria-hidden="true"><Icon name="people" size={18} /></span>
+                  <span className="min-w-0 break-words">{n.state === 'DRAFT' ? (n.audience.all ? 'All departments' : n.audience.departments.join(', ')) : n.recipients.join(', ')}</span></span></td>
                 <td className="px-4 py-3">{n.state === 'DRAFT' ? '—' : `${n.read_count}`}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-sm">{fmtDateTime(n.updated_at)}</td>
                 <td className="px-4 py-3"><Link className="btn-secondary min-h-9 text-sm" to={`/vc/announcements/${n.id}`}>{n.state === 'WITHDRAWN' ? 'View' : 'Open'}<span className="sr-only"> {n.title}</span></Link></td></tr>)}</tbody></table>

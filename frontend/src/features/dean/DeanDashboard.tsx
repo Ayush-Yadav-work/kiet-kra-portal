@@ -171,7 +171,7 @@ export default function DeanDashboard() {
             : shown.length === 0 ? <p role="status" className="border-t border-line p-5 text-muted">No {short} reports are {statusLabel(status!).toLowerCase()}.{' '}
               <button type="button" className="font-semibold text-action underline" onClick={() => setStatus(null)}>Show all reports</button></p> : (
             <div className="overflow-x-auto">
-              <table role="table" className="report-table w-full text-[15px]">
+              <table role="table" className="report-table w-full text-[15px] md:min-w-[900px]">
                 <thead role="rowgroup" className="thead-soft">
                   <tr role="row">{['KRA', 'Activity', 'Annual target', 'Status', 'Details'].map((h) => <th role="columnheader" key={h} className="whitespace-nowrap border-y border-line px-3.5 py-2.5 font-semibold text-heading">{h}</th>)}
                     <th role="columnheader" className="border-y border-line px-3.5 py-2.5 text-center font-semibold text-heading">Action</th></tr>
@@ -185,7 +185,7 @@ export default function DeanDashboard() {
                     return (
                       <tr role="row" key={r.id} className="border-b border-line align-middle last:border-b-0">
                         <td role="cell" data-col="head" className="w-16 px-3.5 py-3 font-bold text-heading"><span className="md:hidden">KRA </span>{r.kra.number}</td>
-                        <td role="cell" data-col="wide" className="px-3.5 py-3">{r.kra.activity_text.replace(/^KRA \d+:\s*/, '')}</td>
+                        <td role="cell" data-col="wide" className="px-3.5 py-3 md:min-w-64">{r.kra.activity_text.replace(/^KRA \d+:\s*/, '')}</td>
                         <td role="cell" data-col="wide" data-label="Annual target" className="w-56 whitespace-pre-wrap px-3.5 py-3">{r.target_text}</td>
                         <td role="cell" data-col="status" className="whitespace-nowrap px-3.5 py-3">{r.applicability === 'NOT_ASSIGNED'
                           ? <span className="text-sm text-muted">Not assigned for this period</span> : r.applicability === 'NOT_DUE' ? <span className="text-sm text-muted">Not due</span> : <StatusBadge status={st} />}
