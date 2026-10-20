@@ -17,7 +17,7 @@ function InfoCard({ icon, tone, title, children }: { icon: IconName; tone: strin
   return (
     <div className="panel flex items-center gap-4 px-4 py-4 md:px-5">
       <span aria-hidden="true" className={`grid h-14 w-14 shrink-0 place-items-center rounded-full ${tone}`}><Icon name={icon} size={26} /></span>
-      <div><p className="text-lg font-bold text-heading">{title}</p><p className="text-sm text-muted">{children}</p></div>
+      <div className="min-w-0 break-words"><p className="text-lg font-bold text-heading">{title}</p><p className="text-sm text-muted">{children}</p></div>
     </div>
   )
 }

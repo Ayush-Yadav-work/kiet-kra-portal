@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import { Icon, type IconName } from '../../components/icons'
@@ -55,6 +55,18 @@ export default function Analytics() {
   const [exportError, setExportError] = useState('')
   const [announce, setAnnounce] = useState(false)
   const deptMenu = useRef<HTMLDetailsElement>(null)
+  const [menuFit, setMenuFit] = useState({ up: false, max: 320 })
+  const fitMenu = useCallback(() => {  // keep the open list inside the viewport: open upward when there is more room above
+    const d = deptMenu.current
+    if (!d?.open) return
+    const r = d.getBoundingClientRect(), below = window.innerHeight - r.bottom - 12, above = r.top - 12
+    const up = below < 220 && above > below
+    setMenuFit({ up, max: Math.max(120, Math.min(320, up ? above : below)) })
+  }, [])
+  useEffect(() => {
+    window.addEventListener('resize', fitMenu); window.addEventListener('scroll', fitMenu, true)
+    return () => { window.removeEventListener('resize', fitMenu); window.removeEventListener('scroll', fitMenu, true) }
+  }, [fitMenu])
   useEffect(() => {  // the department list behaves like a menu: an outside click or Escape closes it
     const close = (e: Event) => {
       const d = deptMenu.current
@@ -127,13 +139,14 @@ export default function Analytics() {
             {periods.map((p) => <option key={p.id} value={p.id}>{p.label}{p.is_open ? ' (open)' : p.is_closed ? ' (closed)' : ' (not due)'}</option>)}</IconSelect>}
           <IconSelect label="KRA" icon="layers" className="w-full sm:w-32" value={kra} onChange={(e) => set({ kra: e.target.value })}>
             <option value="">All</option>{kraList.map((n) => <option key={n} value={n}>{n}</option>)}</IconSelect>
-          <details ref={deptMenu} className="relative w-full rounded-lg border border-control bg-white sm:w-64">
+          <details ref={deptMenu} onToggle={fitMenu} className="relative w-full rounded-lg border border-control bg-white sm:w-64">
             <summary className="flex min-h-10 cursor-pointer items-center gap-2 px-3 py-2 text-sm font-semibold text-heading"><span className="text-muted" aria-hidden="true"><Icon name="building" size={18} /></span>Departments: {depts.length ? `${depts.length} selected` : 'all'}</summary>
-            <div className="absolute left-0 right-0 top-full z-10 mt-1 grid max-h-64 gap-1 overflow-auto rounded-lg border border-line bg-white p-3 text-sm shadow-lg">
+            <div style={{ maxHeight: menuFit.max }} className={`absolute left-0 right-0 z-10 grid content-start gap-1 overflow-y-auto overscroll-contain rounded-lg border border-line bg-white p-3 text-sm shadow-lg ${menuFit.up ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
               <div className="mb-1 flex gap-2"><button type="button" className="btn-quiet min-h-8 text-sm" onClick={() => set({ department: allDepts.map((d) => d.code) })}>Select all</button>
                 <button type="button" className="btn-quiet min-h-8 text-sm" onClick={() => set({ department: [] })}>All (no filter)</button></div>
-              {allDepts.map((d) => <label key={d.code} className="flex items-center gap-2"><input type="checkbox" checked={depts.includes(d.code)}
-                onChange={() => set({ department: depts.includes(d.code) ? depts.filter((x) => x !== d.code) : [...depts, d.code] })} />{d.code} — {d.name}</label>)}
+              {allDepts.map((d) => <label key={d.code} className={`flex min-h-9 cursor-pointer items-start gap-2.5 rounded-md px-2 py-1.5 hover:bg-subtle ${depts.includes(d.code) ? 'bg-info-bg font-semibold text-heading' : ''}`}>
+                <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0" checked={depts.includes(d.code)}
+                  onChange={() => set({ department: depts.includes(d.code) ? depts.filter((x) => x !== d.code) : [...depts, d.code] })} /><span className="min-w-0 break-words">{d.code} — {d.name}</span></label>)}
             </div>
           </details>
           <div className="flex w-full flex-wrap gap-2 xl:ml-auto xl:w-auto">
@@ -154,7 +167,7 @@ export default function Analytics() {
         <section aria-label="Summary" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-5 xl:gap-3">
           {metrics.map((m) => <div key={m.label} className="panel px-4 py-3.5">
             <div className="flex items-center gap-3"><span aria-hidden="true" className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${m.tone}`}><Icon name={m.icon} /></span>
-              <span><span className="block text-[28px] font-bold leading-tight text-heading">{m.value}</span><span className="text-sm">{m.label}</span></span></div>
+              <span className="min-w-0 break-words"><span className="block text-[28px] font-bold leading-tight text-heading">{m.value}</span><span className="text-sm">{m.label}</span></span></div>
             <span className="mt-2 block text-right text-[13px] font-semibold text-heading">{pct(m.value, exp).toFixed(1)}%</span>
             <span aria-hidden="true" className="mt-1 block h-1.5 overflow-hidden rounded-full bg-[#E8EEF4]"><span className={`block h-full rounded-full ${m.bar}`} style={{ width: `${pct(m.value, exp)}%` }} /></span>
           </div>)}

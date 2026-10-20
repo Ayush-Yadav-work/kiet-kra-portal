@@ -9,12 +9,14 @@ export function PageHero({ eyebrow, title, description, chip, aside, icon, photo
   eyebrow?: string; title: string; description?: ReactNode; chip?: ReactNode; aside?: ReactNode; icon?: IconName; photo?: boolean; children?: ReactNode
 }) {
   return (
-    <div className="relative isolate -mx-4 -mt-4 mb-1 px-4 pb-2 pt-6 md:-mx-7 md:-mt-6 md:px-7 md:pt-8">
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-[calc(100%-2.5rem)] bg-gradient-to-b from-[#E4EDF6] to-canvas">
+    // No `isolate` here: an isolated hero is one layer, so a menu opened inside it (Analytics departments) was painted under
+    // the cards that follow. The band sits at z-0 and the content at z-[1], which keeps open menus above later siblings.
+    <div className="relative -mx-4 -mt-4 mb-1 px-4 pb-2 pt-6 md:-mx-7 md:-mt-6 md:px-7 md:pt-8">
+      <div aria-hidden="true" className="absolute left-1/2 top-0 z-0 h-[calc(100%-2.5rem)] w-screen -translate-x-1/2 bg-gradient-to-b from-[#E4EDF6] to-canvas">
         {photo && <div className="absolute inset-y-0 right-0 hidden w-[62%] bg-cover bg-[position:right_38%] [mask-image:linear-gradient(to_right,transparent_0,transparent_12%,#000_60%)] md:block"
           style={{ backgroundImage: `url(${banner})` }} />}
       </div>
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="relative z-[1] flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className={`flex max-w-3xl items-start gap-4 ${photo ? "lg:max-w-[48%]" : ""}`}>
           {icon && <span aria-hidden="true" className="hidden h-16 w-16 shrink-0 place-items-center rounded-full bg-[#DCE8F5] text-action sm:grid"><Icon name={icon} size={30} /></span>}
           <div>
@@ -26,7 +28,7 @@ export function PageHero({ eyebrow, title, description, chip, aside, icon, photo
         </div>
         {aside && <div className="w-full rounded-xl bg-white/95 p-3 shadow-[0_6px_20px_rgba(12,45,71,.12)] sm:w-auto">{aside}</div>}
       </div>
-      {children && <div className="mt-5">{children}</div>}
+      {children && <div className="relative z-[1] mt-5">{children}</div>}
     </div>
   )
 }

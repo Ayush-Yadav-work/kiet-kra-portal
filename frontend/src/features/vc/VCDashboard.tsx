@@ -96,7 +96,7 @@ export default function VCDashboard() {
               onClick={() => set({ status: statusSel === s ? '' : s })} />)}
             <Link to="/vc/reopen-requests" className="flex items-center gap-3 rounded-xl border border-[#E3E9EF] bg-white px-3.5 py-3 shadow-[0_2px_8px_rgba(12,45,71,.06)] hover:border-action md:px-4">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-btn text-lg font-extrabold text-white md:h-11 md:w-11" aria-hidden="true">!</span>
-              <span><span className="block text-2xl font-bold leading-tight text-heading md:text-[28px]">{data.pending_reopen_requests}</span><span className="text-sm text-ink md:text-[15px]">Pending reopen requests</span></span>
+              <span className="min-w-0 break-words"><span className="block text-2xl font-bold leading-tight text-heading md:text-[28px]">{data.pending_reopen_requests}</span><span className="text-sm text-ink md:text-[15px]">Pending reopen requests</span></span>
             </Link>
           </div>
         )}

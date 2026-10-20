@@ -238,6 +238,11 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Reopening-request decisions visible to the Dean: assignment rows carry `latest_reopen_request`; dashboard "Reopening request denied by the Vice Chancellor" attention item with the reason; workspace shows the latest request state with reason and earlier requests as history (denials were stored and returned before, but never displayed)
 - [x] Checks: see `docs/validation.md` (Dean portal fixes)
 
+## UI redesign v2, polish and login (2026-10-20/21)
+- [x] Redesign v2 across login, dashboards, analytics, assignments, KRAs, announcements (`docs/ui-redesign-v2-review.md`)
+- [x] Polish: announcement text no longer overlaps neighbouring columns; the Analytics department list opens above later content and fits the viewport (`docs/ui-polish-review.md`)
+- [x] Login pages matched to `reference/ui/redesign-v2/login-reference.png`; required-field messages; browser suite 31 OK
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).
