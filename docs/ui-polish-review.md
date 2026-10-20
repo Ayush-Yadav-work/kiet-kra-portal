@@ -117,3 +117,25 @@ Validation (isolated stack, synthetic `demo.*` accounts):
 Screenshots (git-ignored): `.work/ui-login/login-{dean,vc}-{1672,1440,768,375}.png`, plus
 `login-dean-1440-required.png`, `-invalid.png`, `-focus.png` and `login-landing-1440.png`. Opened and compared with the
 reference: Dean 1672, VC 1440, VC 768, Dean 375, Dean 1440 invalid-password state.
+
+## Login refinement — complete image, no blur, compact card (2026-10-21)
+
+- **Blur cause**: no CSS `filter`/`backdrop-filter` was involved. The photo was a JPEG re-encode of the 1672×941 PNG,
+  scaled with `background-size: cover` (cropped, and upscaled past its native size on wide/high-DPI screens) under a
+  full-photo white wash that read as haze. The supplied original itself is only 1672×941 and its fine detail (e.g. the
+  recruiter board) is soft in the source; CSS cannot add detail that is not there.
+- **Fix**: the original PNG (`frontend/src/assets/login-background.png`, replaces the JPEG) is an `<img>` in a box with
+  the photo's own aspect ratio, never wider than 1672 px, on a solid `#E3EEF9` — complete, undistorted, never upscaled. The
+  full-photo wash is gone; only two local overlays remain (an opaque patch over the logo printed in the photo's corner, and
+  a light haze plus text halo behind the title). From 1280 px the title and card overlay the photo as in the reference;
+  below that title, photo and card stack.
+- **Compact card**: 548 → 440 px wide (−20 %), about 692 → 549 px tall (−21 %); padding, toggle (58 → 50 px), fields
+  (58 → 50 px), button (62 → 54 px) and type reduced; no `transform`/`zoom`.
+
+Measured in the browser (both `/dean/login` and `/vc/login`, normal and required-field states): photo box fully inside the
+page at 1366×768 (1365×768), 1440×900 (1440×810), 1672×941 (1672×941), 768 (704×396) and 375 (343×193); rendered ratio
+1.777 = 1672:941; 0 elements with a CSS filter; no horizontal overflow. Checks: `npx tsc -b`, `npm run build` OK; full
+isolated browser suite **31 OK** (incl. login required-field/keyboard/role and wrong-role tests). Screenshots:
+`.work/ui-login-v4/login-{dean,vc}-{1366,1440,1672,768,375}.png`, `login-vc-<width>-required.png`,
+`login-dean-1366-invalid.png` (inspected: 1366 normal and invalid, 1440 required, 768, 375). Note: the PNG is 2.7 MB
+(the original is used as instructed); a high-quality WebP/JPEG could cut this if load time matters.
