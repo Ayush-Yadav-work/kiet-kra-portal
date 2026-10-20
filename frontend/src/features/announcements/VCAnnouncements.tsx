@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
+import { Icon } from '../../components/icons'
+import { EmptyState, IconSelect, PageHero, Pager, Panel } from '../../components/page'
 import { ErrorBox, Loading } from '../../components/ui'
 import { type Notice, NoticeText } from './common'
 
@@ -11,42 +13,67 @@ interface VCNotice extends Notice { state: State; expired: boolean; edit_version
 type Revision = { number: number; kind: string; content_version: number; title: string; body: string; created_at: string; audience: string[]; by: string; pinned: boolean; expires_at: string | null }
 const LABEL = (n: VCNotice) => n.state === 'PUBLISHED' ? (n.expired ? 'Expired' : 'Published') : n.state === 'DRAFT' ? 'Draft' : 'Withdrawn'
 
+const STATE_PILL: Record<string, string> = { Published: 'bg-ok-bg text-ok', Draft: 'bg-neutral-bg text-neutral', Expired: 'bg-warn-bg text-warn', Withdrawn: 'bg-err-bg text-err' }
+const COUNTS = [['', 'Total announcements', 'doc', 'bg-info-bg text-action'], ['ACTIVE', 'Published (active)', 'check', 'bg-ok-bg text-ok'],
+  ['DRAFT', 'Drafts', 'pencil', 'bg-warn-bg text-warn'], ['WITHDRAWN', 'Withdrawn', 'xcircle', 'bg-err-bg text-err']] as const
+
 export function VCAnnouncementList() {
   const [state, setState] = useState('')
-  const [data, setData] = useState<{ total: number; results: VCNotice[] } | null>(null)
+  const [page, setPage] = useState(1)
+  const [data, setData] = useState<{ total: number; page: number; page_size: number; results: VCNotice[] } | null>(null)
+  const [totals, setTotals] = useState<Record<string, number> | null>(null)
   const [error, setError] = useState('')
+  useEffect(() => {  // headline counts come from the API's own totals per state (one small request each)
+    Promise.all(COUNTS.map(([st]) => api<{ total: number }>(`/announcements/${st ? `?state=${st}` : ''}`).then((r) => [st, r.total] as const)))
+      .then((r) => setTotals(Object.fromEntries(r))).catch(() => setTotals(null))
+  }, [])
   useEffect(() => {
     let live = true
     setData(null)
-    api<typeof data>(`/announcements/${state ? `?state=${state}` : ''}`).then((d) => live && setData(d))
+    api<NonNullable<typeof data>>(`/announcements/?page=${page}${state ? `&state=${state}` : ''}`).then((d) => live && setData(d))
       .catch((e) => live && setError(e instanceof ApiError ? e.message : 'Failed to load'))
     return () => { live = false }
-  }, [state])
+  }, [state, page])
+  const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
   return (
-    <div className="grid gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><h1 className="text-[28px] font-bold leading-tight md:text-4xl">Announcements</h1>
-          <p className="mt-1 text-muted">In-portal notices to all or selected departments. No email or SMS is sent.</p></div>
-        <Link to="/vc/announcements/new" className="btn-primary">New announcement</Link>
-      </div>
-      <label className="grid w-full gap-1.5 text-sm font-semibold text-heading sm:w-56">Show
-        <select className="input" value={state} onChange={(e) => setState(e.target.value)}>
+    <div className="grid gap-[18px]">
+      <PageHero icon="megaphone" photo={false} title="Announcements" description="In-portal notices to all or selected departments. No email or SMS is sent."
+        aside={<Link to="/vc/announcements/new" className="btn-primary min-h-12 w-full px-5 sm:w-auto"><Icon name="plus" />New announcement</Link>} />
+      {totals && <section aria-label="Announcement totals" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {COUNTS.map(([st, label, icon, tone]) => <div key={st} className="panel flex items-center gap-3.5 px-4 py-4">
+          <span aria-hidden="true" className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${tone}`}><Icon name={icon} /></span>
+          <span><span className="block text-sm text-muted">{label}</span><span className="text-2xl font-bold text-heading">{totals[st]}</span></span></div>)}
+      </section>}
+      <section aria-label="Announcement filters" className="panel flex flex-wrap items-end gap-3 p-4 md:p-5">
+        <IconSelect label="Show" icon="list" className="w-full sm:w-64" value={state} onChange={(e) => { setState(e.target.value); setPage(1) }}>
           <option value="">All</option><option value="DRAFT">Drafts</option><option value="ACTIVE">Published (active)</option>
-          <option value="EXPIRED">Expired</option><option value="WITHDRAWN">Withdrawn</option></select></label>
+          <option value="EXPIRED">Expired</option><option value="WITHDRAWN">Withdrawn</option></IconSelect>
+      </section>
       <ErrorBox error={error} />
-      {!data ? (!error && <Loading />) : data.results.length === 0 ? <p className="rounded-[10px] border border-line bg-white p-5 text-muted">No announcements.</p> : (
-        <div className="overflow-x-auto rounded-[10px] border border-line bg-white">
-          <table className="w-full min-w-[640px] text-[15px]"><caption className="sr-only">Announcements</caption>
-            <thead className="bg-subtle text-left"><tr>{['Title', 'State', 'Audience', 'Read (current version)', 'Updated'].map((h) =>
-              <th key={h} className="border-b border-line px-3.5 py-2.5 font-semibold text-heading">{h}</th>)}</tr></thead>
-            <tbody>{data.results.map((n) => <tr key={n.id} className="border-b border-line align-top last:border-b-0">
-              <td className="px-3.5 py-3"><Link className="font-semibold text-action underline" to={`/vc/announcements/${n.id}`}>{n.title}</Link>{n.pinned && <span className="ml-2 text-xs font-bold">Pinned</span>}</td>
-              <td className="px-3.5 py-3">{LABEL(n)}</td>
-              <td className="px-3.5 py-3 text-sm">{n.state === 'DRAFT' ? (n.audience.all ? 'All departments' : n.audience.departments.join(', ')) : n.recipients.join(', ')}</td>
-              <td className="px-3.5 py-3">{n.state === 'DRAFT' ? '—' : `${n.read_count}`}</td>
-              <td className="px-3.5 py-3 text-sm">{fmtDateTime(n.updated_at)}</td></tr>)}</tbody></table>
-        </div>
-      )}
+      <Panel title="Announcements" icon="doc" labelledBy="ann-list" description="Manage and view every announcement in the portal." className="overflow-hidden">
+        {!data ? (!error && <Loading />) : data.results.length === 0 ? <EmptyState icon="megaphone" title="No announcements.">{state ? 'None in this view.' : 'Create the first one with New announcement.'}</EmptyState> : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-[15px]"><caption className="sr-only">Announcements</caption>
+              <thead className="thead-soft"><tr>{['Title', 'State', 'Audience', 'Read (current version)', 'Updated', 'Action'].map((h) =>
+                <th key={h} scope="col" className="border-y border-line px-4 py-3">{h}</th>)}</tr></thead>
+              <tbody>{data.results.map((n) => <tr key={n.id} className="border-b border-line align-top last:border-b-0">
+                <td className="max-w-md px-4 py-3"><span className="flex items-start gap-2">{n.pinned && <span className="text-accent-btn" title="Pinned"><Icon name="pin" size={18} /></span>}
+                  <span><Link className="font-semibold text-action underline-offset-2 hover:underline" to={`/vc/announcements/${n.id}`}>{n.title}</Link>
+                    {n.pinned && <span className="ml-2 rounded-full bg-err-bg px-2 py-0.5 text-xs font-semibold text-err">Pinned</span>}
+                    <span className="mt-0.5 block truncate text-sm text-muted">{n.body}</span></span></span></td>
+                <td className="whitespace-nowrap px-4 py-3"><span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${STATE_PILL[LABEL(n)]}`}>
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{LABEL(n)}</span></td>
+                <td className="px-4 py-3 text-sm"><span className="flex items-start gap-1.5"><span className="text-muted" aria-hidden="true"><Icon name="people" size={18} /></span>
+                  {n.state === 'DRAFT' ? (n.audience.all ? 'All departments' : n.audience.departments.join(', ')) : n.recipients.join(', ')}</span></td>
+                <td className="px-4 py-3">{n.state === 'DRAFT' ? '—' : `${n.read_count}`}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-sm">{fmtDateTime(n.updated_at)}</td>
+                <td className="px-4 py-3"><Link className="btn-secondary min-h-9 text-sm" to={`/vc/announcements/${n.id}`}>{n.state === 'WITHDRAWN' ? 'View' : 'Open'}<span className="sr-only"> {n.title}</span></Link></td></tr>)}</tbody></table>
+          </div>
+        )}
+        {data && <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm md:px-5">
+          <span className="text-muted">{data.total} announcement{data.total === 1 ? '' : 's'} · page {data.page} of {pages}</span>
+          <Pager page={data.page} pages={pages} onPage={setPage} label="Announcement pages" /></div>}
+      </Panel>
     </div>
   )
 }
@@ -138,7 +165,7 @@ export function VCAnnouncementEditor() {
       <ErrorBox error={error} />
       {msg && <p role="status" className="rounded bg-ok-bg px-3 py-2 text-sm">{msg}</p>}
       <div className="grid gap-4 lg:grid-cols-2">
-        <section aria-label="Announcement details" className="grid gap-3 rounded-[10px] border border-line bg-white p-4">
+        <section aria-label="Announcement details" className="grid gap-3 panel p-4">
           <label className={fld}>Title<input className="input" value={title} maxLength={200} disabled={!editable} onChange={(e) => setTitle(e.target.value)} aria-invalid={!!fe('title')} />
             {fe('title') && <span className="text-err">{fe('title')}</span>}</label>
           <label className={fld}>Message (plain text; http/https links allowed)<textarea className="input min-h-40" value={body} maxLength={10000} disabled={!editable}
@@ -162,14 +189,14 @@ export function VCAnnouncementEditor() {
           </div>}
           {n?.state === 'DRAFT' && <p className="text-sm text-muted">Save changes before publishing; publication uses the saved draft.</p>}
         </section>
-        <section aria-labelledby="pv-h" className="grid content-start gap-2 rounded-[10px] border border-line bg-white p-4">
+        <section aria-labelledby="pv-h" className="grid content-start gap-2 panel p-4">
           <h2 id="pv-h" className="text-lg font-bold text-heading">Preview (as Deans see it)</h2>
           <h3 className="text-xl font-bold text-heading">{title || 'Title'}</h3>
           <NoticeText text={body || 'Message'} />
         </section>
       </div>
       {confirming && (
-        <section role="region" aria-label="Publish review" className="grid gap-2 rounded-[10px] border-2 border-action bg-white p-4">
+        <section role="region" aria-label="Publish review" className="grid gap-2 panel border-2 border-action p-4">
           <p><b>Publish to {confirming.length} department(s):</b> {confirming.join(', ')}</p>
           {eligibility && <div className="rounded bg-warn-bg p-3 text-sm text-warn">
             <p>The departments with pending reports changed since this draft was prepared.</p>
@@ -182,7 +209,7 @@ export function VCAnnouncementEditor() {
         </section>
       )}
       {n && n.state !== 'DRAFT' && (history ? (
-        <section aria-labelledby="hist-h" className="grid gap-2 rounded-[10px] border border-line bg-white p-4">
+        <section aria-labelledby="hist-h" className="grid gap-2 panel p-4">
           <h2 id="hist-h" className="text-lg font-bold text-heading">History</h2>
           <ol className="grid gap-2 text-sm">{history.map((h) => <li key={h.number} className="border-t border-line pt-2">
             <b>{h.number}. {h.kind}</b> · {fmtDateTime(h.created_at)} · {h.by} · content version {h.content_version} · audience {h.audience.join(', ')}{h.pinned ? ' · pinned' : ''}

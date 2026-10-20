@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
+import { Icon, type IconName } from '../../components/icons'
+import { EmptyState, IconSelect, PageHero, Pager } from '../../components/page'
 import { ErrorBox, Loading } from '../../components/ui'
 
 // VC features plan v2.3 Phase 1 (D-073): annual allocations — Unallocated (no row) / Draft / Removed / Finalised.
@@ -23,6 +25,7 @@ type Conflict = { id?: string; department?: string; kra?: number; reason: string
 const YEARS = ['2026-27', '2027-28', '2028-29']
 const FILTERS = [['ALL', 'All allocations'], ['CHANGED', 'Changed targets'], ['UNFINISHED', 'Unfinished drafts'], ['FINALISED', 'Finalised'],
   ['REMOVED', 'Removed'], ['UNALLOCATED', 'Unallocated']] as const
+const FILTER_ICON: Record<string, IconName> = { ALL: 'grid', CHANGED: 'refresh', UNFINISHED: 'doc', FINALISED: 'check', REMOVED: 'trash', UNALLOCATED: 'box' }
 type Filter = typeof FILTERS[number][0]
 const STATE_STYLE: Record<State, [string, string]> = { UNALLOCATED: ['Unallocated', 'bg-neutral-bg text-neutral'], DRAFT: ['Draft', 'bg-warn-bg text-warn'],
   REMOVED: ['Removed', 'bg-err-bg text-err'], FINALISED: ['Finalised', 'bg-ok-bg text-ok'] }
@@ -35,7 +38,7 @@ export default function AdminAssignments() {
   const year = params.get('year') || '2027-28'
   const kra = params.get('kra') || ''
   const view = (params.get('view') || 'ALL') as Filter
-  const setParam = (k: string, v: string) => { const n = new URLSearchParams(params); if (v) n.set(k, v); else n.delete(k); n.delete('page'); setParams(n) }
+  const setParam = (k: string, v: string) => { const n = new URLSearchParams(params); if (v) n.set(k, v); else n.delete(k); if (k !== 'page') n.delete('page'); setParams(n) }
   const page = Number(params.get('page') || 1)
   const [data, setData] = useState<Data | null>(null)
   const [error, setError] = useState('')
@@ -114,12 +117,12 @@ export default function AdminAssignments() {
       setSelected(ids); openFinalise(undefined, ids, d)
     }
   }
-  const allocate = () => run(async () => {
+  const allocate = (keys = toAllocate) => run(async () => {
     const byKra = new Map<number, string[]>()
-    for (const key of toAllocate) { const [k, d] = key.split('|'); byKra.set(Number(k), [...(byKra.get(Number(k)) ?? []), d]) }
+    for (const key of keys) { const [k, d] = key.split('|'); byKra.set(Number(k), [...(byKra.get(Number(k)) ?? []), d]) }
     let n = 0
     for (const [k, depts] of byKra) n += (await api<{ created: string[] }>('/admin/drafts/', { method: 'POST', body: { year, kra: k, departments: depts } })).created.length
-    setToAllocate(new Set()); await reload(); return `Created ${n} draft allocation(s) for the selected departments only.`
+    setToAllocate((t) => { const x = new Set(t); keys.forEach((k) => x.delete(k)); return x }); await reload(); return `Created ${n} draft allocation(s) for the selected departments only.`
   })
   const previewBulk = () => run(async () => {
     const r = await api<{ affected: { department: string; kra: number; old: string; new: string }[] }>('/admin/drafts/bulk-target/', { method: 'POST', body: { items: versions(selected), target_text: bulk.text, apply: false } })
@@ -152,38 +155,34 @@ export default function AdminAssignments() {
   const fld = 'grid gap-1.5 text-sm font-semibold text-heading'
   return (
     <div className="grid gap-[18px]">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div>
-          <h1 className="text-[28px] font-bold leading-tight md:text-4xl">Annual assignments</h1>
-          <p className="mt-1 text-muted">Department targets per KRA. Drafts are visible only to you; finalising locks a target and makes it visible to that Dean.</p>
-        </div>
-        <div className="flex w-full flex-wrap gap-4 sm:w-auto">
-          <label className={`${fld} w-full sm:w-40`}>Academic year
-            <select className="input" value={year} onChange={(e) => setParams({ year: e.target.value })}>{YEARS.map((y) => <option key={y}>{y}</option>)}</select></label>
-          <label className={`${fld} w-full sm:w-72`}>KRA
-            <select className="input" value={kra} onChange={(e) => setParam('kra', e.target.value)}>
-              <option value="">All allocated KRAs</option>
-              {data?.kras.filter((k) => k.active).map((k) => <option key={k.number} value={k.number} disabled={!k.installed}>KRA {k.number}{k.installed ? '' : ' (not installed)'}</option>)}
-            </select></label>
-        </div>
-      </div>
+      <PageHero title="Annual assignments" description="Department targets per KRA. Drafts are visible only to you; finalising locks a target and makes it visible to that Dean."
+        aside={<div className="flex w-full flex-wrap gap-3 sm:w-auto">
+          <IconSelect label="Academic year" icon="calendar" className="w-full sm:w-44" value={year} onChange={(e) => setParams({ year: e.target.value })}>{YEARS.map((y) => <option key={y}>{y}</option>)}</IconSelect>
+          <IconSelect label="KRA" icon="layers" className="w-full sm:w-64" value={kra} onChange={(e) => setParam('kra', e.target.value)}>
+            <option value="">All allocated KRAs</option>
+            {data?.kras.filter((k) => k.active).map((k) => <option key={k.number} value={k.number} disabled={!k.installed}>KRA {k.number}{k.installed ? '' : ' (not installed)'}</option>)}
+          </IconSelect></div>} />
 
       <ErrorBox error={error} />
       {conflicts.length > 0 && <ul className="rounded-lg border border-err bg-err-bg p-3 text-sm text-[#7F1D1D]">{conflicts.slice(0, 20).map((c, i) =>
         <li key={i}>{c.department ? `${c.department} KRA ${c.kra}` : c.id}: {c.reason}</li>)}</ul>}
       {message && <p role="status" className="rounded-lg border-l-4 border-ok bg-ok-bg px-3 py-2 text-sm text-[#14532D]">{message}</p>}
       {!data ? (!error && <Loading />) : (<>
-        <section aria-label="Year setup" className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[10px] border border-line bg-white p-4">
-          <p className="text-[15px]"><b className="text-heading">{data.year.label}</b> — {data.year.state === 'preparation' ? 'in preparation' : data.year.state === 'active' ? 'active year' : 'closed (read-only)'}
-            {' · '}{data.year.drafts} draft · {data.year.removed} removed · {data.year.finalised} finalised</p>
-          {editable && data.previous_year && <div className="flex flex-wrap gap-2 sm:ml-auto">
-            <button className="btn-secondary" disabled={busy} onClick={() => previewCopy(false)}>Copy previous year setup</button>
-            <button className="btn-secondary" disabled={busy} onClick={() => previewCopy(true)}>Send previous year KRAs</button></div>}
+        <section aria-label="Year setup" className="panel flex flex-wrap items-center gap-x-5 gap-y-3 p-4 md:px-5">
+          <p className="flex items-center gap-3"><span aria-hidden="true" className="grid h-12 w-12 place-items-center rounded-full bg-info-bg text-action"><Icon name="calendar" size={24} /></span>
+            <span><b className="block text-2xl text-heading">{data.year.label}</b><span className="text-sm text-muted">{data.year.state === 'preparation' ? 'In preparation' : data.year.state === 'active' ? 'Active year' : 'Closed (read-only)'}</span></span></p>
+          <ul aria-label="Year totals" className="flex flex-wrap gap-2">
+            {([['Draft', data.year.drafts, 'pencil', 'bg-warn-bg text-warn'], ['Removed', data.year.removed, 'trash', 'bg-err-bg text-err'], ['Finalised', data.year.finalised, 'check', 'bg-ok-bg text-ok']] as const).map(([l, n, ic, cls]) =>
+              <li key={l} className={`flex min-w-28 items-center gap-2.5 rounded-lg px-3 py-2 ${cls}`}><span aria-hidden="true"><Icon name={ic} /></span><span><b className="block text-lg leading-tight">{n}</b><span className="text-[13px]">{l}</span></span></li>)}
+          </ul>
+          {editable && data.previous_year && <div className="flex flex-wrap gap-2 lg:ml-auto">
+            <button className="btn-secondary" disabled={busy} onClick={() => previewCopy(false)}><Icon name="copy" />Copy previous year setup</button>
+            <button className="btn-primary" disabled={busy} onClick={() => previewCopy(true)}><Icon name="send" />Send previous year KRAs</button></div>}
           {data.year.drafts > 0 && <p className="w-full text-sm text-muted">Unfinished drafts are not obligations: Deans do not see them and they are excluded from analytics until finalised.</p>}
         </section>
 
         {copyPlan && (
-          <section aria-label="Copy review" className="rounded-[10px] border border-action bg-white p-4 text-sm">
+          <section aria-label="Copy review" className="panel border-2 border-action p-4 text-sm">
             <h2 className="mb-2 text-lg font-bold">Copy {data.previous_year} → {year}</h2>
             <ul className="grid gap-1 sm:grid-cols-2">
               <li><b>{copyPlan.plan.create.length}</b> new draft allocations to create (exact department targets)</li>
@@ -200,14 +199,15 @@ export default function AdminAssignments() {
 
         <div role="group" aria-label="Allocation filter" className="flex flex-wrap gap-2">
           {FILTERS.map(([f, label]) => <button key={f} type="button" aria-pressed={view === f} onClick={() => setParam('view', f === 'ALL' ? '' : f)}
-            className={`${view === f ? 'btn-primary' : 'btn-secondary'} min-h-9 text-sm`}>{label} ({counts[f]})</button>)}
+            className={`btn min-h-11 rounded-xl px-4 text-sm shadow-sm ${view === f ? 'bg-brand text-white hover:bg-heading' : 'border-[#E3E9EF] bg-white text-heading hover:border-action'}`}>
+            <Icon name={FILTER_ICON[f]} size={18} />{label} ({counts[f]})</button>)}
         </div>
         <p className="text-sm text-muted">Counts cover {kra ? `KRA ${kra}` : 'all allocated KRAs'} of {year}. Changed = new target differs from the stored {data.previous_year ?? 'previous-year'} target.</p>
 
         {editable && (selected.size > 0 || toAllocate.size > 0) && (
-          <section aria-label="Selected actions" className="grid gap-3 rounded-[10px] border border-line bg-white p-4 text-sm">
+          <section aria-label="Selected actions" className="panel grid gap-3 p-4 text-sm">
             {toAllocate.size > 0 && <div className="flex flex-wrap items-center gap-3"><b>{toAllocate.size} unallocated department(s) selected.</b>
-              <button className="btn-primary min-h-9 text-sm" disabled={busy} onClick={allocate}>Create drafts for the {toAllocate.size} selected departments</button>
+              <button className="btn-primary min-h-9 text-sm" disabled={busy} onClick={() => allocate()}>Create drafts for the {toAllocate.size} selected departments</button>
               <button className="btn-quiet text-sm" onClick={() => setToAllocate(new Set())}>Clear</button></div>}
             {selected.size > 0 && <>
               <p><b>{selected.size} draft(s) selected</b>{outside > 0 && ` — ${outside} outside the current filter`}. Actions below apply to exactly these drafts.</p>
@@ -228,7 +228,7 @@ export default function AdminAssignments() {
         )}
 
         {fin && (
-          <section aria-label="Finalise review" className="rounded-[10px] border-2 border-action bg-white p-4 text-sm">
+          <section aria-label="Finalise review" className="panel border-2 border-action p-4 text-sm">
             <h2 className="mb-1 text-lg font-bold">Finalise and send {fin.count} assignment(s) for {year}</h2>
             <p>These targets become <b>locked</b> and visible to the selected Deans. Reporting starts in <b>{fin.effective_start_period.label}</b>
               {' '}({fin.applicable_periods.length} reporting period{fin.applicable_periods.length === 1 ? '' : 's'}: {fin.applicable_periods.map((p) => `P${p.index} due ${fmtDateTime(p.closes_at)}`).join('; ')}).</p>
@@ -245,12 +245,12 @@ export default function AdminAssignments() {
           </section>
         )}
 
-        <section aria-label="Allocations" className="overflow-hidden rounded-[10px] border border-line bg-white">
+        <section aria-label="Allocations" className="panel overflow-hidden">
           <div className="overflow-x-auto">
-            <table role="table" className="report-table w-full text-[15px]">
-              <thead role="rowgroup" className="bg-subtle text-left"><tr role="row">
-                <th role="columnheader" className="w-10 border-b border-line px-3 py-2.5"><span className="sr-only">Select</span></th>
-                {['Department', 'KRA', 'Previous-year target', 'New-year target', 'State', 'Actions'].map((h) => <th role="columnheader" key={h} className="border-b border-line px-3 py-2.5 font-semibold text-heading">{h}</th>)}</tr></thead>
+            <table role="table" className="report-table w-full text-[15px] md:min-w-[960px]">
+              <thead role="rowgroup" className="thead-soft"><tr role="row">
+                <th role="columnheader" className="w-10 border-b border-line px-3 py-3"><span className="sr-only">Select</span></th>
+                {['Department', 'KRA', 'Previous-year target', 'New-year target', 'State', 'Actions'].map((h) => <th role="columnheader" key={h} className="border-b border-line px-3 py-3 text-xs uppercase tracking-wide">{h}</th>)}</tr></thead>
               <tbody role="rowgroup">
                 {pageRows.map((r) => {
                   const [stateLabel, stateCls] = STATE_STYLE[r.state]
@@ -275,18 +275,20 @@ export default function AdminAssignments() {
                         {r.state === 'REMOVED' && <span className="mt-1 block text-[13px] text-muted">Removed by {r.removed_by}</span>}</td>
                       <td role="cell" data-col="action" className="w-32 px-3 py-3">{editable && r.state === 'DRAFT' && r.id && edits[r.id] !== undefined && edits[r.id] !== r.target_text
                         ? <button className="btn-primary min-h-9 w-full text-sm" disabled={busy} onClick={() => saveRow(r as Alloc)}>Save<span className="sr-only"> {r.department} KRA {r.kra}</span></button>
-                        : editable && r.state === 'REMOVED' && r.id ? <button className="btn-secondary min-h-9 w-full text-sm" disabled={busy} onClick={() => removeOrRestore(new Set([r.id!]), true)}>Restore<span className="sr-only"> {r.department} KRA {r.kra}</span></button> : null}</td>
+                        : editable && r.state === 'REMOVED' && r.id ? <button className="btn-secondary min-h-9 w-full text-sm" disabled={busy} onClick={() => removeOrRestore(new Set([r.id!]), true)}>Restore<span className="sr-only"> {r.department} KRA {r.kra}</span></button>
+                        : editable && r.state === 'UNALLOCATED' && data.kras.find((k) => k.number === r.kra)?.installed
+                          ? <button className="btn-secondary min-h-9 w-full text-sm" disabled={busy} onClick={() => allocate(new Set([r.key]))}><Icon name="plus" size={16} />Allocate<span className="sr-only"> KRA {r.kra} to {r.department} (creates a draft)</span></button> : null}</td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
-            {shown.length === 0 && <p className="p-5 text-muted">{rows.length === 0 ? `No allocations for ${year} yet. Copy the previous year or choose a KRA to allocate it to departments.` : 'No allocations match this filter.'}</p>}
+            {shown.length === 0 && <EmptyState icon="box" title={rows.length === 0 ? `No allocations for ${year} yet.` : 'No allocations match this filter.'}>
+              {rows.length === 0 ? 'Copy the previous year or choose a KRA to allocate it to departments.' : 'Choose another filter above.'}</EmptyState>}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm">
             <span className="text-muted">{shown.length} row(s) · page {page} of {Math.max(1, Math.ceil(shown.length / PAGE))}</span>
-            <span className="flex gap-2"><button className="btn-secondary min-h-9 text-sm" disabled={page <= 1} onClick={() => setParam('page', String(page - 1))}>Previous</button>
-              <button className="btn-secondary min-h-9 text-sm" disabled={page * PAGE >= shown.length} onClick={() => setParam('page', String(page + 1))}>Next</button></span>
+            <Pager page={page} pages={Math.max(1, Math.ceil(shown.length / PAGE))} onPage={(n) => setParam('page', String(n))} label="Allocation pages" />
           </div>
         </section>
       </>)}

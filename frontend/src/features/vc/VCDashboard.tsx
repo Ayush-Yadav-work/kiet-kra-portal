@@ -4,6 +4,7 @@ import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { DisplayStatus } from '../../api/types'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatCard, StatusBadge, statusLabel } from '../../components/ui'
+import { DeptChip, EmptyState, IconSelect, PageHero, Pager } from '../../components/page'
 import { usePeriods, YearPeriodPicker } from '../dean/DeanDashboard'
 import { BulkPanel, type BulkRun, type Prepare, PreviewDrawer, type PreviewTarget } from './BulkApproval'
 
@@ -82,22 +83,18 @@ export default function VCDashboard() {
   const fld = 'grid gap-1.5 text-sm font-semibold text-heading'
   return (
     <div className="grid gap-[18px]">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div>
-          <h1 className="text-[28px] font-bold leading-tight md:text-4xl">Institution KRA status</h1>
-          <p className="mt-1 text-base text-muted md:text-xl">All departments · {year}</p>
-        </div>
-        <YearPeriodPicker year={year} period={period} periods={periods} onChange={(y, p) => setParams(p ? { year: y, period: p } : { year: y })} />
-      </div>
+      <PageHero eyebrow="Welcome back," title="Institution KRA status" description="Overview of KRA report submissions across all departments."
+        chip={<>All departments · {year}</>}
+        aside={<YearPeriodPicker year={year} period={period} periods={periods} onChange={(y, p) => setParams(p ? { year: y, period: p } : { year: y })} />} />
 
       <section aria-labelledby="vc-sum" className="grid gap-2">
         <h2 id="vc-sum" className="sr-only">Report counts</h2>
         {data && (
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3 2xl:grid-cols-7">
-            <StatCard kind="ASSIGNED" value={data.assigned} label="Assigned" />
-            {STATUSES.map((s) => <StatCard key={s} kind={s} value={data.counts[s]} label={statusLabel(s)} pressed={statusSel === s}
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3 xl:grid-cols-7">
+            <StatCard kind="ASSIGNED" value={data.assigned} label="Assigned" total={data.assigned} />
+            {STATUSES.map((s) => <StatCard key={s} kind={s} value={data.counts[s]} label={statusLabel(s)} total={data.assigned} pressed={statusSel === s}
               onClick={() => set({ status: statusSel === s ? '' : s })} />)}
-            <Link to="/vc/reopen-requests" className="flex items-center gap-3 rounded-[10px] border border-line bg-white px-3 py-3 hover:border-action md:px-4">
+            <Link to="/vc/reopen-requests" className="flex items-center gap-3 rounded-xl border border-[#E3E9EF] bg-white px-3.5 py-3 shadow-[0_2px_8px_rgba(12,45,71,.06)] hover:border-action md:px-4">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-btn text-lg font-extrabold text-white md:h-11 md:w-11" aria-hidden="true">!</span>
               <span><span className="block text-2xl font-bold leading-tight text-heading md:text-[28px]">{data.pending_reopen_requests}</span><span className="text-sm text-ink md:text-[15px]">Pending reopen requests</span></span>
             </Link>
@@ -106,28 +103,28 @@ export default function VCDashboard() {
         <p className="text-sm text-muted">Status counts apply every filter except Status; select a status card or the Status filter to list only those rows.</p>
       </section>
 
-      <section aria-label="Filters" className="flex flex-wrap items-end gap-3 rounded-[10px] border border-line bg-white p-4">
-        <label className={`${fld} w-full sm:w-44`}>Department
-          <select className="input" value={get('department')} onChange={(e) => set({ department: e.target.value })}>
-            <option value="">All departments</option>{departments.map((d) => <option key={d.code} value={d.code}>{d.code}</option>)}
-          </select></label>
-        <label className={`${fld} w-full sm:w-28`}>KRA number
-          <input className="input" type="number" min={1} max={45} placeholder="Any" value={get('kra')} onChange={(e) => set({ kra: e.target.value })} /></label>
-        <label className={`${fld} w-full sm:w-64`}>Search activity
-          <input className="input" placeholder="Words in the activity, then Enter" defaultValue={get('search')} key={get('search')}
-            onKeyDown={(e) => { if (e.key === 'Enter') set({ search: (e.target as HTMLInputElement).value }) }} /></label>
-        <label className={`${fld} w-full sm:w-48`}>Status
-          <select className="input" value={statusSel} onChange={(e) => set({ status: e.target.value })}>
-            <option value="">All statuses</option>{STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
-          </select></label>
+      <section aria-label="Filters" className="panel flex flex-wrap items-end gap-3 p-4 md:p-5">
+        <IconSelect label="Department" icon="building" className="w-full sm:w-52" value={get('department')} onChange={(e) => set({ department: e.target.value })}>
+          <option value="">All departments</option>{departments.map((d) => <option key={d.code} value={d.code}>{d.code}</option>)}
+        </IconSelect>
+        <label className={`${fld} w-full sm:w-32`}>KRA number
+          <span className="relative block"><span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"><Icon name="layers" size={18} /></span>
+            <input className="input pl-10" type="number" min={1} max={45} placeholder="All" value={get('kra')} onChange={(e) => set({ kra: e.target.value })} /></span></label>
+        <label className={`${fld} w-full sm:w-72`}>Search activity
+          <span className="relative block"><span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"><Icon name="search" size={18} /></span>
+            <input className="input pl-10" placeholder="Search in the activity, then Enter" defaultValue={get('search')} key={get('search')}
+              onKeyDown={(e) => { if (e.key === 'Enter') set({ search: (e.target as HTMLInputElement).value }) }} /></span></label>
+        <IconSelect label="Status" icon="list" className="w-full sm:w-52" value={statusSel} onChange={(e) => set({ status: e.target.value })}>
+          <option value="">All statuses</option>{STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
+        </IconSelect>
         {filtered && <button type="button" className="btn-quiet" onClick={() => setParams({ year, period })}>Clear filters</button>}
-        <button type="button" className="btn-primary w-full sm:ml-auto sm:w-auto" disabled={exporting || !data} onClick={exportPdf} aria-describedby="export-note">
+        <button type="button" className="btn-primary min-h-11 w-full bg-brand hover:bg-heading sm:ml-auto sm:w-auto" disabled={exporting || !data} onClick={exportPdf} aria-describedby="export-note">
           <Icon name="download" />{exporting ? 'Preparing PDF…' : `Export PDF${data ? ` (${data.total} rows)` : ''}`}</button>
         <p id="export-note" className="w-full text-sm text-muted">The PDF contains every row matching these filters, not only this page.</p>
       </section>
 
       {resumable && !bulk && (
-        <div role="status" className="flex flex-wrap items-center gap-3 rounded-[10px] border border-warn bg-warn-bg px-4 py-3 text-[15px]">
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-warn bg-warn-bg px-4 py-3 text-[15px]">
           <span>An approval run was interrupted: processed {resumable.processed} of {resumable.total}. Recorded approvals are kept.</span>
           <button type="button" className="btn-primary min-h-9 text-sm" onClick={() => setBulk({ request: null, resume: resumable })}>Resume</button>
         </div>
@@ -135,7 +132,7 @@ export default function VCDashboard() {
       {bulk && <BulkPanel request={bulk.request} resume={bulk.resume} onDone={() => { setSelected(new Map()); setReload((n) => n + 1) }}
         onClose={() => { setBulk(null); setReload((n) => n + 1) }} />}
       {!bulk && data && awaiting > 0 && (
-        <section aria-label="Bulk approval" className="flex flex-wrap items-center gap-2 rounded-[10px] border border-line bg-white px-4 py-3">
+        <section aria-label="Bulk approval" className="panel flex flex-wrap items-center gap-2 px-4 py-3">
           <span className="text-[15px]"><b>{selected.size}</b> selected</span>
           {eligible.length > 0 && <button type="button" className="btn-quiet min-h-9 text-sm md:hidden" onClick={togglePage}>
             {pageSelected ? 'Unselect this page' : `Select this page (${eligible.length})`}</button>}
@@ -150,11 +147,18 @@ export default function VCDashboard() {
         </section>
       )}
       <ErrorBox error={error || exportError} />
-      {!data ? (!error && <Loading />) : data.results.length === 0 ? <p className="rounded-[10px] border border-line bg-white p-5 text-muted">No assignments match these filters.</p> : (
-        <section aria-label="Reports" className="overflow-hidden rounded-[10px] border border-line bg-white">
+      {!data ? (!error && <Loading />) : data.results.length === 0
+        ? <div className="panel"><EmptyState icon="search" title="No assignments match these filters.">Change or clear the filters above.</EmptyState></div> : (
+        <section aria-label="Reports" className="panel overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-4 md:px-5">
+            <div className="flex items-start gap-3"><span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-info-bg text-action"><Icon name="building" /></span>
+              <div><h2 className="text-lg font-bold md:text-xl">Department-wise KRA status</h2>
+                <p className="text-sm text-muted">One row per KRA for each department. Use the filters above to narrow the list.</p></div></div>
+            <span className="rounded-lg bg-subtle px-3 py-1.5 text-sm font-medium text-heading">Total rows: {data.total}</span>
+          </div>
           <div className="overflow-x-auto">
-            <table role="table" className="report-table w-full text-[15px]">
-              <thead role="rowgroup" className="bg-subtle text-left">
+            <table role="table" className="report-table w-full text-[15px] md:min-w-[960px]">
+              <thead role="rowgroup" className="thead-soft">
                 <tr role="row"><th role="columnheader" className="w-10 border-b border-line px-2 py-2.5">
                   {eligible.length > 0 && <input type="checkbox" className="h-5 w-5" checked={pageSelected} onChange={togglePage} aria-label="Select this page (reports awaiting review)" />}</th>
                   {['Dept', 'KRA', 'Annual target', 'Achievement (this period)', 'Status'].map((h) => <th role="columnheader" key={h} className="whitespace-nowrap border-b border-line px-3.5 py-2.5 font-semibold text-heading">{h}</th>)}
@@ -166,7 +170,7 @@ export default function VCDashboard() {
                     <td role="cell" data-col="select" className="w-10 px-2 py-3">{r.display_status === 'SUBMITTED' && r.revision_id && r.submission_id &&
                       <input type="checkbox" className="h-5 w-5" checked={selected.has(r.submission_id)} onChange={() => toggle(r)}
                         aria-label={`Select ${r.department} KRA ${r.kra_number} for approval`} />}</td>
-                    <td role="cell" data-col="head" className="whitespace-nowrap px-3.5 py-3 font-bold text-heading">{r.department}<span className="md:hidden"> · KRA {r.kra_number}</span></td>
+                    <td role="cell" data-col="head" className="whitespace-nowrap px-3.5 py-3 font-bold text-heading"><DeptChip code={r.department} /><span className="md:hidden"> · KRA {r.kra_number}</span></td>
                     <td role="cell" data-col="wide" className="px-3.5 py-3"><b className="mr-1 text-heading max-md:hidden">{r.kra_number}</b>
                       <span className="text-sm">{r.kra_text.replace(/^KRA \d+:\s*/, '')}</span></td>
                     <td role="cell" data-col="wide" data-label="Annual target" className="w-48 whitespace-pre-wrap px-3.5 py-3">{r.target_text}</td>
@@ -196,10 +200,7 @@ export default function VCDashboard() {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm md:px-5">
             <span className="text-muted"><span>{data.total} rows</span> · page {data.page} of {pages}</span>
-            <span className="flex gap-2">
-              <button className="btn-secondary min-h-9 text-sm" disabled={data.page <= 1} onClick={() => set({ page: String(data.page - 1) })}>Previous</button>
-              <button className="btn-secondary min-h-9 text-sm" disabled={data.page * data.page_size >= data.total} onClick={() => set({ page: String(data.page + 1) })}>Next</button>
-            </span>
+            <Pager page={data.page} pages={pages} onPage={(n) => set({ page: String(n) })} label="Report pages" />
           </div>
         </section>
       )}

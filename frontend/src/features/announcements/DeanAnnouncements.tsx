@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
+import { PageHero } from '../../components/page'
 import { ErrorBox, Loading } from '../../components/ui'
 import { type Notice, NoticeBadges, NoticeText } from './common'
 
@@ -23,14 +24,11 @@ export function DeanInbox() {
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><h1 className="text-[28px] font-bold leading-tight md:text-4xl">Announcements</h1>
-          <p className="mt-1 text-muted">Notices from the Vice Chancellor for your department.{data ? ` ${data.unread_count} unread.` : ''}</p></div>
-        <label className="flex items-center gap-2 text-[15px]"><input type="checkbox" className="h-5 w-5" checked={unreadOnly}
-          onChange={(e) => { setUnreadOnly(e.target.checked); setPage(1) }} />Unread only</label>
-      </div>
+      <PageHero icon="bell" photo={false} title="Announcements" description={<>Notices from the Vice Chancellor for your department.{data ? ` ${data.unread_count} unread.` : ''}</>}
+        aside={<label className="flex items-center gap-2 px-1 text-[15px]"><input type="checkbox" className="h-5 w-5" checked={unreadOnly}
+          onChange={(e) => { setUnreadOnly(e.target.checked); setPage(1) }} />Unread only</label>} />
       <ErrorBox error={error} />
-      {!data ? (!error && <Loading />) : data.results.length === 0 ? <p className="rounded-[10px] border border-line bg-white p-5 text-muted">No announcements.</p> : (
+      {!data ? (!error && <Loading />) : data.results.length === 0 ? <p className="panel p-5 text-muted">No announcements.</p> : (
         <ul className="grid gap-2">
           {data.results.map((n) => (
             <li key={n.id}>
@@ -89,7 +87,7 @@ export function DeanNotice() {
       <Link to="/dean/announcements" className="text-sm text-action underline">← All announcements</Link>
       <ErrorBox error={error} />
       {!n ? (!error && <Loading />) : (
-        <article className="grid gap-3 rounded-[10px] border border-line bg-white p-5">
+        <article className="grid gap-3 panel p-5">
           <h1 ref={heading} tabIndex={-1} className="text-2xl font-bold text-heading">{n.title}</h1>
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted">{n.pinned && <span className="rounded bg-subtle px-1.5 py-0.5 text-xs font-bold text-heading">Pinned</span>}
             {n.updated ? 'Updated ' : 'Published '}{fmtDateTime(n.content_updated_at || n.published_at)}{n.expires_at ? ` · visible until ${fmtDateTime(n.expires_at)}` : ''}</p>
@@ -107,7 +105,7 @@ export function DashboardNotices() {
   useEffect(() => { api<Page>('/announcements/').then(setData).catch(() => {}) }, [])
   if (!data || data.total === 0) return null
   return (
-    <section aria-labelledby="notices-h" className="grid gap-2 rounded-[10px] border border-line bg-white p-4">
+    <section aria-labelledby="notices-h" className="grid gap-2 panel p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="notices-h" className="text-lg font-bold text-heading">Announcements{data.unread_count ? ` · ${data.unread_count} unread` : ''}</h2>
         <Link to="/dean/announcements" className="text-sm text-action underline">View all</Link>

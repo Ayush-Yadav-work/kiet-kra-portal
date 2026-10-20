@@ -318,7 +318,7 @@ class BrowserTests(unittest.TestCase):
         expect(kra41).to_contain_text("Reopening ends")
         expect(kra41).to_contain_text("Reopened for correction")
         cards = p.get_by_role("region", name=re.compile("reports by status"))
-        nums = [int(t) for t in re.findall(r"\b(\d+)\b", cards.inner_text())]
+        nums = [int(t) for t in re.findall(r"(?<![\d.])\b(\d+)\b(?![\d.%])", cards.inner_text())]  # counts only, not the "12.5%" shares
         self.assertEqual(nums[0], sum(nums[1:6]))  # Assigned = Not submitted + Draft + Submitted + Rejected + Approved
         self.assertEqual(nums[0], p.locator("table.report-table tbody tr").count())
         row = p.locator("table.report-table tbody tr").filter(has=p.get_by_text("Rejected", exact=True)).first
@@ -1122,6 +1122,7 @@ class BrowserTests(unittest.TestCase):
             expect(box).to_be_checked()
         expect(v.get_by_text("Approved / expected by reporting period")).to_be_visible()  # comparison of two departments
         expect(v.get_by_text(re.compile(r"of 540 reports approved$"))).to_be_visible()  # 2 departments × 45 KRAs × 6 periods
+        v.get_by_text(re.compile("^Departments:")).click()  # close the department list before using the buttons it covers
         with v.expect_download() as dl:
             v.get_by_role("button", name="Export PDF").click()
         text = " ".join(pg.get_text() for pg in pymupdf.open(dl.value.path())).replace("\n", " ")
@@ -1355,7 +1356,7 @@ class BrowserTests(unittest.TestCase):
         expect(rows.first).to_be_visible()
 
         def card(label):
-            return p.get_by_role("button", name=re.compile(rf"^\d+\s*{label}$"))
+            return p.get_by_role("button", name=re.compile(rf"^\d+\s*{label}(\s*[\d.]+%)?$"))  # count, label, share (redesign v2)
 
         def value(label):
             return int(re.match(r"\d+", card(label).inner_text()).group(0))

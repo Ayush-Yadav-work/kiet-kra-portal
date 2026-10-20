@@ -15,18 +15,27 @@ const STATUS: Record<DisplayStatus, [string, string]> = {
 }
 export const statusLabel = (s: DisplayStatus) => STATUS[s][0]
 
-const TONE: Record<DisplayStatus | 'ASSIGNED', [IconName, string]> = {
-  ASSIGNED: ['doc', 'bg-info-bg text-info'], NOT_SUBMITTED: ['circle', 'bg-neutral-bg text-neutral'], DRAFT: ['pencil', 'bg-warn-bg text-warn'],
-  SUBMITTED: ['send', 'bg-info-bg text-info'], REJECTED: ['undo', 'bg-err-bg text-err'], APPROVED: ['check', 'bg-ok-bg text-ok'],
+const TONE: Record<DisplayStatus | 'ASSIGNED', [IconName, string, string]> = {
+  ASSIGNED: ['doc', 'bg-info-bg text-info', 'bg-action'], NOT_SUBMITTED: ['clock', 'bg-neutral-bg text-neutral', 'bg-[#7A8899]'],
+  DRAFT: ['pencil', 'bg-warn-bg text-warn', 'bg-[#E3A13B]'], SUBMITTED: ['send', 'bg-info-bg text-info', 'bg-[#5B9BD8]'],
+  REJECTED: ['xcircle', 'bg-err-bg text-err', 'bg-[#E46F6F]'], APPROVED: ['check', 'bg-ok-bg text-ok', 'bg-[#3FA466]'],
 }
-/** Compact summary card (approved UI-0 dashboard). With `onClick` it is a toggle button (`pressed` = selected filter). */
-export function StatCard({ kind, value, label, onClick, pressed }: { kind: DisplayStatus | 'ASSIGNED'; value: number; label: string; onClick?: () => void; pressed?: boolean }) {
-  const [icon, tone] = TONE[kind]
+/** Summary card (redesign v2): icon, count, label and — with `total` — its share as a percentage and bar. With `onClick` it is a
+ *  toggle button (`pressed` = selected filter). */
+export function StatCard({ kind, value, label, onClick, pressed, total }: { kind: DisplayStatus | 'ASSIGNED'; value: number; label: string; onClick?: () => void; pressed?: boolean; total?: number }) {
+  const [icon, tone, bar] = TONE[kind]
+  const share = total ? Math.round((value / total) * 1000) / 10 : null
   const body = <>
-    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full md:h-11 md:w-11 ${tone}`}><Icon name={icon} /></span>
-    <span className="text-left"><span className="block text-2xl font-bold leading-tight text-heading md:text-[28px]">{value}</span><span className="text-sm text-ink md:text-[15px]">{label}</span></span>
+    <span className="flex items-center gap-3">
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full md:h-12 md:w-12 ${tone}`}><Icon name={icon} /></span>
+      <span className="text-left"><span className="block text-2xl font-bold leading-tight text-heading md:text-[30px]">{value}</span><span className="text-sm text-ink md:text-[15px]">{label}</span></span>
+    </span>
+    {share !== null && <span className="mt-2 block">
+      <span className="block text-right text-[13px] font-semibold text-heading">{share.toFixed(1)}%</span>
+      <span aria-hidden="true" className="mt-1 block h-1.5 overflow-hidden rounded-full bg-[#E8EEF4]"><span className={`block h-full rounded-full ${bar}`} style={{ width: `${share}%` }} /></span>
+    </span>}
   </>
-  const cls = `flex items-center gap-3 rounded-[10px] border bg-white px-3 py-3 md:px-4 ${pressed ? 'border-action ring-2 ring-action' : kind === 'ASSIGNED' ? 'border-[#B9CDE0]' : 'border-line'}`
+  const cls = `block w-full rounded-xl border bg-white px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(12,45,71,.06)] md:px-4 ${pressed ? 'border-action ring-2 ring-action' : 'border-[#E3E9EF]'}`
   return onClick ? <button type="button" className={`${cls} hover:border-action`} aria-pressed={pressed} onClick={onClick}>{body}</button> : <div className={cls}>{body}</div>
 }
 
@@ -85,13 +94,12 @@ export function tabKeys(e: KeyboardEvent<HTMLElement>) {
 
 const NAV: Record<Role, { to: string; label: string; icon: IconName }[]> = {
   DEAN: [{ to: '/dean/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/dean/announcements', label: 'Announcements', icon: 'bell' }],
-  VC: [{ to: '/vc/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/vc/analytics', label: 'Analytics', icon: 'doc' },
-       { to: '/vc/reopen-requests', label: 'Reopening requests', icon: 'list' }, { to: '/vc/assignments', label: 'Annual assignments', icon: 'list' },
-       { to: '/vc/kras', label: 'KRAs', icon: 'list' }, { to: '/vc/announcements', label: 'Announcements', icon: 'bell' }],
+  VC: [{ to: '/vc/dashboard', label: 'Dashboard', icon: 'home' }, { to: '/vc/analytics', label: 'Analytics', icon: 'chart' },
+       { to: '/vc/reopen-requests', label: 'Reopening requests', icon: 'doc' }, { to: '/vc/assignments', label: 'Annual assignments', icon: 'list' },
+       { to: '/vc/kras', label: 'KRAs', icon: 'layers' }, { to: '/vc/announcements', label: 'Announcements', icon: 'bell' }],
 }
 const initials = (name: string) => name.replace(/^(Dr|Prof|Mr|Ms|Mrs)\.?\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
-/** Approved UI-0 header: logo, product name, existing destinations only, user and Sign out; on phones the links wrap below. */
 function useUnread(enabled: boolean) {
   const { pathname } = useLocation()
   const [n, setN] = useState(0)
@@ -113,32 +121,31 @@ function Shell({ children }: { children: ReactNode }) {
   if (!user) return null
   const links = [...NAV[user.role], { to: '/change-password', label: 'Change password', icon: 'lock' as IconName }]
   const roleLine = user.role === 'VC' ? 'Vice Chancellor' : `Dean, ${user.department?.code ?? ''}`
-  const vc = user.role === 'VC'  // the VC's seven links always get their own row (one row overflowed at 1536 px)
+  // Redesign v2: two rows for both roles — brand and user on top, the horizontal navigation below (scrolls sideways on phones).
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-line bg-white">
-        <div className={`mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-7 gap-y-2 px-4 py-2 md:px-7 ${vc ? '' : 'xl:min-h-[72px] xl:flex-nowrap xl:py-0'}`}>
+    <div className="min-h-screen overflow-x-clip">
+      <header className="border-b border-line bg-white shadow-[0_1px_4px_rgba(12,45,71,.05)]">
+        <div className="mx-auto flex max-w-[1440px] items-center gap-x-5 px-4 py-2.5 md:px-7">
           <Link to={homeFor(user)} aria-label="KIET KRA Reporting Portal — home" className="shrink-0"><img src={logo} width={974} height={360} alt="" className="h-auto w-28 md:w-[150px]" /></Link>
-          <span className={`hidden whitespace-nowrap border-l border-line pl-6 text-xl font-bold text-heading ${vc ? '2xl:inline' : 'lg:inline'}`}>KRA Reporting Portal</span>
-          <nav aria-label="Main" className={`order-3 flex w-full flex-wrap gap-x-1 self-stretch ${vc ? '' : 'xl:order-none xl:ml-2 xl:w-auto xl:flex-nowrap'}`}>
-            {links.map((l) => (
-              <NavLink key={l.to} to={l.to} end
-                className={({ isActive }) => `flex min-h-11 items-center gap-2 whitespace-nowrap border-b-[3px] px-3 text-[15px] ${isActive ? 'border-accent font-semibold text-action' : 'border-transparent font-medium text-heading hover:text-action'}`}>
-                <Icon name={l.icon} />{l.label}
-                {l.to === '/dean/announcements' && unread > 0 && <span className="sr-only"> </span>}
-                {l.to === '/dean/announcements' && unread > 0 && <span className="rounded-full bg-accent-btn px-1.5 text-xs font-bold text-white">{unread}<span className="sr-only"> unread</span></span>}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-3.5">
-            <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-bold text-white md:h-10 md:w-10">{initials(user.name)}</span>
-            <span className="hidden leading-tight sm:block"><b className="block text-heading">{user.name}</b><span className="text-sm text-muted">{roleLine}</span></span>
-            <span aria-hidden="true" className="hidden h-8 w-px bg-line sm:block" />
-            <button className="btn-secondary min-h-9 px-3.5 text-sm" onClick={() => logout()}>Sign out</button>
+          <span className="hidden whitespace-nowrap border-l border-line pl-5 text-xl font-bold text-heading md:inline md:text-[22px]">KRA Reporting Portal</span>
+          <div className="ml-auto flex items-center gap-3">
+            <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-bold text-white md:h-11 md:w-11">{initials(user.name)}</span>
+            <span className="hidden leading-tight lg:block"><b className="block whitespace-nowrap text-heading">{user.name}</b><span className="text-sm text-muted">{roleLine}</span></span>
+            <button className="btn-secondary min-h-9 whitespace-nowrap px-3 text-sm sm:ml-2" onClick={() => logout()}><span className="max-sm:hidden"><Icon name="logout" size={18} /></span>Sign out</button>
           </div>
         </div>
+        <nav aria-label="Main" className="mx-auto flex max-w-[1440px] gap-x-1 overflow-x-auto px-2 md:px-5">
+          {links.map((l) => (
+            <NavLink key={l.to} to={l.to} end
+              className={({ isActive }) => `flex min-h-12 shrink-0 items-center gap-2 whitespace-nowrap border-b-[3px] px-3 text-[15px] ${isActive ? 'border-accent font-semibold text-action' : 'border-transparent font-medium text-heading hover:border-[#C9D3DC] hover:text-action'}`}>
+              <Icon name={l.icon} />{l.label}
+              {l.to === '/dean/announcements' && unread > 0 && <span className="sr-only"> </span>}
+              {l.to === '/dean/announcements' && unread > 0 && <span className="rounded-full bg-accent-btn px-1.5 text-xs font-bold text-white">{unread}<span className="sr-only"> unread</span></span>}
+            </NavLink>
+          ))}
+        </nav>
       </header>
-      <main className="mx-auto max-w-[1400px] p-4 md:px-7 md:py-6">{children}</main>
+      <main className="mx-auto max-w-[1440px] p-4 md:px-7 md:py-6">{children}</main>
     </div>
   )
 }

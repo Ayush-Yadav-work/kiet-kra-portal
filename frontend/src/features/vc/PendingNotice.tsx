@@ -27,7 +27,7 @@ export default function PendingNotice({ year, opened, fixedPeriod, departments, 
     catch (e) { setError(e instanceof ApiError ? e.message : 'Failed'); setBusy(false) }
   }
   return (
-    <section role="region" aria-label="Announce to pending departments" className="grid gap-3 rounded-[10px] border-2 border-action bg-white p-4">
+    <section role="region" aria-label="Announce to pending departments" className="grid gap-3 panel border-2 border-action p-4">
       <div className="flex items-start justify-between gap-2"><h2 className="text-lg font-bold text-heading">Announce to pending departments</h2>
         <button type="button" className="btn-quiet min-h-9 text-sm" onClick={onClose}>Close</button></div>
       <p className="text-sm text-muted">Departments with at least one report that is not submitted, still a draft, rejected or returned for correction in the

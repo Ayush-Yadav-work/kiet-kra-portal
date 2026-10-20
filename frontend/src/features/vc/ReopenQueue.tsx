@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { ReopenRequest } from '../../api/types'
+import { PageHero } from '../../components/page'
 import { ErrorBox, Loading } from '../../components/ui'
 
 export default function ReopenQueue() {
@@ -24,13 +25,11 @@ export default function ReopenQueue() {
   }
 
   return (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Reopening requests</h1>
-        <select aria-label="State" className="input w-auto" value={state} onChange={(e) => setState(e.target.value)}>
+    <div className="grid gap-4">
+      <PageHero icon="doc" photo={false} title="Reopening requests" description="Deans' requests to reopen a closed reporting period for one report. Denying needs a reason the Dean will see."
+        aside={<select aria-label="State" className="input w-auto" value={state} onChange={(e) => setState(e.target.value)}>
           <option value="PENDING">Pending</option><option value="APPROVED">Approved</option><option value="DENIED">Denied</option><option value="">All</option>
-        </select>
-      </div>
+        </select>} />
       <ErrorBox error={error} />
       {!rows ? <Loading /> : rows.length === 0 ? <p className="card text-sm text-slate-500">No requests.</p> : (
         <ul className="space-y-2">

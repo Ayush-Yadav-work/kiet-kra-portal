@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — Dean dashboard (UI-0, revision 3)</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+<p class="preview-flag">Design preview (UI-0, revision 3) — sample data: statuses, counts, dates, names and reasons are synthetic; activities and targets are the workbook's ECE text. Controls are inert.</p>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <img class="logo" src="../../backend/apps/reports/assets/kiet-logo.png" width="974" height="360" alt="KIET Deemed to be University">
+    <span class="product">KRA Reporting Portal</span>
+    <nav class="mainnav" aria-label="Main">
+      <a href="#" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Dashboard</a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Change password</a>
+    </nav>
+    <div class="me">
+      <span class="avatar" aria-hidden="true">AS</span>
+      <span class="who"><b>Dr. A. Sharma</b><span>Dean, ECE</span></span>
+      <span class="sep" aria-hidden="true"></span>
+      <button class="btn btn-plain btn-sm" type="button">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main class="dash">
+  <div class="titlerow">
+    <div>
+      <h1>KRA Reports</h1>
+      <p class="dept">Electronics &amp; Communication Engineering</p>
+    </div>
+    <div class="filters">
+      <div class="field yr"><label for="yr">Academic year</label><select class="select" id="yr"><option>2026-27</option><option>2027-28</option></select></div>
+      <div class="field pd"><label for="pd">Reporting period</label><select class="select" id="pd"><option>P1: July – August 2026 (closed)</option><option selected>P2: September – October 2026 (open)</option></select></div>
+    </div>
+  </div>
+
+  <p class="window"><span class="open">P2 is open</span><span>Submissions close <b>1 Nov 2026, 00:00 IST</b></span><span class="small">15 days left</span></p>
+
+  <section aria-labelledby="sum"><h2 id="sum" class="sr-only">P2 reports by status</h2>
+    <div class="cards">
+      <div class="scard total"><span class="ico ico-total"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><span><span class="n">45</span><span class="k">Assigned</span></span></div>
+      <div class="scard"><span class="ico ico-not"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg></span><span><span class="n">30</span><span class="k">Not submitted</span></span></div>
+      <div class="scard"><span class="ico ico-draft"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11-4-4L4 16z"/></svg></span><span><span class="n">9</span><span class="k">Draft</span></span></div>
+      <div class="scard"><span class="ico ico-sub"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L3 10l7 3 3 7z"/><path d="M10 13l11-10"/></svg></span><span><span class="n">4</span><span class="k">Submitted</span></span></div>
+      <div class="scard"><span class="ico ico-rej"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></span><span><span class="n">1</span><span class="k">Rejected</span></span></div>
+      <div class="scard"><span class="ico ico-ok"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><span class="n">1</span><span class="k">Approved</span></span></div>
+    </div>
+  </section>
+
+  <!-- Same two sources the current dashboard uses: active reopening grants and Rejected reports with the VC's reason. Not counted in the status totals. -->
+  <section class="attn" aria-labelledby="attn">
+    <div class="attn-head"><span class="badge-ico" aria-hidden="true">!</span>
+      <div><h2 id="attn">Needs your attention (2)</h2><p class="small">Reopened reports and reports returned by the Vice Chancellor.</p></div></div>
+    <ul>
+      <li><span class="ref">KRA 14 · P1</span>
+          <span class="what"><b>Reopened for correction — 52 h 10 m left</b><span>No of Yukthi Registration - Faculty with Students</span></span>
+          <span class="when"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span><b>Reopening ends</b>19 Oct 2026, 16:40 IST</span></span>
+          <span class="act"><a class="btn btn-outline btn-sm" href="#">Open report</a></span></li>
+      <li><span class="ref">KRA 31 · P2</span>
+          <span class="what"><b>Rejected by the Vice Chancellor</b><span>“Attach the participant list and photographs of the hackathon.” — 15 Oct 2026, 11:05 IST</span></span>
+          <span class="when"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span><b>Period closes</b>1 Nov 2026, 00:00 IST</span></span>
+          <span class="act"><a class="btn btn-primary btn-sm" href="#">Correct &amp; resubmit</a></span></li>
+    </ul>
+  </section>
+
+  <section class="reports" aria-labelledby="rep">
+    <div class="rep-head">
+      <h2 id="rep">P2 Reports <span class="chip">45 assigned</span></h2>
+      <ul class="legend" aria-label="Status counts">
+        <li><span class="dot d-not" aria-hidden="true"></span><b>30</b> Not submitted</li>
+        <li><span class="dot d-draft" aria-hidden="true"></span><b>9</b> Draft</li>
+        <li><span class="dot d-sub" aria-hidden="true"></span><b>4</b> Submitted</li>
+        <li><span class="dot d-rej" aria-hidden="true"></span><b>1</b> Rejected</li>
+        <li><span class="dot d-ok" aria-hidden="true"></span><b>1</b> Approved</li>
+      </ul>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">KRA</th><th scope="col">Activity</th><th scope="col">Annual target</th><th scope="col">Status</th><th scope="col">Details</th><th scope="col" style="text-align:center">Action</th></tr></thead>
+        <tbody>
+          <tr><td class="kra">3</td><td class="activity">Number of online courses of MOOCs, SWAYAM / e_Pathshala/ NPTE/ Global Certification.</td><td class="target">50% student/Year</td>
+              <td class="status"><span class="pill p-not">Not submitted</span></td><td class="detail">—</td><td class="action"><a class="btn btn-outline btn-sm" href="#">Start report</a></td></tr>
+          <tr><td class="kra">19</td><td class="activity">No. of industrial visits arranged for students</td><td class="target">75% students per year</td>
+              <td class="status"><span class="pill p-ok">Approved</span><span class="nil" title="Nil report">Nil</span></td><td class="detail">Approved by the VC</td><td class="action"><a class="link-strong" href="#">View</a></td></tr>
+          <tr><td class="kra">20</td><td class="activity">No of faculty to be trained in industry for more than a week</td><td class="target">2 Faculty Members/ Per Year</td>
+              <td class="status"><span class="pill p-sub">Submitted</span></td><td class="detail">Awaiting VC review</td><td class="action"><a class="link-strong" href="#">View</a></td></tr>
+          <tr><td class="kra">30</td><td class="activity">The institution conducts /organizes, any other events through active clubs and forums</td><td class="target">01 activity per club per sem</td>
+              <td class="status"><span class="pill p-not">Not submitted</span></td><td class="detail">—</td><td class="action"><a class="btn btn-outline btn-sm" href="#">Start report</a></td></tr>
+          <tr><td class="kra">31</td><td class="activity">No of Hackathon or ideathon Organized (State Level/National Level)</td><td class="target">1</td>
+              <td class="status"><span class="pill p-rej">Rejected</span></td><td class="detail">15 Oct 2026, 11:05 IST<span>Reason: see Needs your attention</span></td><td class="action"><a class="btn btn-outline btn-sm" href="#">Correct &amp; resubmit</a></td></tr>
+          <tr><td class="kra">33</td><td class="activity">Alumni chapter, Meet and Engagement in university activities/events organized</td><td class="target">4</td>
+              <td class="status"><span class="pill p-draft">Draft</span></td><td class="detail">Not yet submitted</td><td class="action"><a class="btn btn-outline btn-sm" href="#">Continue draft</a></td></tr>
+          <tr><td class="kra">43</td><td class="activity">Scopus ConferenceOrganized by the Department</td><td class="target">Min 1 Per Department  per Year ( 20% papers of accepted and published papers should be from KIET University )</td>
+              <td class="status"><span class="pill p-draft">Draft</span></td><td class="detail">Not yet submitted</td><td class="action"><a class="btn btn-outline btn-sm" href="#">Continue draft</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="rep-foot">Preview shows 7 of the 45 rows. The dashboard lists all assigned KRAs in KRA order on one page (no pagination or sorting today).</p>
+  </section>
+</main>
+</body>
+</html>
