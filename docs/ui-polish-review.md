@@ -139,3 +139,13 @@ isolated browser suite **31 OK** (incl. login required-field/keyboard/role and w
 `.work/ui-login-v4/login-{dean,vc}-{1366,1440,1672,768,375}.png`, `login-vc-<width>-required.png`,
 `login-dean-1366-invalid.png` (inspected: 1366 normal and invalid, 1440 required, 768, 375). Note: the PNG is 2.7 MB
 (the original is used as instructed); a high-quality WebP/JPEG could cut this if load time matters.
+
+## Login — full-page background restored (2026-10-21)
+
+Owner feedback: with the contained photo the image looked small, with empty side bands on wide screens, and phones/tablets
+showed no background. The original PNG now fills the whole page at every size (`object-cover`, anchored to the top so the
+sky, buildings and tower stay in view); title and compact card sit over it on desktop and stack over it on phones/tablets.
+Kept: original PNG (no JPEG), no CSS filter, local overlays only, 440 px card. Measured: the photo covers the full page
+on `/dean/login`, `/vc/login` and `/` at 1535×728, 1366×768, 1440×900, 1920×1080, 1024×768, 768×1024 and 375×812
+(also with field errors), 0 filters, no horizontal overflow. Browser suite 31 OK. Screenshots: `.work/ui-login-v5/`.
+Trade-off: filling wide screens crops a little of the photo's top or bottom and scales it above 1672 px on large monitors.
