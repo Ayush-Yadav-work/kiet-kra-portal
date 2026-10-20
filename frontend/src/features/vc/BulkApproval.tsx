@@ -88,7 +88,7 @@ export function BulkPanel({ request, resume, onDone, onClose }: { request: Prepa
   const pct = run ? Math.round((run.processed / Math.max(run.total, 1)) * 100) : 0
   const finished = !!run?.confirmed_at && run.remaining === 0
   return (
-    <section role="region" aria-labelledby="bulk-h" className="grid gap-3 rounded-[10px] border-2 border-action bg-white p-4 md:p-5">
+    <section role="region" aria-labelledby="bulk-h" className="grid gap-3 panel border-2 border-action p-4 md:p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h2 id="bulk-h" ref={heading} tabIndex={-1} className="text-xl font-bold text-heading">Bulk approval</h2>
         {!busy && <button type="button" className="btn-quiet min-h-9 text-sm" onClick={onClose}>Close</button>}

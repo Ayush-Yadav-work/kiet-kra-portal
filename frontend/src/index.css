@@ -14,7 +14,7 @@
   --color-muted: #55657A;
   --color-control: #62748E;           /* input/control boundaries ≥3:1 */
   --color-line: #DCE3E8;              /* dividers only */
-  --color-canvas: #EEF2F5;
+  --color-canvas: #F2F5F9;            /* redesign v2: lighter page background */
   --color-subtle: #F4F7F9;
   --color-ok: #166534; --color-ok-bg: #E8F5EC;
   --color-warn: #8A4B00; --color-warn-bg: #FFF4DE;
@@ -44,7 +44,10 @@ h1, h2, h3 { @apply text-heading; }
          focus:border-action focus-within:border-action focus-within:ring-1 focus-within:ring-action disabled:bg-[#EEF2F5];
 }
 @utility label { @apply mb-1 block text-sm font-semibold text-heading; }
-@utility card { @apply rounded-[10px] border border-line bg-white p-4; }
+@utility card { @apply rounded-xl border border-line bg-white p-4 shadow-[0_1px_3px_rgba(12,45,71,.06)]; }
+/* Redesign v2 surfaces (docs/ui-redesign-v2-review.md) */
+@utility panel { @apply relative rounded-xl border border-[#E3E9EF] bg-white shadow-[0_2px_8px_rgba(12,45,71,.06)]; }
+@utility thead-soft { @apply bg-[#F1F5FA] text-left text-[13px] font-semibold text-heading; }
 
 /* UI-2: report tables become labelled cards on phones (wide tables keep their own horizontal scroll on larger screens). */
 @media (max-width: 767px) {

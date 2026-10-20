@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — KRA Reporting Portal sign-in (UI-0, revision 3)</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+<p class="preview-flag">Design preview (UI-0, revision 3) — static mock-up; not the live portal. Fields contain sample values and controls are inert.</p>
+
+<main class="login-bg photo">
+
+  <section class="login-card" aria-labelledby="signin">
+    <img class="logo" src="../../backend/apps/reports/assets/kiet-logo.png" width="974" height="360" alt="KIET Deemed to be University">
+    <p class="portal-rule">KRA Reporting Portal</p>
+    <div>
+      <h1 id="signin">Sign in</h1>
+      <p class="sub">Choose your role, then enter your portal account.</p>
+    </div>
+
+    <!-- The two halves are links to the existing, separate role routes (/dean/login and /vc/login); each form only accepts its own role. -->
+    <nav class="seg" aria-label="Sign in as">
+      <a href="#signin" aria-current="page">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Dean</a>
+      <a href="#signin">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.2c1.9.9 3 2.9 3 5.8"/></svg>Vice Chancellor</a>
+    </nav>
+
+    <form onsubmit="return false" novalidate>
+      <div>
+        <label class="sr-only" for="u">Username</label>
+        <div class="ifield">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <input class="input" id="u" autocomplete="username" placeholder="Username">
+        </div>
+      </div>
+      <div>
+        <label class="sr-only" for="pw">Password</label>
+        <div class="ifield">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+          <input class="input" id="pw" type="password" autocomplete="current-password" placeholder="Password">
+          <button class="eye" type="button" aria-label="Show password" aria-pressed="false">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+      <button class="btn btn-signin" type="submit">Sign in
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+
+    <p class="login-foot">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+      <span>Authorized KIET Deans and the Vice Chancellor only.</span></p>
+  </section>
+</main>
+
+<main class="login-bg plain" style="min-height:auto" aria-label="Preview reference: error state">
+  <section class="login-card" style="gap:12px">
+    <p class="portal-rule" style="font-size:1rem">Preview reference — error state</p>
+    <div style="width:100%">
+      <div class="ifield">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+        <label class="sr-only" for="pw2">Password</label>
+        <input class="input" id="pw2" type="password" value="sample-password" aria-invalid="true" aria-describedby="pw2e">
+      </div>
+      <p class="field-error" id="pw2e"><b>Error:</b> the username or password is incorrect.</p>
+    </div>
+    <button class="btn btn-signin" type="button" disabled style="opacity:.75;cursor:not-allowed">Signing in…</button>
+  </section>
+</main>
+</body>
+</html>

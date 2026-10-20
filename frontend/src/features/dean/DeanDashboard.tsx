@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatCard, StatusBadge, statusLabel, timeLeft, useServerClock } from '../../components/ui'
 import { DashboardNotices } from '../announcements/DeanAnnouncements'
+import { IconSelect, PageHero } from '../../components/page'
 
 interface Row extends Assignment { submission: SubmissionSummary; applicability: Applicability | null; latest_reopen_request: ReopenRequest | null }
 interface GrantRow { id: string; expires_at: string; kra_number: number; period: string; assignment_id: string; period_id: number; status: string; source: string }
@@ -23,17 +24,13 @@ export function usePeriods(year: string) {
 
 export function YearPeriodPicker({ year, period, periods, onChange }: { year: string; period: string; periods: Period[]; onChange: (y: string, p: string) => void }) {
   return (
-    <div className="flex w-full flex-wrap gap-4 sm:w-auto">
-      <label className="grid w-full gap-1.5 text-sm font-semibold text-heading sm:w-[190px]">Academic year{' '}
-        <select className="input" value={year} onChange={(e) => onChange(e.target.value, '')}>
-          {YEARS.map((y) => <option key={y}>{y}</option>)}
-        </select>
-      </label>
-      <label className="grid w-full gap-1.5 text-sm font-semibold text-heading sm:w-[340px]">Reporting period{' '}
-        <select className="input" value={period} onChange={(e) => onChange(year, e.target.value)}>
-          {periods.map((p) => <option key={p.id} value={p.id}>{p.label}{p.is_open ? ' (open)' : p.is_closed ? ' (closed)' : ' (upcoming)'}</option>)}
-        </select>
-      </label>
+    <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+      <IconSelect label="Academic year" icon="calendar" className="w-full sm:w-[180px]" value={year} onChange={(e) => onChange(e.target.value, '')}>
+        {YEARS.map((y) => <option key={y}>{y}</option>)}
+      </IconSelect>
+      <IconSelect label="Reporting period" icon="calendar" className="w-full sm:w-[370px]" value={period} onChange={(e) => onChange(year, e.target.value)}>
+        {periods.map((p) => <option key={p.id} value={p.id}>{p.label}{p.is_open ? ' (open)' : p.is_closed ? ' (closed)' : ' (upcoming)'}</option>)}
+      </IconSelect>
     </div>
   )
 }
@@ -117,14 +114,10 @@ export default function DeanDashboard() {
 
   return (
     <div className="grid gap-[18px]">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div>
-          <h1 className="text-[28px] font-bold leading-tight md:text-4xl">KRA Reports</h1>
-          <p className="mt-1 text-base text-muted md:text-xl">{user?.department?.name}</p>
-        </div>
-        <YearPeriodPicker year={year} period={periodId} periods={periods}
-          onChange={(y, p) => setParams((cur) => Object.fromEntries(Object.entries({ year: y, period: p, status: cur.get('status') ?? '' }).filter(([, v]) => v)))} />
-      </div>
+      <PageHero eyebrow="Welcome back," title="KRA Reports" description={`Your department's KRA reports for each reporting period.`}
+        chip={<>{user?.department?.name} · {year}</>}
+        aside={<YearPeriodPicker year={year} period={periodId} periods={periods}
+          onChange={(y, p) => setParams((cur) => Object.fromEntries(Object.entries({ year: y, period: p, status: cur.get('status') ?? '' }).filter(([, v]) => v)))} />} />
       <DashboardNotices />
 
       {period && (
@@ -141,15 +134,15 @@ export default function DeanDashboard() {
         <section aria-labelledby="sum-h">
           <h2 id="sum-h" className="sr-only">{short} reports by status</h2>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6 xl:gap-3.5">
-            <StatCard kind="ASSIGNED" value={assigned.length} label="Assigned" pressed={!status} onClick={() => setStatus(null)} />
-            {STATUSES.map((s) => <StatCard key={s} kind={s} value={counts[s]} label={statusLabel(s)} pressed={status === s}
+            <StatCard kind="ASSIGNED" value={assigned.length} label="Assigned" total={assigned.length} pressed={!status} onClick={() => setStatus(null)} />
+            {STATUSES.map((s) => <StatCard key={s} kind={s} value={counts[s]} label={statusLabel(s)} total={assigned.length} pressed={status === s}
               onClick={() => setStatus(status === s ? null : s)} />)}
           </div>
           <p className="mt-2 text-sm text-muted">Select a card to list only those reports; select it again (or Assigned) to show all.</p>
         </section>
 
         {items.length > 0 && (
-          <section aria-labelledby="attn-h" className="rounded-[10px] border border-line bg-white px-4 pb-1 pt-4 md:px-5">
+          <section aria-labelledby="attn-h" className="panel px-4 pb-1 pt-4 md:px-5">
             <div className="flex items-center gap-3.5 pb-3">
               <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-btn text-xl font-extrabold text-white">!</span>
               <div><h2 id="attn-h" className="text-xl font-bold">Needs your attention ({items.length})</h2>
@@ -169,7 +162,7 @@ export default function DeanDashboard() {
           </section>
         )}
 
-        <section aria-labelledby="rep-h" className="overflow-hidden rounded-[10px] border border-line bg-white">
+        <section aria-labelledby="rep-h" className="panel overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2.5 px-4 py-4 md:px-5">
             <h2 id="rep-h" className="flex items-center gap-3 text-xl font-bold md:text-2xl">{short} Reports <span className="rounded-full bg-neutral-bg px-3 py-0.5 text-sm font-medium">{status ? `${statusLabel(status)}: ${shown.length}` : `${assigned.length} assigned`}</span></h2>
             <p className="text-sm text-muted">Targets are shown exactly as assigned.</p>
@@ -179,7 +172,7 @@ export default function DeanDashboard() {
               <button type="button" className="font-semibold text-action underline" onClick={() => setStatus(null)}>Show all reports</button></p> : (
             <div className="overflow-x-auto">
               <table role="table" className="report-table w-full text-[15px]">
-                <thead role="rowgroup" className="bg-subtle text-left">
+                <thead role="rowgroup" className="thead-soft">
                   <tr role="row">{['KRA', 'Activity', 'Annual target', 'Status', 'Details'].map((h) => <th role="columnheader" key={h} className="whitespace-nowrap border-y border-line px-3.5 py-2.5 font-semibold text-heading">{h}</th>)}
                     <th role="columnheader" className="border-y border-line px-3.5 py-2.5 text-center font-semibold text-heading">Action</th></tr>
                 </thead>
