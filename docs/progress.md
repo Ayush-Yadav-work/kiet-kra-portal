@@ -252,6 +252,9 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Head of Department/Dean fields read-only from the Dean's profile full name, snapshotted per revision; Nil reports print the name and the IST submission date ("Set on submission" for drafts)
 - [x] Checks: backend 561 OK (renderer running; new `tests.test_term_and_dean`); isolated browser suite 32 OK (new `test_term_dropdowns_dean_name_and_nil_date_placeholder`); `tsc -b` + build OK; normal (KRA 7, 11, 19, 44) and Nil PDFs inspected
 
+## Report editor navigation (2026-10-24)
+- [x] "Jump to section" chips (select on phones) derived from the template per event/course, current section marked; floating "Back to top" returning to the workspace heading; 375 px overflow from table header text fixed (`docs/ui-polish-review.md`)
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).

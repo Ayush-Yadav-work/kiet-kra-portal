@@ -3,12 +3,13 @@ import { useForm } from 'react-hook-form'
 import { Link, useBlocker, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { Applicability, Assignment, Payload, Period, ReopenRequest, Schema, SubmissionDetail } from '../../api/types'
+import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatusBadge, tabKeys, timeLeft, useServerClock } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
 import EvidenceTab from '../evidence/EvidenceTab'
 import Preview from './Preview'
 import { SaveQueue } from './saveQueue'
-import SchemaForm, { emptyActivity } from './SchemaForm'
+import SchemaForm, { emptyActivity, jumpTo } from './SchemaForm'
 
 type Tab = 'report' | 'evidence' | 'achievement'
 
@@ -38,7 +39,7 @@ export function WorkspaceHeader({ d, status }: { d: SubmissionDetail; status?: S
     <div className="card mb-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold">KRA {d.assignment.kra.number} — {d.assignment.department.name}</h1>
+          <h1 id="workspace-heading" tabIndex={-1} className="scroll-mt-4 text-lg font-semibold">KRA {d.assignment.kra.number} — {d.assignment.department.name}</h1>
           <p className="text-sm text-slate-700">{d.assignment.kra.activity_text.replace(/^KRA \d+:\s*/, '')}</p>
           <p className="mt-1 text-sm">Academic year <b>{d.assignment.year}</b> · <b>{d.period.label}</b> · Annual target: <b className="whitespace-pre-wrap">{d.assignment.target_text}</b></p>
           <p className="text-xs text-slate-500">NBA {d.assignment.kra.nba_ref || '—'} · NAAC {d.assignment.kra.naac_ref || '—'}</p>
@@ -74,6 +75,33 @@ function normalize(p: Payload | undefined, schema: Schema, editable: boolean): P
 
 /** Submission dates are shown as dates in Asia/Kolkata (D-079), e.g. "24 October 2026". */
 const istDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
+
+/** Floating "Back to top" for the report form (the window scrolls; the preview iframe keeps its own position). Sits in a
+ * zero-height sticky slot at the end of the form column, so it takes no layout space; on wide screens it sits
+ * across the gutter (over the preview page, clear of form inputs). */
+function BackToTop() {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    const check = () => {
+      const h = document.getElementById('workspace-heading')
+      setShow(!!h && h.getBoundingClientRect().bottom < -400)
+    }
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    return () => { window.removeEventListener('scroll', check); window.removeEventListener('resize', check) }
+  }, [])
+  return (
+    <div className="pointer-events-none sticky bottom-4 z-10 h-0">
+      {show && (
+        <button type="button" onClick={() => jumpTo('workspace-heading', 'workspace-heading')}
+          className="btn-secondary pointer-events-auto absolute bottom-0 right-0 lg:left-[calc(100%-0.875rem)] lg:right-auto min-h-11 w-max gap-1.5 whitespace-nowrap px-3 text-sm shadow-[0_4px_14px_rgba(12,45,71,.18)]">
+          <Icon name="arrowUp" size={18} />Back to top
+        </button>
+      )}
+    </div>
+  )
+}
 
 function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; reload: () => void }) {
   const q = useMemo(() => new SaveQueue(d.id, d.edit_version), [d.id, d.edit_version])
@@ -228,6 +256,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
               )}
             </div>
             <div hidden={nil.is_nil}><SchemaForm schema={schema} ctx={ctx} /></div>
+            <BackToTop />
           </div>
           <div className={`min-w-0 lg:sticky lg:top-2 lg:h-[calc(100vh-1rem)] ${view === 'form' ? 'hidden lg:block' : ''}`}>
             <Preview submissionId={d.id} draft={editable ? { payload: draft, ...nil, achievement_text: ach.achievement_text } : undefined} />
