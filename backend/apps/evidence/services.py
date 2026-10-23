@@ -84,10 +84,20 @@ def add_file(user, submission_id, uploaded, category, label, description="", req
         return ev
 
 
+def is_drive_url(url):
+    """https on drive.google.com / docs.google.com, no credentials, default port only (audit L1)."""
+    parsed = urlparse(url)
+    try:
+        port = parsed.port  # raises ValueError for malformed or out-of-range ports
+    except ValueError:
+        return False
+    return (len(url) <= 1000 and parsed.scheme == "https" and parsed.hostname in DRIVE_HOSTS
+            and parsed.username is None and parsed.password is None and port in (None, 443))
+
+
 def add_link(user, submission_id, url, category, label, description="", request=None):
     url = (url or "").strip()
-    parsed = urlparse(url)
-    if len(url) > 1000 or parsed.scheme != "https" or parsed.hostname not in DRIVE_HOSTS or parsed.username:
+    if not is_drive_url(url):
         raise ApiError(400, "invalid", "Enter an https://drive.google.com or https://docs.google.com link.",
                        {"drive_url": ["Not a Google Drive link."]})
     with transaction.atomic():

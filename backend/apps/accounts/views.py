@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import DatabaseError
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,6 +10,8 @@ from rest_framework.views import APIView
 
 from apps.audit.errors import ApiError
 from apps.audit.models import record
+
+from . import throttle
 
 FAIL_WINDOW = 15 * 60
 MAX_USER_FAILS, MAX_IP_FAILS = 5, 20
@@ -48,8 +50,6 @@ class LoginView(APIView):
         password = str(request.data.get("password", ""))
         ip = request.META.get("REMOTE_ADDR", "")
         ukey, ikey = f"loginfail:{self.role}:{username.lower()}", f"loginfail-ip:{ip}"
-        if cache.get(ukey, 0) >= MAX_USER_FAILS or cache.get(ikey, 0) >= MAX_IP_FAILS:
-            raise ApiError(429, "rate_limited", "Too many failed attempts. Try again in 15 minutes.")
 
         current = request.user
         if current and current.is_authenticated:
@@ -59,13 +59,18 @@ class LoginView(APIView):
                            "You are signed in to the other portal. Return to it or sign out first.",
                            extra={"role": current.role})
 
+        try:  # shared, atomic slot reservation before any password check (apps/accounts/throttle.py)
+            user_n, ip_n = throttle.reserve(ukey, FAIL_WINDOW), throttle.reserve(ikey, FAIL_WINDOW)  # both always counted
+        except DatabaseError:  # fail closed: never check passwords without the shared counter
+            raise ApiError(503, "login_unavailable", "Sign-in is temporarily unavailable. Try again shortly.")
+        if user_n > MAX_USER_FAILS or ip_n > MAX_IP_FAILS:
+            raise ApiError(429, "rate_limited", "Too many failed attempts. Try again in 15 minutes.")
         user = authenticate(request, username=username, password=password) if username and password else None
         if user is None or not user.is_active or user.role != self.role:
-            for key in (ukey, ikey):
-                cache.add(key, 0, FAIL_WINDOW)
-                cache.incr(key)
-            raise ApiError(400, "invalid_credentials", GENERIC)
-        cache.delete(ukey)
+            raise ApiError(400, "invalid_credentials", GENERIC)  # the reserved slots stay counted as failures
+        throttle.clear(ukey)
+        throttle.release(ikey)
+        throttle.prune()  # housekeeping: expired windows already count as zero
         login(request, user)
         record(user, "login", user, {"portal": self.role}, request)
         return Response(user_payload(user))

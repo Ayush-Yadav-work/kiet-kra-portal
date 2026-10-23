@@ -17,6 +17,22 @@ All endpoints are under `/api/v1/`, use the session cookie plus the `X-CSRFToken
 | `GET progress/?year=&period=&department=&kra=&status=&search=&page=&page_size=` | VC only | Phase 5B (D-068): `{filters, counts, assigned, total, page, page_size, results}`; counts cover all filters except status; rows carry `display_status`, `status_label`, exact `target_text`/`achievement_text`, `is_nil`, `achievement_source` (`submitted`/`draft`/`none`), `revision_sequence`, `submitted_at`, `changed_since_submission`. 400 `invalid_filter` (period not in year, unknown status/department/KRA), 400 `too_many_rows` (> 5,000). Page size 10–100 (default 50) |
 | `GET progress/export/?…same filters…` | VC only | PDF of **all** filtered rows (A4 landscape, repeating header, filters, counts, generation time); `attachment`, `Cache-Control: private, no-store`, not stored. 503 `pdf_busy`/`pdf_unavailable`, 502 `pdf_failed` from the renderer |
 
+**Login throttling (audit H1, D-080).** Counters live in PostgreSQL (`accounts_loginthrottle`), so every web worker shares them and they
+survive restarts; no cache backend is involved. The limits are unchanged:
+- 5 failed attempts per portal + username;
+- 20 per client IP;
+- each counted in a fixed 15-minute window from the first attempt.
+
+How it works:
+- Each attempt reserves its slot with one atomic `INSERT … ON CONFLICT … RETURNING` *before* the password is checked, so
+  concurrent requests cannot check more than the limit.
+- A successful sign-in clears the username counter, gives back its IP slot and deletes expired rows.
+- Over the limit the API returns 429 `rate_limited`, without checking the password.
+- If the counter store (the database) is unavailable, sign-in fails closed with 503 `login_unavailable`.
+
+The client IP is `REMOTE_ADDR`. Behind a reverse proxy, the proxy must pass the real client address; otherwise every
+user shares the proxy's IP counter.
+
 ## Year/semester fields, Dean name and Nil date (D-079)
 
 Applied to every stored template version at read time by `apps/reports/capabilities.py` (the `templates/<key>/<v>/`
