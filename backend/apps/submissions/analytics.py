@@ -15,8 +15,14 @@ from apps.evidence.models import Evidence
 from .models import ReopenGrant, ReviewDecision, Submission
 from .services import classify
 
-BUCKETS = ("NOT_SUBMITTED", "DRAFT", "AWAITING_REVIEW", "RETURNED", "REJECTED", "APPROVED", "NOT_DUE")
-LABELS = {"NOT_SUBMITTED": "Not submitted", "DRAFT": "Draft", "AWAITING_REVIEW": "Awaiting review", "RETURNED": "Returned for correction",
+
+def vc_bucket(*args):
+    b = classify(*args)
+    return "NOT_SUBMITTED" if b == "DRAFT" else b
+
+# Draft privacy (D-078): analytics are VC-facing, so a saved but never-submitted draft counts as Not submitted.
+BUCKETS = ("NOT_SUBMITTED", "AWAITING_REVIEW", "RETURNED", "REJECTED", "APPROVED", "NOT_DUE")
+LABELS = {"NOT_SUBMITTED": "Not submitted", "AWAITING_REVIEW": "Awaiting review", "RETURNED": "Returned for correction",
           "REJECTED": "Rejected", "APPROVED": "Approved", "NOT_DUE": "Not due"}
 SCOPES = {"period": "Bimonthly period", "ytd": "Year to date", "year": "Full academic year"}
 MAX_EXPORT_ROWS = 5000  # exports refuse (never truncate) beyond this; the 13 × 45 × 6 full year is 3,510
@@ -73,6 +79,8 @@ def parse(q):
     if kras and KRA.objects.filter(number__in=kras).count() != len(kras):
         raise bad("Unknown KRA.", "kra")
     status = q.get("status") or ""
+    if status == "DRAFT":  # old bookmarks: drafts are part of Not submitted now (D-078)
+        status = "NOT_SUBMITTED"
     if status and status not in BUCKETS:
         raise bad("Unknown status.", "status")
     try:
@@ -144,7 +152,7 @@ def compute(data, f, as_of):
             if p["index"] < start:
                 continue  # not assigned for this period: not an obligation, never "Not submitted"
             s = subs.get((a["id"], p["id"]))
-            bucket = "NOT_DUE" if as_of < p["opens_at"] else classify(
+            bucket = "NOT_DUE" if as_of < p["opens_at"] else vc_bucket(
                 s and s["status"], s and s["edit_version"], s and s["has_ev"], s and s["last_decision"])
             slots.append((a, p, bucket, s))
 
@@ -215,10 +223,10 @@ def compute(data, f, as_of):
         details.append({"department": a["department__code"], "kra_number": a["kra__number"], "kra_text": a["kra__activity_text"],
                         "period": p["label"], "period_index": p["index"], "target_text": a["target_text"], "status": bucket,
                         "status_label": LABELS[bucket],
-                        "achievement_text": (s["current_revision__achievement_text"] if reviewed else s["achievement_text"]) if s and bucket != "NOT_SUBMITTED" else "",
-                        "achievement_source": "submitted" if reviewed else ("draft" if s and bucket == "DRAFT" else "none"),
-                        "is_nil": bool(s and ((s["current_revision__is_nil"] if reviewed else s["is_nil"]) and bucket != "NOT_SUBMITTED")),
-                        "reopened": bool(s and s["reopened"]), "submission_id": str(s["id"]) if s else None})
+                        "achievement_text": s["current_revision__achievement_text"] if reviewed else "",
+                        "achievement_source": "submitted" if reviewed else "none",
+                        "is_nil": bool(reviewed and s["current_revision__is_nil"]),
+                        "reopened": bool(s and s["reopened"]), "submission_id": str(s["id"]) if reviewed else None})
     details.sort(key=lambda r: (r["kra_number"], r["department"], r["period_index"]))
     out["details"] = details
     return out

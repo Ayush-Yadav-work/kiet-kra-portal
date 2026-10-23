@@ -20,8 +20,8 @@ def assignments_for(user):
 
 def submissions_for(user):
     qs = Submission.objects.select_related(*SUB_RELATED)
-    if user.role == "VC":
-        return qs
+    if user.role == "VC":  # draft privacy (D-078): a never-submitted report is indistinguishable from no report (404)
+        return qs.filter(current_revision__isnull=False)
     return qs.filter(assignment__department_id=user.department_id)
 
 

@@ -90,7 +90,7 @@ tr { break-inside: avoid; }
   <thead><tr><th style="width:6%">Dept.</th><th style="width:5%">KRA</th><th style="width:22%">Activity</th><th style="width:12%">Period</th><th style="width:16%">Annual target</th><th style="width:11%">Status</th><th style="width:28%">Achievement</th></tr></thead>
   <tbody>{% for r in details %}<tr><td>{{ r.department }}</td><td class="num">{{ r.kra_number }}</td><td>{{ r.kra_text }}</td><td>{{ r.period }}</td>
     <td style="white-space:pre-wrap">{{ r.target_text }}</td><td>{{ r.status_label }}{% if r.is_nil %}<br>Nil{% endif %}{% if r.reopened %}<br>Reopened{% endif %}</td>
-    <td style="white-space:pre-wrap">{{ r.achievement_text }}{% if r.achievement_source == "draft" %}<br><span class="note">Unsubmitted draft — not reviewed</span>{% endif %}</td></tr>
+    <td style="white-space:pre-wrap">{{ r.achievement_text }}</td></tr>
   {% empty %}<tr><td colspan="7">No report slots match these filters.</td></tr>{% endfor %}</tbody>
 </table>
 </body>

@@ -243,6 +243,10 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] Polish: announcement text no longer overlaps neighbouring columns; the Analytics department list opens above later content and fits the viewport (`docs/ui-polish-review.md`)
 - [x] Login pages matched to `reference/ui/redesign-v2/login-reference.png`; required-field messages; browser suite 31 OK
 
+## Draft privacy (2026-10-24, D-078)
+- [x] VC cannot see Dean drafts: never-submitted reports are Not submitted in every VC list, count, filter, analytics view and export; draft endpoints answer 404 for the VC; submitted reports show only the submitted revision; corrections after rejection stay private until resubmission
+- [x] Checks: backend 554 OK (renderer running, 0 skipped; new `tests.test_draft_privacy`); isolated browser suite 31 OK (Phase 5B test rewritten for the rule); `tsc -b` + build OK
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).

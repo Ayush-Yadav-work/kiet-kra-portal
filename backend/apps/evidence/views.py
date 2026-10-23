@@ -26,6 +26,10 @@ class SubmissionEvidenceView(APIView):
     def get(self, request, pk):
         sub = get_or_404(submissions_for(request.user), pk=pk)
         items = sub.evidence.select_related("uploaded_by")
+        if request.user.role == "VC":  # draft privacy (D-078): only what was submitted, never uploads made since
+            ids = [m["id"] for m in sub.current_revision.evidence_manifest]
+            return Response({"results": [evidence_json(e) for e in items.filter(pk__in=ids).order_by("uploaded_at")],
+                             "editable": False, "usage": None, "categories": [], "required": [], "note": ""})
         if request.query_params.get("include_removed") != "1":
             items = items.filter(removed=False)
         active, history = sub_services.evidence_totals(sub)
@@ -55,8 +59,11 @@ class SubmissionEvidenceView(APIView):
 
 
 def _scoped_evidence(user, pk):
-    return get_or_404(Evidence.objects.select_related("uploaded_by", "submission")
-                      .filter(submission__in=submissions_for(user)), pk=pk)
+    ev = get_or_404(Evidence.objects.select_related("uploaded_by", "submission")
+                    .filter(submission__in=submissions_for(user)), pk=pk)
+    if user.role == "VC" and not any(m["id"] == str(ev.pk) for r in ev.submission.revisions.all() for m in r.evidence_manifest):
+        raise ApiError(404, "not_found", "Not found.")  # draft privacy (D-078): only evidence that was part of a submission
+    return ev
 
 
 class EvidenceItemView(APIView):

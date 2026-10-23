@@ -9,10 +9,11 @@ import { usePeriods, YearPeriodPicker } from '../dean/DeanDashboard'
 import { BulkPanel, type BulkRun, type Prepare, PreviewDrawer, type PreviewTarget } from './BulkApproval'
 
 interface Row { assignment_id: string; department: string; kra_number: number; kra_text: string; target_text: string; has_template: boolean; submission_id: string | null; display_status: DisplayStatus; achievement_text: string; is_nil: boolean
-  achievement_source: 'submitted' | 'draft' | 'none'; revision_sequence: number | null; submitted_at: string | null; changed_since_submission: boolean
+  achievement_source: 'submitted' | 'none'; revision_sequence: number | null; submitted_at: string | null
   revision_id: string | null; nil_reason: string; evidence_count: number | null }
 interface Progress { counts: Record<DisplayStatus, number>; assigned: number; pending_reopen_requests: number; total: number; page: number; page_size: number; results: Row[] }
-const STATUSES: DisplayStatus[] = ['NOT_SUBMITTED', 'DRAFT', 'SUBMITTED', 'REJECTED', 'APPROVED']
+// Draft privacy (D-078): the VC sees no Draft status — a saved but unsubmitted report is Not submitted.
+const STATUSES: DisplayStatus[] = ['NOT_SUBMITTED', 'SUBMITTED', 'REJECTED', 'APPROVED']
 
 export default function VCDashboard() {
   const [params, setParams] = useSearchParams()
@@ -67,7 +68,7 @@ export default function VCDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, period, reload])
 
-  const statusSel = get('status') as DisplayStatus | ''
+  const statusSel = (get('status') === 'DRAFT' ? 'NOT_SUBMITTED' : get('status')) as DisplayStatus | ''  // old bookmarks
   const filtered = !!(get('department') || get('kra') || get('search') || statusSel)
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
   const eligible = (data?.results ?? []).filter((r) => r.display_status === 'SUBMITTED' && r.revision_id && r.submission_id)
@@ -90,7 +91,7 @@ export default function VCDashboard() {
       <section aria-labelledby="vc-sum" className="grid gap-2">
         <h2 id="vc-sum" className="sr-only">Report counts</h2>
         {data && (
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3 xl:grid-cols-7">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:gap-3 xl:grid-cols-6">
             <StatCard kind="ASSIGNED" value={data.assigned} label="Assigned" total={data.assigned} />
             {STATUSES.map((s) => <StatCard key={s} kind={s} value={data.counts[s]} label={statusLabel(s)} total={data.assigned} pressed={statusSel === s}
               onClick={() => set({ status: statusSel === s ? '' : s })} />)}
@@ -180,8 +181,6 @@ export default function VCDashboard() {
                       {r.is_nil && r.nil_reason && <span className="mt-1 block whitespace-pre-wrap text-[13px]">Nil reason: {r.nil_reason}</span>}
                       {r.achievement_source === 'submitted' && r.evidence_count != null && <span className="mt-1 block text-[13px] text-muted">Evidence items submitted: {r.evidence_count}</span>}
                       {r.achievement_source === 'submitted' && <span className="mt-1 block text-[13px] text-muted">Submitted revision {r.revision_sequence}{r.submitted_at ? ` · ${fmtDateTime(r.submitted_at)}` : ''}</span>}
-                      {r.achievement_source === 'draft' && <span className="mt-1 inline-block rounded bg-warn-bg px-2 py-0.5 text-[13px] font-semibold text-warn">Unsubmitted draft — not reviewed</span>}
-                      {r.changed_since_submission && <span className="mt-1 block text-[13px] font-semibold text-warn">Edited after submission; not resubmitted</span>}
                     </td>
                     <td role="cell" data-col="status" className="whitespace-nowrap px-3.5 py-3"><StatusBadge status={r.display_status} /></td>
                     <td role="cell" data-col="action" className="w-40 px-3.5 py-3 text-center">

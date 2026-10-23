@@ -17,7 +17,7 @@ State = Announcement.State
 MAX_TITLE, MAX_BODY = 200, 10000
 TAG = re.compile(r"<\s*/?\s*[a-zA-Z!]")
 URL_SCHEME = re.compile(r"\b([a-zA-Z][a-zA-Z0-9+.-]*):(//)?\S+")
-PENDING_BUCKETS = ("NOT_SUBMITTED", "DRAFT", "REJECTED", "RETURNED")
+PENDING_BUCKETS = ("NOT_SUBMITTED", "REJECTED", "RETURNED")  # Not submitted includes saved drafts (D-078)
 
 
 def bad(message, field):
@@ -300,8 +300,8 @@ def pending_departments(year, period_ids, departments, kras, at=None):
 def suggested_message(year, labels, kras):
     scope = f"KRA {', '.join(str(k) for k in kras)}" if kras else "your assigned KRAs"
     return (f"Reports pending for {year.label}",
-            f"Our records show at least one report for {scope} in {'; '.join(labels)} that is not yet submitted, is still a "
-            "draft, or was rejected or returned for correction.\n\nPlease review your KRA dashboard. This notice does not "
+            f"Our records show at least one report for {scope} in {'; '.join(labels)} that is not yet submitted, or was "
+            "rejected or returned for correction.\n\nPlease review your KRA dashboard. This notice does not "
             "reopen a closed reporting window or change any deadline; use the usual reopening request where needed.")
 
 

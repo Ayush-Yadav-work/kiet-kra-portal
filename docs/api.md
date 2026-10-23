@@ -17,6 +17,25 @@ All endpoints are under `/api/v1/`, use the session cookie plus the `X-CSRFToken
 | `GET progress/?year=&period=&department=&kra=&status=&search=&page=&page_size=` | VC only | Phase 5B (D-068): `{filters, counts, assigned, total, page, page_size, results}`; counts cover all filters except status; rows carry `display_status`, `status_label`, exact `target_text`/`achievement_text`, `is_nil`, `achievement_source` (`submitted`/`draft`/`none`), `revision_sequence`, `submitted_at`, `changed_since_submission`. 400 `invalid_filter` (period not in year, unknown status/department/KRA), 400 `too_many_rows` (> 5,000). Page size 10–100 (default 50) |
 | `GET progress/export/?…same filters…` | VC only | PDF of **all** filtered rows (A4 landscape, repeating header, filters, counts, generation time); `attachment`, `Cache-Control: private, no-store`, not stored. 503 `pdf_busy`/`pdf_unavailable`, 502 `pdf_failed` from the renderer |
 
+## Draft privacy (D-078)
+
+The Vice Chancellor never sees a Dean's unsubmitted work. Enforced in the backend for every VC-facing route:
+
+- A report that has never been submitted — untouched or a saved draft — is **Not submitted** for the VC everywhere
+  (`progress/` rows, counts and PDF export; `analytics/` buckets, matrix, details, PDF/CSV; `assignments/` summaries;
+  bulk-approval selection and reasons; the pending-departments shortcut). There is no Draft status, count or filter for the
+  VC; an old `status=DRAFT` filter is treated as `NOT_SUBMITTED`. Such rows carry no submission id, achievement, Nil flag,
+  edit version or "edited after submission" flag.
+- VC submission-scoped endpoints (`submissions/<id>/`, `…/history/`, `…/preview/`, `…/export/`, `…/evidence/`, `…/review/`,
+  `evidence/<id>/download/`) answer **404** for a never-submitted report, exactly as for one that does not exist.
+- For submitted reports the VC sees only the submitted revision: detail values (`payload`, achievement, remarks, Nil),
+  other periods' entries, preview and the current PDF come from the current revision (`edit_version` is `null`). After a
+  rejection or return the status stays Rejected / Returned and the Dean's corrections stay private until resubmission.
+  Evidence lists show the current revision's manifest; downloads are allowed for files in any submitted revision.
+- Reopening requests stay visible and decidable, including for reports never started; `reopen-requests/` rows carry
+  `submitted` (whether a submitted version exists to open) and no draft content.
+- Deans are unaffected: their dashboard, `assignments/`, workspace, autosave, conflicts and downloads still show Draft.
+
 ## VC administration — annual assignments (Phase 5A, replaced by VC Phase 1; D-065, D-073)
 
 Every endpoint below is **VC-only** (Deans get 403, anonymous 401/403). Every write is audited per draft

@@ -16,7 +16,6 @@ table.rows thead { display: table-header-group; }
 table.rows thead th { background: #e8e8e8; font-weight: bold; }
 table.rows tr { break-inside: avoid; }
 .note { font-size: 7.5pt; color: #555; }
-.draft { color: #8a5a00; }
 .empty { color: #777; font-style: italic; }
 </style>
 </head>
@@ -36,8 +35,6 @@ table.rows tr { break-inside: avoid; }
   <tr><td>{{ forloop.counter }}</td><td>{{ r.department }}</td><td>{{ r.kra_text }}</td><td style="white-space:pre-wrap">{{ r.target_text }}</td>
     <td>{% if r.achievement_text %}<span style="white-space:pre-wrap">{{ r.achievement_text }}</span>{% else %}<span class="empty">—</span>{% endif %}
       {% if r.is_nil %}<br><b>Nil report</b>{% endif %}
-      {% if r.achievement_source == "draft" %}<br><span class="note draft">Unsubmitted draft — not reviewed</span>{% endif %}
-      {% if r.changed_since_submission %}<br><span class="note draft">Edited after submission; not resubmitted</span>{% endif %}</td>
     <td>{{ r.status_label }}</td>
     <td>{% if r.revision_sequence %}Revision {{ r.revision_sequence }}<br>{{ r.submitted_at|date:"d M Y" }}{% else %}—{% endif %}</td></tr>
   {% empty %}

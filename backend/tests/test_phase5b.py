@@ -63,13 +63,12 @@ class Phase5BTests(PortalTestCase):
         self.assertEqual(len(rows), 13)  # every department's finalized KRA 33 assignment, submission or not
         st = {k: r["display_status"] for k, r in rows.items()}
         self.assertEqual((st["CSE"], st["ECE"], st["IT"], st["ME"], st["EEE"], st["CS"]),
-                         ("SUBMITTED", "NOT_SUBMITTED", "DRAFT", "APPROVED", "REJECTED", "NOT_SUBMITTED"))  # untouched draft = missing
-        self.assertEqual((rows["IT"]["achievement_text"], rows["IT"]["achievement_source"]), (TRICKY, "draft"))  # exact, flagged
+                         ("SUBMITTED", "NOT_SUBMITTED", "NOT_SUBMITTED", "APPROVED", "REJECTED", "NOT_SUBMITTED"))  # saved draft = untouched (D-078)
+        self.assertEqual((rows["IT"]["achievement_text"], rows["IT"]["achievement_source"], rows["IT"]["submission_id"]), ("", "none", None))  # no draft content
         self.assertEqual((rows["ME"]["is_nil"], rows["ME"]["display_status"], rows["ME"]["achievement_source"]), (True, "APPROVED", "submitted"))
         eee = rows["EEE"]
-        self.assertEqual((eee["achievement_text"], eee["changed_since_submission"], eee["revision_sequence"]),
-                         ("1 event (synthetic)", True, 1))  # what was reviewed, not the later edit
-        self.assertFalse(rows["CSE"]["changed_since_submission"])
+        self.assertEqual((eee["achievement_text"], eee["revision_sequence"]), ("1 event (synthetic)", 1))  # what was reviewed, not the later edit
+        self.assertNotIn("changed_since_submission", eee)  # editing activity after a rejection is not disclosed (D-078)
         self.assertEqual(rows["CS"]["achievement_source"], "none")
         tgt = AnnualAssignment.objects.get(department__code="CSE", kra__number=33, year__label="2026-27").target_text
         self.assertEqual(rows["CSE"]["target_text"], tgt)
@@ -79,13 +78,14 @@ class Phase5BTests(PortalTestCase):
         self.assertEqual(all_["assigned"], 585)
         self.assertEqual(sum(all_["counts"].values()), 585)
         self.assertEqual(all_["counts"]["SUBMITTED"], 1)
-        self.assertEqual(all_["counts"]["NOT_SUBMITTED"], 581)
+        self.assertEqual(all_["counts"]["NOT_SUBMITTED"], 582)  # includes the IT saved draft (D-078)
+        self.assertNotIn("DRAFT", all_["counts"])
         filtered = self.progress(status="NOT_SUBMITTED", page_size=25).json()
-        self.assertEqual((filtered["total"], filtered["counts"], len(filtered["results"])), (581, all_["counts"], 25))
+        self.assertEqual((filtered["total"], filtered["counts"], len(filtered["results"])), (582, all_["counts"], 25))
         seen = []
         for page in range(1, 25):
             seen += [r["assignment_id"] for r in self.progress(status="NOT_SUBMITTED", page_size=25, page=page).json()["results"]]
-        self.assertEqual((len(seen), len(set(seen))), (581, 581))  # deterministic ordering: no duplicates or gaps
+        self.assertEqual((len(seen), len(set(seen))), (582, 582))  # deterministic ordering: no duplicates or gaps
         combo = self.progress(department="EEE", kra=33, status="REJECTED").json()
         self.assertEqual((combo["total"], combo["counts"]["REJECTED"]), (1, 1))
         order = [(r["kra_number"], r["department"]) for r in self.progress(page_size=100).json()["results"]]
@@ -113,7 +113,8 @@ class Phase5BTests(PortalTestCase):
     def test_review_reads_the_submitted_revision_and_history_kept(self):
         d = self.detail(self.v, self.sids["EEE"])
         rev = d["current_revision"]
-        self.assertEqual((d["achievement_text"], rev["achievement_text"]), ("Edited after rejection (synthetic)", "1 event (synthetic)"))
+        self.assertEqual((d["achievement_text"], rev["achievement_text"]), ("1 event (synthetic)", "1 event (synthetic)"))  # never the later edit (D-078)
+        self.assertIsNone(d["edit_version"])
         self.assertEqual(len(rev["evidence"]), 3)  # manifest captured at submission
         hist = self.v.get(f"/api/v1/submissions/{self.sids['EEE']}/history/").json()["revisions"]
         self.assertEqual([(h["sequence"], h["achievement_text"], [x["decision"] for x in h["decisions"]]) for h in hist],
@@ -143,14 +144,17 @@ class Phase5BTests(PortalTestCase):
         self.assertEqual((r["Content-Type"], r["Cache-Control"]), ("application/pdf", "private, no-store"))
         self.assertIn("attachment;", r["Content-Disposition"])
         html = captured["html"]
-        self.assertEqual(html.count("<tr><td>"), 581)  # every filtered row, far beyond one page of 50
-        self.assertIn("rows in this report: <b>581</b>", html)
+        self.assertEqual(html.count("<tr><td>"), 582)  # every filtered row, far beyond one page of 50
+        self.assertIn("rows in this report: <b>582</b>", html)
+        self.assertNotIn("quoted", html)  # the IT draft's text never reaches the VC export (D-078)
         self.assertTrue((captured["landscape"], captured["format"]) == (True, "A4"))
         with mock.patch("apps.submissions.views.call_renderer", side_effect=fake):
             self.export(department="IT", kra=33)
-        self.assertIn("3 events &lt;b&gt;bold&lt;/b&gt; &amp; 50%", captured["html"])  # escaped, exact text
+        # draft privacy (D-078): the IT row is Not submitted and carries none of the draft's text, raw or escaped
+        self.assertNotIn("3 events &lt;b&gt;bold&lt;/b&gt; &amp; 50%", captured["html"])
         self.assertNotIn("<b>bold</b>", captured["html"])
-        self.assertIn("Unsubmitted draft", captured["html"])
+        self.assertNotIn("Unsubmitted draft", captured["html"])
+        self.assertIn("Not submitted", captured["html"])
         self.assertEqual(list(Submission.objects.order_by("pk").values_list("pk", "status", "edit_version")), before)  # read-only
 
     def test_export_renderer_failure_and_limits(self):
