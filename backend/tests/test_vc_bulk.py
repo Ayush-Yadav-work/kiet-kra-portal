@@ -106,7 +106,7 @@ class BulkTests(PortalTestCase):
             r = self.prepare("sel", scope="selection", items=items)
             b = r.json()
             self.assertEqual(b["total"], 6)
-            self.assertEqual(b["excluded"], [{"submission": str(draft.id), "reason": "not awaiting review (draft)"}])
+            self.assertEqual(b["excluded"], [{"submission": str(draft.id), "reason": "not awaiting review (not submitted)"}])  # no draft disclosure (D-078)
             self.vc_c.post(f"/api/v1/bulk-approvals/{b['id']}/confirm/")
             # after confirmation: one report approved individually, one resubmitted (newer revision), one returned to draft
             first = subs[0]

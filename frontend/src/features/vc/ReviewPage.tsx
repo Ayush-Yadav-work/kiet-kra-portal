@@ -4,7 +4,6 @@ import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { Decision, Grant, SubmissionDetail } from '../../api/types'
 import { ErrorBox, tabKeys } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
-import EvidenceTab from '../evidence/EvidenceTab'
 import Preview from '../report-builder/Preview'
 import { SubmissionLoader, WorkspaceHeader } from '../report-builder/Workspace'
 
@@ -91,11 +90,11 @@ function Review({ d, reload }: { d: SubmissionDetail; reload: () => void }) {
                 <ul className="space-y-1">{rev.evidence.map((e) => <li key={e.id}><b>{e.category}</b> — {e.label}{' · '}
                   {e.drive_url ? <a className="underline" href={e.drive_url} target="_blank" rel="noopener noreferrer">Drive link</a>
                     : <a className="underline" href={`/api/v1/evidence/${e.id}/download/`}>{e.original_filename || 'Download'}</a>}</li>)}</ul>)}
-            </div>) : <EvidenceTab submissionId={d.id} canEdit={false} />)}
+            </div>) : <p className="card text-sm">Not submitted yet.</p>)}
           {tab === 'achievement' && (
             <div>
-              <p className="mb-2 text-sm text-slate-600">{rev ? `As submitted in revision ${rev.sequence}${rev.is_nil ? ' (Nil report)' : ''}.` : 'Not submitted yet — unreviewed draft values.'}</p>
-              <AchievementTab detail={d} values={rev ? { achievement_text: rev.achievement_text, remarks: rev.remarks } : { achievement_text: d.achievement_text, remarks: d.remarks }} disabled errors={{}} />
+              <p className="mb-2 text-sm text-slate-600">{rev ? `As submitted in revision ${rev.sequence}${rev.is_nil ? ' (Nil report)' : ''}.` : 'Not submitted yet.'}</p>
+              <AchievementTab detail={d} values={{ achievement_text: rev?.achievement_text ?? '', remarks: rev?.remarks ?? '' }} disabled errors={{}} />
             </div>)}
           {tab === 'history' && history && (
             <div className="card space-y-3 text-sm">

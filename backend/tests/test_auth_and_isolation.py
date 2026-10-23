@@ -118,8 +118,8 @@ class DepartmentIsolationTests(PortalTestCase):
             self.assertEqual({r["department"]["code"] for r in rows}, {"CSE"})
             self.assertEqual(len(rows), 45)
             self.assertEqual(a.get("/api/v1/departments/").json(), [{"code": "CSE", "name": self.cse.name}])
-            # The VC sees both departments' records.
-            self.assertEqual(vc.get(f"/api/v1/submissions/{sid_b}/").status_code, 200)
+            # The VC sees every department's assignments, but an unsubmitted draft stays private (D-078): same 404 as Dean A.
+            self.assertEqual(vc.get(f"/api/v1/submissions/{sid_b}/").status_code, 404)
             self.assertEqual(len(vc.get("/api/v1/assignments/?year=2026-27").json()["results"]), 585)
 
     def test_malformed_ids_are_404(self):

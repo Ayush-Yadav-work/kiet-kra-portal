@@ -1137,8 +1137,11 @@ class BrowserTests(unittest.TestCase):
         vc.close()
 
     def test_phase5b_progress_filters_review_and_export(self):
-        """Phase 5B: an ECE draft achievement appears under Department=ECE / Status=Draft marked as unsubmitted; the review
-        page's back link keeps the filters; Export PDF downloads all filtered rows; Deans are refused."""
+        """Phase 5B + draft privacy (D-078): an ECE Dean's saved draft is plain "Not submitted" for the VC — no Draft filter,
+        no text, no link, no direct access, also from an old status=DRAFT bookmark and in the PDF export; the review page's back
+        link keeps the filters (on a submitted report); Export PDF downloads all filtered rows; Deans are refused."""
+        import subprocess
+
         import pymupdf
 
         p = self.page
@@ -1149,25 +1152,54 @@ class BrowserTests(unittest.TestCase):
         note = f"Synthetic progress check {int(time.time())}"
         status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "achievement_text": note})
         self.assertEqual(status, 200, body)
+        self.assertEqual(api(p, "GET", f"/submissions/{sid}/")[1]["display_status"], "DRAFT")  # the Dean still sees the draft
         self.assertEqual(api(p, "GET", "/progress/?year=2026-27&period=1")[0], 403)
         r = p.request.get(f"{BASE}/api/v1/progress/export/?year=2026-27&period=1")
         self.assertEqual(r.status, 403)
+        _, periods = api(p, "GET", "/periods/?year=2026-27")
+        open_p = next(x for x in periods["results"] if x["is_open"])
+        seed = (  # one submitted ECE report (KRA 22) to open from the list
+            "from apps.catalogue.models import AnnualAssignment, ReportingPeriod\n"
+            "from apps.accounts.models import User\n"
+            "from apps.submissions.models import Submission, SubmissionRevision\n"
+            "from apps.submissions.services import snapshot_of\n"
+            "from django.utils import timezone\n"
+            f"p = ReportingPeriod.objects.get(pk={open_p['id']})\n"
+            "dean = User.objects.get(username='demo.dean.ece')\n"
+            "a = AnnualAssignment.objects.get(year=p.year, department__code='ECE', kra__number=22)\n"
+            "s, _ = Submission.objects.get_or_create(assignment=a, period=p, defaults=dict(created_by=dean))\n"
+            "if s.current_revision_id is None:\n"
+            "    s.status, s.edit_version, s.is_nil, s.nil_reason = 'SUBMITTED', 2, True, 'Synthetic nil'\n"
+            "    r = SubmissionRevision.objects.create(submission=s, sequence=1, payload={}, is_nil=True, nil_reason='Synthetic nil', snapshot=snapshot_of(s),\n"
+            "        evidence_manifest=[], manifest_hash='h', submitted_by=dean, submitted_at=timezone.now())\n"
+            "    s.current_revision = r; s.save()\n")
+        subprocess.run([sys.executable, str(ROOT / "backend" / "manage.py"), "shell", "-c", seed], cwd=ROOT / "backend", check=True, capture_output=True)
 
         vc = self.browser.new_context(viewport={"width": 1400, "height": 900}, accept_downloads=True)
         v = vc.new_page()
         login(v, "vc", "demo.vc")
         v.wait_for_url("**/vc/dashboard")
+        self.assertEqual(api(v, "GET", f"/submissions/{sid}/")[0], 404)  # same as no report
         v.get_by_label("Department").select_option("ECE")
-        v.get_by_label("Status").select_option("DRAFT")
-        row = v.get_by_role("row", name=re.compile(note))
-        expect(row).to_contain_text("Unsubmitted draft")
+        options = v.get_by_label("Status").locator("option").all_inner_texts()
+        self.assertNotIn("Draft", options)
+        expect(v.get_by_role("button", name=re.compile(r"^\d+\s*Draft"))).to_have_count(0)  # no Draft card
+        v.get_by_label("KRA number").fill("20")
+        row = v.locator("table.report-table tbody tr").first
+        expect(row).to_contain_text("Not submitted")
+        expect(row).to_contain_text("No report yet")
+        expect(row).not_to_contain_text(note)
+        v.goto(f"{BASE}/vc/dashboard?year=2026-27&period={open_p['id']}&department=ECE&kra=20&status=DRAFT")  # old bookmark
+        expect(v.get_by_role("button", name=re.compile(r"^\d+\s*Not submitted"))).to_have_attribute("aria-pressed", "true")
+        expect(v.locator("table.report-table tbody tr").first).to_contain_text("Not submitted")
+        self.assertNotIn(note, v.content())
+
+        v.goto(f"{BASE}/vc/dashboard?year=2026-27&period={open_p['id']}&department=ECE&status=SUBMITTED")
         filtered_url = v.url
-        self.assertIn("department=ECE", filtered_url)
-        row.get_by_role("link", name="View & history").click()
-        v.get_by_role("tab", name="Achievement").click()
-        expect(v.get_by_text("Not submitted yet — unreviewed draft values.")).to_be_visible()
+        row = v.get_by_role("row", name=re.compile("Synthetic nil"))
+        row.get_by_role("link", name="Review").click()
         v.get_by_role("link", name="← Progress").click()
-        expect(v.get_by_role("row", name=re.compile(note))).to_be_visible()
+        expect(v.get_by_role("row", name=re.compile("Synthetic nil"))).to_be_visible()
         self.assertEqual(v.url, filtered_url)  # filters preserved
 
         v.get_by_label("Status").select_option("")  # all statuses for ECE: more rows than one page
@@ -1177,9 +1209,9 @@ class BrowserTests(unittest.TestCase):
         path = dl.value.path()
         doc = pymupdf.open(path)
         text = " ".join(pg.get_text() for pg in doc).replace("\n", " ")
-        self.assertIn(note, text)
+        self.assertNotIn(note, text)  # draft text never reaches the VC export
+        self.assertNotIn("Unsubmitted draft", text)
         self.assertIn("rows in this report: 45", text)
-        self.assertIn("Unsubmitted draft", text)
         self.assertTrue(dl.value.suggested_filename.startswith("KRA_progress_2026-27_P"))
         vc.close()
 

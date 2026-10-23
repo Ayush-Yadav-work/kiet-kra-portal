@@ -44,7 +44,7 @@ export default function ReopenQueue() {
                   <button className="btn-danger" disabled={!(reasons[r.id] ?? '').trim()} onClick={() => decide(r, false)}>Deny</button>
                 </div>
               ) : <p className="mt-1 text-slate-600">{r.state} by {r.decided_by} on {fmtDateTime(r.decided_at)}{r.decision_reason && `: ${r.decision_reason}`}</p>}
-              <Link className="mt-1 inline-block underline" to={`/vc/review/${r.submission_id}`}>Open submission</Link>
+              {r.submitted && <Link className="mt-1 inline-block underline" to={`/vc/review/${r.submission_id}`}>Open submitted report</Link>}
             </li>
           ))}
         </ul>

@@ -9,22 +9,23 @@ import PendingNotice from './PendingNotice'
 
 // VC features plan v2.3 §6–8 (D-074): approved applicable report slots ÷ expected applicable report slots. Charts are plain
 // HTML/CSS with text and table equivalents (no chart library); the PDF draws the same figures server-side.
-type Bucket = 'NOT_SUBMITTED' | 'DRAFT' | 'AWAITING_REVIEW' | 'RETURNED' | 'REJECTED' | 'APPROVED' | 'NOT_DUE'
+// Draft privacy (D-078): a saved but unsubmitted draft is reported as Not submitted; there is no Draft bucket for the VC.
+type Bucket = 'NOT_SUBMITTED' | 'AWAITING_REVIEW' | 'RETURNED' | 'REJECTED' | 'APPROVED' | 'NOT_DUE'
 type Rate = { approved: number; expected: number; remaining: number; assignments: number; rate: number | null; rate_label: string }
 type TrendPoint = { period_id: number; index: number; label: string; opened: boolean; approved: number; expected: number; rate_label: string }
 type Detail = { department: string; kra_number: number; kra_text: string; period: string; target_text: string; status: Bucket; status_label: string
-  achievement_text: string; achievement_source: 'submitted' | 'draft' | 'none'; is_nil: boolean; reopened: boolean }
+  achievement_text: string; achievement_source: 'submitted' | 'none'; is_nil: boolean; reopened: boolean }
 type Data = { as_of: string; drafts_pending: number; summary: Rate; breakdown: Record<Bucket, number>; labels: Record<Bucket, string>
   departments: (Rate & { code: string; name: string; breakdown: Record<Bucket, number> })[]; trend: TrendPoint[]
   department_trends: Record<string, TrendPoint[]>; matrix: { kras: number[]; rows: { department: string; cells: ({ approved: number; expected: number; bucket: string | null } | null)[] }[] }
   details: { total: number; page: number; page_size: number; results: Detail[] }; filters: { scope: string; scope_label: string } }
 
-const BUCKETS: Bucket[] = ['APPROVED', 'AWAITING_REVIEW', 'DRAFT', 'RETURNED', 'REJECTED', 'NOT_SUBMITTED', 'NOT_DUE']
-const COLOR: Record<Bucket, string> = { APPROVED: 'bg-ok', AWAITING_REVIEW: 'bg-info', DRAFT: 'bg-[#B7791F]', RETURNED: 'bg-[#B45309]', REJECTED: 'bg-err',
+const BUCKETS: Bucket[] = ['APPROVED', 'AWAITING_REVIEW', 'RETURNED', 'REJECTED', 'NOT_SUBMITTED', 'NOT_DUE']
+const COLOR: Record<Bucket, string> = { APPROVED: 'bg-ok', AWAITING_REVIEW: 'bg-info', RETURNED: 'bg-[#B45309]', REJECTED: 'bg-err',
   NOT_SUBMITTED: 'bg-[#7A8899]', NOT_DUE: 'bg-[#D0D7DE]' }
 const YEARS = ['2026-27', '2027-28', '2028-29']
 const pct = (a: number, e: number) => (e ? Math.round((a / e) * 1000) / 10 : 0)
-const PILL: Record<Bucket, string> = { APPROVED: 'bg-ok-bg text-ok', AWAITING_REVIEW: 'bg-info-bg text-info', DRAFT: 'bg-warn-bg text-warn', RETURNED: 'bg-warn-bg text-warn',
+const PILL: Record<Bucket, string> = { APPROVED: 'bg-ok-bg text-ok', AWAITING_REVIEW: 'bg-info-bg text-info', RETURNED: 'bg-warn-bg text-warn',
   REJECTED: 'bg-err-bg text-err', NOT_SUBMITTED: 'bg-neutral-bg text-neutral', NOT_DUE: 'bg-subtle text-muted' }
 const HEAT: [string, string][] = [['0%', 'bg-[#FBE7E7]'], ['1–25%', 'bg-[#FFF3DA]'], ['26–50%', 'bg-[#FCE3AE]'], ['51–75%', 'bg-[#D9F1E1]'], ['76–100%', 'bg-[#B6E3C5]'], ['Not due / N/A', 'bg-[#EEF2F5]']]
 /** Cell background only (the text always states the value): approved share, or the period bucket. */
@@ -44,7 +45,7 @@ export default function Analytics() {
   const period = params.get('period') || String((periods.find((p) => p.is_open) ?? periods[0])?.id ?? '')
   const depts = params.getAll('department')
   const kra = params.get('kra') || ''
-  const status = params.get('status') || ''
+  const status = params.get('status') === 'DRAFT' ? 'NOT_SUBMITTED' : params.get('status') || ''  // old bookmarks (D-078)
   const page = params.get('page') || '1'
   const [allDepts, setAllDepts] = useState<{ code: string; name: string }[]>([])
   const [kraList, setKraList] = useState<number[]>([])
@@ -119,9 +120,9 @@ export default function Analytics() {
   const metrics = data ? [
     metric('Approved', data.breakdown.APPROVED, 'check', 'bg-ok-bg text-ok', 'bg-[#3FA466]'),
     metric('Awaiting review', data.breakdown.AWAITING_REVIEW, 'clock', 'bg-info-bg text-info', 'bg-[#5B9BD8]'),
-    metric('Draft', data.breakdown.DRAFT, 'pencil', 'bg-warn-bg text-warn', 'bg-[#E3A13B]'),
     metric('Rejected or returned', data.breakdown.REJECTED + data.breakdown.RETURNED, 'xcircle', 'bg-err-bg text-err', 'bg-[#E46F6F]'),
     metric('Not submitted', data.breakdown.NOT_SUBMITTED, 'doc', 'bg-neutral-bg text-neutral', 'bg-[#7A8899]'),
+    metric('Not due', data.breakdown.NOT_DUE, 'calendar', 'bg-subtle text-muted', 'bg-[#AEB9C6]'),
   ] : []
   const maxBucket = data ? Math.max(1, ...BUCKETS.map((b) => data.breakdown[b])) : 1
   return (
@@ -250,7 +251,7 @@ export default function Analytics() {
                 <td role="cell" data-col="wide" className="whitespace-nowrap px-3.5 py-3 text-sm">{r.period}</td>
                 <td role="cell" data-col="wide" data-label="Annual target" className="w-48 whitespace-pre-wrap px-3.5 py-3">{r.target_text}</td>
                 <td role="cell" data-col="wide" className="px-3.5 py-3"><span className="whitespace-pre-wrap">{r.achievement_text || '—'}</span>
-                  {r.achievement_source === 'draft' && <span className="mt-1 block text-[13px] font-semibold text-warn">Unsubmitted draft — not reviewed</span>}</td>
+</td>
                 <td role="cell" data-col="status" className="whitespace-nowrap px-3.5 py-3"><span className={`inline-block rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${PILL[r.status]}`}>{r.status_label}</span>
                   {r.is_nil && <span className="ml-1.5 rounded border border-control px-1 text-xs font-bold text-heading">Nil</span>}
                   {r.reopened && <span className="ml-1.5 rounded border border-control px-1 text-xs font-bold text-heading">Reopened</span>}</td>

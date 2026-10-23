@@ -139,8 +139,9 @@ class FixtureTests(PortalTestCase):
         self.assertEqual((depts["CSE"]["assignments"], depts["CSE"]["expected"], depts["CSE"]["approved"]), (2, 3, 1))  # unequal totals
         self.assertEqual((depts["ECE"]["assignments"], depts["ECE"]["expected"], depts["ECE"]["approved"]), (1, 2, 0))
         self.assertEqual(depts["ECE"]["breakdown"]["RETURNED"], 1)
-        self.assertEqual((depts["ME"]["breakdown"]["DRAFT"], depts["ME"]["breakdown"]["NOT_SUBMITTED"]), (1, 1))
-        self.assertEqual(r["breakdown"]["NOT_SUBMITTED"], 5)  # ECE P2 shell, ME P1, IT P1, IT P2, CSE KRA 46 P2 (its P1 is not assigned)
+        self.assertNotIn("DRAFT", depts["ME"]["breakdown"])  # draft privacy (D-078): the evidence-only draft is Not submitted
+        self.assertEqual(depts["ME"]["breakdown"]["NOT_SUBMITTED"], 2)
+        self.assertEqual(r["breakdown"]["NOT_SUBMITTED"], 6)  # ECE P2 shell, ME P1, ME P2 draft, IT P1, IT P2, CSE KRA 46 P2 (its P1 is not assigned)
         self.assertEqual((r["summary"]["approved"], r["summary"]["expected"], r["drafts_pending"]), (1, 9, 1))
         cells = dict(zip(r["matrix"]["kras"], next(x for x in r["matrix"]["rows"] if x["department"] == "ECE")["cells"]))
         self.assertIsNone(cells[46])  # not assigned to ECE: N/A, not zero

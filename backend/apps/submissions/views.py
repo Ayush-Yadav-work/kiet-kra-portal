@@ -39,6 +39,7 @@ def request_json(r):
             "requested_at": r.requested_at, "requested_by": r.requested_by.display_name,
             "decided_at": r.decided_at, "decided_by": r.decided_by.display_name if r.decided_by else None,
             "decision_reason": r.decision_reason, "department": a.department.code, "kra_number": a.kra.number,
+            "submitted": r.submission.current_revision_id is not None,  # whether a submitted version exists to open
             "period": r.submission.period.label, "year": a.year.label}
 
 
@@ -48,15 +49,40 @@ def latest_decision(sub):
     return decision_json(d) if d else None
 
 
-def summary_json(sub, decisions):
-    """Compact per-period state used by dashboards (C11 display status). `decisions`: latest decision per submission id."""
-    if sub is None:
+def summary_json(sub, decisions, vc=False):
+    """Compact per-period state used by dashboards (C11 display status). `decisions`: latest decision per submission id.
+    For the VC (D-078) a never-submitted report is plain Not submitted and values come from the submitted revision."""
+    if sub is None or (vc and sub.current_revision_id is None):
         return {"id": None, "display_status": svc.NOT_SUBMITTED}
+    if vc:
+        rev = sub.current_revision
+        out = {"id": str(sub.id), "display_status": sub.status, "status": sub.status, "achievement_text": rev.achievement_text, "is_nil": rev.is_nil}
+        if sub.status == Status.REJECTED:
+            d = decisions.get(sub.id)
+            out["latest_decision"] = decision_json(d) if d else None
+        return out
     out = {"id": str(sub.id), "display_status": svc.display_status(sub), "status": sub.status,
            "achievement_text": sub.achievement_text, "is_nil": sub.is_nil}
     if sub.status == Status.REJECTED:
         d = decisions.get(sub.id)
         out["latest_decision"] = decision_json(d) if d else None
+    return out
+
+
+def vc_detail_json(sub, user):
+    """Draft privacy (D-078): the VC sees the submitted revision only — never the Dean's working copy, edit version or
+    in-progress values, and other periods only as submitted."""
+    out = detail_json(sub, user)
+    rev = sub.current_revision
+    out.update({"display_status": sub.status, "is_nil": rev.is_nil, "nil_reason": rev.nil_reason, "achievement_text": rev.achievement_text,
+                "remarks": rev.remarks, "payload": rev.payload, "edit_version": None, "editable": False, "can_request_reopen": False})
+    others = {s.period_id: s for s in Submission.objects.filter(assignment=sub.assignment, current_revision__isnull=False)
+              .select_related("current_revision")}
+    for e in out["period_entries"]:
+        o = others.get(e["period"]["id"])
+        r = o.current_revision if o else None
+        e.update({"submission_id": str(o.id) if o else None, "display_status": o.status if o else svc.NOT_SUBMITTED,
+                  "achievement_text": r.achievement_text if r else "", "remarks": r.remarks if r else "", "is_nil": r.is_nil if r else False})
     return out
 
 
@@ -121,7 +147,7 @@ class AssignmentsView(APIView):
         period = get_or_404(ReportingPeriod.objects.filter(year__label=year), pk=period_id) if period_id else None
         subs, decisions, requests = {}, {}, {}
         if period:  # fixed number of queries however many rows (Phase 6B: was one query per Rejected/untouched row)
-            subs = {s.assignment_id: s for s in Submission.objects.filter(period=period, assignment__in=qs).annotate(
+            subs = {s.assignment_id: s for s in Submission.objects.filter(period=period, assignment__in=qs).select_related("current_revision").annotate(
                 has_ev=Exists(Evidence.objects.filter(submission=OuterRef("pk"), removed=False)))}
             rejected = [s.id for s in subs.values() if s.status == Status.REJECTED]
             for d in (ReviewDecision.objects.filter(revision__submission_id__in=rejected).select_related("revision")
@@ -134,7 +160,7 @@ class AssignmentsView(APIView):
         return Response({
             "server_time": at,
             "period": period_json(period, at) if period else None,
-            "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id), decisions) if period else None,
+            "results": [{**assignment_json(a), "submission": summary_json(subs.get(a.id), decisions, request.user.role == "VC") if period else None,
                          "applicability": applicability(a, period, at) if period else None,
                          "latest_reopen_request": request_json(requests[a.id]) if a.id in requests else None}
                         for a in qs],
@@ -151,6 +177,8 @@ class AssignmentPeriodView(APIView):
         p = get_or_404(ReportingPeriod.objects.filter(year=a.year), pk=period_id)
         sub = Submission.objects.filter(assignment=a, period=p).first()
         at = timezone.now()
+        if request.user.role == "VC" and sub is not None and sub.current_revision_id is None:
+            sub = None  # draft privacy (D-078)
         body = {"assignment": assignment_json(a), "period": period_json(p, at), "server_time": at, "applicability": applicability(a, p, at),
                 "submission_id": str(sub.id) if sub else None}
         if sub is None:
@@ -175,7 +203,7 @@ class SubmissionDetailView(APIView):
 
     def get(self, request, pk):
         sub = get_or_404(submissions_for(request.user), pk=pk)
-        return Response(detail_json(sub, request.user))
+        return Response((vc_detail_json if request.user.role == 'VC' else detail_json)(sub, request.user))
 
 
 class DraftView(APIView):
@@ -204,7 +232,7 @@ class SubmitView(APIView):
     def post(self, request, pk):
         sub = get_or_404(submissions_for(request.user), pk=pk)
         sub = svc.submit(request.user, sub.pk, request.data.get("edit_version"), request)
-        return Response(detail_json(sub, request.user))
+        return Response((vc_detail_json if request.user.role == 'VC' else detail_json)(sub, request.user))
 
 
 class PreviewView(APIView):
@@ -231,6 +259,8 @@ class PreviewView(APIView):
         if request.data.get("revision"):
             revision = get_or_404(sub.revisions.all(), pk=request.data["revision"])
             draft = {}
+        elif request.user.role == "VC":
+            revision = sub.current_revision  # draft privacy (D-078)
         ctx = build_context(sub, revision, draft)
         return Response({"html": render_html(ctx, "preview")})
 
@@ -278,6 +308,8 @@ class ExportView(APIView):
         if request.query_params.get("revision"):
             revision = get_or_404(sub.revisions.all(), pk=request.query_params["revision"])
         approval = artifacts.approval_for(sub, revision)
+        if approval is None and revision is None and request.user.role == "VC":
+            revision = sub.current_revision  # draft privacy (D-078): the submitted version, never the working copy
         if approval is not None:  # approved documents come only from the retained artifact (D-076)
             art = artifacts.artifact_for(approval)
             if art.state != art.State.READY:
@@ -288,7 +320,7 @@ class ExportView(APIView):
             snap = ctx["snap"]
         name = f'KRA{snap["kra"]["number"]}_{snap["department"]["code"]}_{snap["year"]}_P{snap["period"]["index"]}'
         name = "".join(c if c.isalnum() or c in "-_" else "_" for c in name)
-        if revision:
+        if request.query_params.get("revision"):
             name += f"_rev{revision.sequence}"
         resp = FileResponse(path.open("rb"), content_type="application/pdf",
                             as_attachment=request.query_params.get("inline") != "1", filename=f"{name}.pdf")
@@ -389,7 +421,7 @@ class ReviewView(APIView):
         grant = request.data.get("grant_reopen", False)
         sub, _ = svc.review(request.user, sub.pk, request.data.get("revision"), request.data.get("decision"),
                             request.data.get("reason"), grant is True, request)
-        return Response(detail_json(sub, request.user))
+        return Response((vc_detail_json if request.user.role == 'VC' else detail_json)(sub, request.user))
 
 
 class ProgressView(APIView):

@@ -30,7 +30,7 @@ export default function PendingNotice({ year, opened, fixedPeriod, departments, 
     <section role="region" aria-label="Announce to pending departments" className="grid gap-3 panel border-2 border-action p-4">
       <div className="flex items-start justify-between gap-2"><h2 className="text-lg font-bold text-heading">Announce to pending departments</h2>
         <button type="button" className="btn-quiet min-h-9 text-sm" onClick={onClose}>Close</button></div>
-      <p className="text-sm text-muted">Departments with at least one report that is not submitted, still a draft, rejected or returned for correction in the
+      <p className="text-sm text-muted">Departments with at least one report that is not submitted, rejected or returned for correction in the
         chosen opened periods{kra ? ` (KRA ${kra})` : ''}{departments.length ? ` among ${departments.join(', ')}` : ''}. Awaiting review, approved and not-due reports
         do not count. This creates an editable draft; it never publishes or reopens reporting.</p>
       {fixedPeriod ? null : (

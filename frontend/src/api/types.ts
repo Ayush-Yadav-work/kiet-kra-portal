@@ -20,6 +20,7 @@ export interface Grant { id: string; starts_at: string; expires_at: string; sour
 export interface ReopenRequest {
   id: string; submission_id: string; reason: string; state: 'PENDING' | 'APPROVED' | 'DENIED'; requested_at: string; requested_by: string
   decided_at: string | null; decided_by: string | null; decision_reason: string; department: string; kra_number: number; period: string; year: string
+  submitted: boolean  // a submitted version exists (the VC never sees unsubmitted work, D-078)
 }
 export interface PeriodEntry { period: Period; submission_id: string | null; display_status: DisplayStatus; achievement_text: string; remarks: string; is_nil: boolean; applicability: Applicability }
 export interface Activity { [field: string]: unknown }

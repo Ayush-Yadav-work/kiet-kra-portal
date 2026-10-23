@@ -49,7 +49,7 @@ def _selected(items):
         if s is None:
             excluded.append({"submission": sid, "reason": "not found"})
         elif s.status != Status.SUBMITTED:
-            excluded.append({"submission": sid, "reason": f"not awaiting review ({s.get_status_display().lower()})"})
+            excluded.append({"submission": sid, "reason": f"not awaiting review ({'not submitted' if s.status == Status.DRAFT else s.get_status_display().lower()})"})
         elif str(s.current_revision_id) != rid:
             excluded.append({"submission": sid, "reason": "a newer revision was submitted; review it again"})
         else:
@@ -130,7 +130,7 @@ def _approve(user, item, request):
             return Outcome.CONFLICT, "A newer revision was submitted after selection; review it separately.", None
         if e.code == "invalid_state":
             cur = Submission.objects.filter(pk=item.submission_id).values_list("status", flat=True).first()
-            label = dict(Status.choices).get(cur, cur or "unknown").lower()
+            label = "not submitted" if cur == Status.DRAFT else dict(Status.choices).get(cur, cur or "unknown").lower()  # D-078
             return Outcome.SKIPPED, f"No longer awaiting review (now {label}).", None
         return Outcome.FAILED, e.message[:300], None
     except DatabaseError:
