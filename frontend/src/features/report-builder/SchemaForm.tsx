@@ -6,11 +6,11 @@ import { tabKeys } from '../../components/ui'
 type Errors = Record<string, string[]>
 interface Ctx {
   control: Control<Payload>; register: UseFormRegister<Payload>; setValue: UseFormSetValue<Payload>
-  getValues: UseFormGetValues<Payload>; disabled: boolean; errors: Errors
+  getValues: UseFormGetValues<Payload>; disabled: boolean; errors: Errors; deanName: string
 }
 
 export function emptyValue(f: Field): unknown {
-  return f.type === 'table' || f.type === 'multiselect' || f.type === 'ratings' ? [] : f.type === 'checklist' ? {} : ''
+  return f.type === 'table' || f.type === 'multiselect' || f.type === 'ratings' ? [] : f.type === 'checklist' || f.type === 'term' ? {} : ''
 }
 export function emptyActivity(schema: Schema) {
   return Object.fromEntries(schema.sections.flatMap((s) => s.fields).map((f) => [f.id, emptyValue(f)]))
@@ -38,10 +38,41 @@ export function applies(cond: When | undefined, obj: Record<string, unknown> | u
 }
 
 function Label({ f, htmlFor }: { f: Field; htmlFor?: string }) {
-  return <label className="label" htmlFor={htmlFor}>{f.label}<Req on={f.required} /></label>
+  return <label className="label" htmlFor={htmlFor}>{f.label}<Req on={f.required && !f.auto} /></label>
+}
+
+/** Year of study / semester dropdowns (D-079). An earlier free-text entry that could not be matched stays visible until replaced. */
+function Term({ f, name, ctx, ariaLabel }: { f: Field; name: string; ctx: Ctx; ariaLabel?: string }) {
+  const v = useWatch({ control: ctx.control, name: name as never }) as unknown as Record<string, string> | undefined
+  const legacy = v?.legacy && !f.parts!.every((p) => v[p.id]) ? v.legacy : ''
+  return (
+    <div role="group" aria-label={ariaLabel ?? f.label} aria-describedby={ctx.errors[name] ? `${name}-err` : undefined}>
+      <div className="flex flex-wrap gap-2">
+        {f.parts!.map((p) => (
+          <label key={p.id} className="grid min-w-[9rem] flex-1 gap-0.5 text-xs font-medium text-slate-600">{p.label}
+            <select id={f.parts!.indexOf(p) === 0 ? name : undefined} className="input" disabled={ctx.disabled} aria-invalid={!!ctx.errors[name]}
+              {...ctx.register(`${name}.${p.id}` as never)}>
+              <option value="">Select {p.label.toLowerCase()}…</option>
+              {p.options.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </label>
+        ))}
+      </div>
+      {legacy && <p className="mt-1 rounded bg-amber-50 p-1.5 text-xs text-amber-900">Earlier entry: “{legacy}” — it could not be matched to the options. Select the values above; it is kept until you do.</p>}
+    </div>
+  )
+}
+
+/** The reporting department's Head/Dean: always the signed-in Dean's profile name, snapshotted on submission (D-079). */
+function DeanName({ name, ctx }: { name: string; ctx: Ctx }) {
+  return ctx.deanName
+    ? <input id={name} className="input bg-slate-50" value={ctx.deanName} readOnly aria-readonly />
+    : <p id={name} className="rounded bg-amber-50 p-2 text-sm text-amber-900" role="note">Your account profile has no full name, so this cannot be filled in. Drafts still save; ask the administrator to correct your profile before submitting.</p>
 }
 
 function Scalar({ f, name, ctx, ariaLabel }: { f: Field; name: string; ctx: Ctx; ariaLabel?: string }) {
+  if (f.auto === 'dean_name') return <DeanName name={name} ctx={ctx} />
+  if (f.type === 'term') return <Term f={f} name={name} ctx={ctx} ariaLabel={ariaLabel} />
   const common = { id: name, disabled: ctx.disabled, 'aria-label': ariaLabel, 'aria-invalid': !!ctx.errors[name], 'aria-describedby': ctx.errors[name] ? `${name}-err` : undefined, className: 'input' }
   const reg = (opts = {}) => ctx.register(name as never, opts)
   switch (f.type) {

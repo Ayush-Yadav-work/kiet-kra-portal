@@ -1,5 +1,21 @@
 # Validation log
 
+## Year/semester dropdowns, Dean name and Nil date (2026-10-24, D-079)
+
+| Command | Result |
+|---|---|
+| `python backend/manage.py test tests --parallel 1` (renderer running) | **Ran 561 tests, OK** (incl. new `tests.test_term_and_dean`, 7) |
+| `python e2e/run_isolated.py` | **Ran 32 tests, OK** (incl. new `test_term_dropdowns_dean_name_and_nil_date_placeholder`) |
+| `npx tsc -b`, `npm run build` | OK |
+
+Covered: two departments with different Dean names; normal (KRA 11) and Nil reports; selection save/reload, preview and PDF;
+legacy free text (mapped, unmappable kept visible, historical revision rendered as stored); programme-length options
+(KSOM/MCA 2 years); missing profile name (draft saves, submit refused, never the username); spoofed client name ignored;
+draft placeholder, IST boundary (00:30 IST → that IST date), rejection, resubmission and approval leaving dates unchanged;
+profile change after submission; VC preview/history show the submitting Dean; department isolation. Representative PDFs
+(KRA 7, 11, 19, 44 draft/submitted; Nil draft/submitted) rendered and inspected: no clipping, values correct.
+Isolated databases only; the working database was not used.
+
 ## Dean portal fixes (2026-10-19)
 
 | Command | Result |

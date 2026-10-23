@@ -27,20 +27,21 @@ export interface Activity { [field: string]: unknown }
 export interface Payload { activities: Activity[] }
 export interface SubmissionDetail {
   id: string; server_time: string; assignment: Assignment; period: Period; status: string; display_status: DisplayStatus
-  is_nil: boolean; nil_reason: string; achievement_text: string; remarks: string; payload: Payload; edit_version: number
+  is_nil: boolean; nil_reason: string; achievement_text: string; remarks: string; payload: Payload; dean_name: string; edit_version: number
   editable: boolean; active_grant: Grant | null; grants: Grant[]; reopen_requests: ReopenRequest[]; can_request_reopen: boolean
   current_revision: { id: string; sequence: number; submitted_at: string; achievement_text: string; remarks: string; is_nil: boolean; nil_reason: string
     evidence: { id: string; source_type: string; category: string; label: string; original_filename: string; drive_url: string }[] } | null; latest_decision: Decision | null
   grant_option_available: boolean; period_entries: PeriodEntry[]; applicability: Applicability
 }
 
-export type FieldType = 'text' | 'longtext' | 'integer' | 'decimal' | 'date' | 'select' | 'multiselect' | 'checklist' | 'ratings' | 'table' | 'auto'
+export type FieldType = 'text' | 'longtext' | 'integer' | 'decimal' | 'date' | 'select' | 'multiselect' | 'checklist' | 'ratings' | 'table' | 'auto' | 'term'
 export interface Field {
   id: string; label: string; type: FieldType; required?: boolean; max_length?: number; min?: number; max?: number
   options?: string[]; items?: string[]; columns?: Field[]; min_rows?: number; max_rows?: number
   guidance?: string; help?: string; placeholder?: string; suggestions?: string[]; width?: string
   decimal_places?: number; scale?: number[]; scale_labels?: string[]; source?: 'year' | 'department'
   when?: { field: string; in: string[] }; keep_inactive?: boolean; editor?: 'grid' | 'cards'
+  parts?: { id: string; label: string; options: string[] }[]; auto?: 'dean_name'
 }
 export interface Section { id: string; title: string; intro?: string; fields: Field[] }
 export interface Schema {

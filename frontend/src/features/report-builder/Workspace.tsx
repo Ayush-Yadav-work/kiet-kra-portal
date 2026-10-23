@@ -72,6 +72,9 @@ function normalize(p: Payload | undefined, schema: Schema, editable: boolean): P
   return { activities: acts.length ? acts.map((a) => ({ ...emptyActivity(schema), ...a })) : editable ? [emptyActivity(schema)] : [] }
 }
 
+/** Submission dates are shown as dates in Asia/Kolkata (D-079), e.g. "24 October 2026". */
+const istDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
+
 function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; reload: () => void }) {
   const q = useMemo(() => new SaveQueue(d.id, d.edit_version), [d.id, d.edit_version])
   useEffect(() => () => q.dispose(), [q])
@@ -159,7 +162,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
     } finally { setBusy(false) }
   }
 
-  const ctx = { control: form.control, register: form.register, setValue: form.setValue, getValues: form.getValues, disabled: !editable, errors }
+  const ctx = { control: form.control, register: form.register, setValue: form.setValue, getValues: form.getValues, disabled: !editable, errors, deanName: d.dean_name }
   return (
     <div>
       {/* C11: first successful save turns "Not submitted" into Draft without a reload */}
@@ -191,6 +194,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
         </div>
       </div>
       <ErrorBox error={message} />
+      {errors.dean_name && <p role="alert" className="mb-3 rounded border border-red-300 bg-red-50 p-2 text-sm text-red-900">{errors.dean_name.join(' ')}</p>}
       {!editable && <p className="mb-3 rounded bg-slate-100 p-2 text-sm">Read-only: {d.status === 'SUBMITTED' ? 'submitted and awaiting VC review.' : d.status === 'APPROVED' ? 'approved by the VC.' : 'the reporting window is closed.'}</p>}
       {d.can_request_reopen && <div className="mb-3"><ReopenRequestForm path={`/submissions/${d.id}/reopen-requests/`} onDone={reload} /></div>}
       <ReopenRequests requests={d.reopen_requests} />
@@ -212,6 +216,13 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
                   <label className="label" htmlFor="nilr">Reason for Nil <span className="text-red-700">*</span></label>
                   <textarea id="nilr" className="input" rows={3} disabled={!editable} value={nil.nil_reason} onChange={(e) => setNilField({ nil_reason: e.target.value })} />
                   {errors.nil_reason && <p className="mt-1 text-xs text-red-700">{errors.nil_reason.join(' ')}</p>}
+                  <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 text-sm">
+                    <dt className="font-medium">Head/Dean:</dt>
+                    <dd>{d.dean_name || <span className="text-amber-900">Not available: your account profile has no full name. Ask the administrator to correct it before submitting.</span>}</dd>
+                    <dt className="font-medium">Date:</dt>
+                    <dd>{!editable && d.current_revision ? istDate(d.current_revision.submitted_at)
+                      : d.current_revision ? `Set on resubmission (previous submission: ${istDate(d.current_revision.submitted_at)})` : 'Set on submission'}</dd>
+                  </dl>
                   <p className="mt-1 text-xs text-slate-500">A Nil report still goes to the VC for review. No event evidence is required. Entered event details are kept but not submitted.</p>
                 </div>
               )}

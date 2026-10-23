@@ -14,6 +14,7 @@ from apps.evidence.models import Evidence
 from apps.reports import artifacts
 from apps.reports.pdf import call_renderer, export_pdf
 from apps.reports.rendering import build_context, progress_pdf_parts, render_html
+from apps.reports import capabilities
 from apps.reports.schema import validate_payload
 
 from . import progress
@@ -109,7 +110,8 @@ def detail_json(sub, user):
         "nil_reason": sub.nil_reason,
         "achievement_text": sub.achievement_text,
         "remarks": sub.remarks,
-        "payload": sub.payload,
+        "payload": capabilities.editable_payload(capabilities.schema_for(sub), sub.payload),
+        "dean_name": svc.dean_name(user) if user.role == "DEAN" else "",  # read-only Head/Dean value (D-079)
         "edit_version": sub.edit_version,
         "editable": svc.is_editable(sub, at),
         "active_grant": grant_json(active, at) if active else None,
@@ -222,7 +224,7 @@ class ValidateView(APIView):
 
     def post(self, request, pk):
         sub = get_or_404(submissions_for(request.user), pk=pk)
-        errors = svc.validation_errors(sub)
+        errors = svc.validation_errors(sub, request.user)
         return Response({"valid": not errors, "field_errors": errors})
 
 
@@ -247,7 +249,7 @@ class PreviewView(APIView):
             draft = {k: request.data[k] for k in ("payload", "is_nil", "nil_reason", "achievement_text")
                      if k in request.data}
             if "payload" in draft:
-                errors = validate_payload(sub.assignment.template_version.schema, draft["payload"], strict=False)
+                errors = validate_payload(capabilities.schema_for(sub), draft["payload"], strict=False)
                 if errors:
                     raise ApiError(400, "invalid", "Some values are not valid.", errors)
             if "is_nil" in draft and not isinstance(draft["is_nil"], bool):
@@ -338,7 +340,7 @@ class HistoryView(APIView):
         revisions = []
         for rev in sub.revisions.select_related("submitted_by").prefetch_related("decisions"):
             revisions.append({"id": str(rev.id), "sequence": rev.sequence, "submitted_at": rev.submitted_at,
-                              "submitted_by": rev.submitted_by.display_name, "is_nil": rev.is_nil,
+                              "submitted_by": (rev.snapshot.get("dean") or {}).get("name") or rev.submitted_by.display_name, "is_nil": rev.is_nil,
                               "achievement_text": rev.achievement_text, "evidence_count": len(rev.evidence_manifest),
                               "decisions": [decision_json(d) for d in rev.decisions.all()]})
         return Response({"revisions": revisions, "grants": [grant_json(g, at) for g in sub.grants.all()],

@@ -15,8 +15,8 @@
   <tr><td>Approval state</td><td>{{ verification_label }}</td></tr>
 </table>
 <div class="signoff">
-  <div>Head/Dean: <span class="val">____________________</span></div>
-  <div>Date: <span class="val">____________________</span></div>
+  <div>Head/Dean: <span class="val">{% if dean_name %}{{ dean_name }}{% else %}____________________{% endif %}</span></div>
+  <div>Date: <span class="val">{% if submitted_on %}{{ submitted_on }}{% elif previous_submitted_on %}Set on resubmission (previous submission: {{ previous_submitted_on }}){% else %}Set on submission{% endif %}</span></div>
 </div>
 <div class="verify {% if not verified %}pending{% endif %}">Verification: {{ verification_label }}{% if verified_at %} — {{ verified_at }}{% endif %}</div>
 {% endblock %}

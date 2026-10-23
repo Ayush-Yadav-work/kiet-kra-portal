@@ -9,7 +9,7 @@ from tests import fixtures as fx
 from tests.base import PortalTestCase, frozen, ist
 from tests.test_phase3 import WorkflowMixin
 
-REQUIRED = ("visit_date", "year_semester", "faculty_coordinators", "hod", "industry_name", "students_participated",
+REQUIRED = ("visit_date", "year_semester", "faculty_coordinators", "industry_name", "students_participated",
             "industry_profile", "objectives", "technical_overview", "departments_visited", "equipment", "quality_safety",
             "environmental", "learning_outcomes", "courses", "gaps", "conclusion", "feedback_summary")
 OPTIONAL = ("students_eligible", "experts", "lo_matrix", "suggestions", "coordinator_remarks", "coordinator_name",

@@ -1055,6 +1055,50 @@ class BrowserTests(unittest.TestCase):
             r = p.request.get(f"{BASE}/api/v1/submissions/{sid}/export/?inline=1")
             self.assertEqual((r.status, r.headers["content-type"]), (200, "application/pdf"), f"KRA {n}")
 
+    def test_term_dropdowns_dean_name_and_nil_date_placeholder(self):
+        """D-079: an unmatched old year/semester entry stays visible; dropdowns replace it; the Head of the Department is the
+        signed-in Dean's profile name (read-only); a Nil draft shows 'Set on submission'."""
+        from tests.fixtures import kra11_payload
+
+        p = self.page
+        login(p, "dean", "demo.dean.ece")
+        p.wait_for_url("**/dean/dashboard")
+        sid = open_ece_kra(p, 11)
+        payload = kra11_payload(1)
+        payload["activities"][0].update(year_semester="Final year students", hod="Spoofed Name")
+        _, d = api(p, "GET", f"/submissions/{sid}/")
+        status, body = api(p, "PATCH", f"/submissions/{sid}/draft/", {"edit_version": d["edit_version"], "payload": payload,
+                                                                         "is_nil": False, "achievement_text": "Synthetic"})
+        self.assertEqual(status, 200, body)
+        p.reload()
+        p.wait_for_load_state("networkidle")
+        expect(p.get_by_text("Earlier entry: “Final year students”")).to_be_visible()
+        dean = p.locator("[id='activities.0.hod']")
+        expect(dean).to_have_value("Demo Dean ECE")
+        expect(dean).to_have_attribute("readonly", "")
+        year, sem = p.locator("select[name='activities.0.year_semester.year']"), p.locator("select[name='activities.0.year_semester.semester']")
+        expect(year.locator("option")).to_have_text(["Select year of study…", "1st Year", "2nd Year", "3rd Year", "4th Year"])
+        year.select_option("4th Year")
+        sem.select_option("Even Semester")
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+        p.reload()
+        p.wait_for_load_state("networkidle")
+        expect(year).to_have_value("4th Year")
+        expect(sem).to_have_value("Even Semester")
+        expect(p.get_by_text("Earlier entry:")).to_have_count(0)
+        frame = p.frame_locator("iframe[title='Report preview']")
+        expect(frame.get_by_text("2026-27 / 4th Year / Even Semester")).to_be_visible(timeout=10000)
+        expect(frame.get_by_text("Demo Dean ECE").first).to_be_visible()
+        expect(frame.get_by_text("Spoofed Name")).to_have_count(0)
+        p.get_by_label("Nil submission — no activity for this KRA in this period").check()
+        p.locator("#nilr").fill("Synthetic: no activity")
+        expect(p.get_by_text("Set on submission")).to_be_visible()
+        expect(frame.get_by_text("Set on submission")).to_be_visible(timeout=10000)
+        p.get_by_label("Nil submission — no activity for this KRA in this period").uncheck()  # leave the demo row as found
+        p.get_by_role("button", name="Save draft").click()
+        expect(p.get_by_role("status")).to_contain_text("Saved")
+
     def test_phase5a_vc_assignment_workflow(self):
         """VC Phase 1 (supersedes the Phase 5A flow): Dean denied; VC copies 2026-27 into 2027-28 drafts through the copy review,
         edits ECE's KRA 33 target exactly (Changed filter), finalises ECE KRA 33 only (starts in P1), the ECE Dean then sees exactly

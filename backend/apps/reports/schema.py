@@ -7,7 +7,8 @@ draft with an out-of-range or over-precise number still saves exactly as typed (
 
 Field types: text, longtext, integer, decimal (kept as the entered string, never rounded), date, select,
 multiselect, checklist (item -> Yes/No), ratings (list aligned with items: decimal strings), table (rows of
-scalar columns). Table columns may be `auto` (filled by the renderer, never entered) or conditional via
+scalar columns), term (year of study/semester dropdowns, see apps/reports/capabilities.py). Fields with
+`auto` set (the Dean's name) are never validated or stored from the client. Table columns may be `auto` (filled by the renderer, never entered) or conditional via
 `when: {"field": <column>, "in": [...]}` — required only when applicable, must be blank otherwise.
 """
 import datetime
@@ -26,7 +27,7 @@ def fields_of(schema):
 
 
 def default_for(f):
-    return [] if f["type"] in ("table", "multiselect", "ratings") else {} if f["type"] == "checklist" else ""
+    return [] if f["type"] in ("table", "multiselect", "ratings") else {} if f["type"] in ("checklist", "term") else ""
 
 
 def empty_activity(schema):
@@ -96,8 +97,28 @@ def _check_scalar(f, v, path, errors, strict=True):
     elif t == "select":
         if v not in f["options"]:
             errors[path] = ["Choose one of the listed options."]
+    elif t == "term":
+        _check_term(f, v, path, errors, strict)
     else:
         errors[path] = [f"Unsupported field type {t}."]
+
+
+def _check_term(f, v, path, errors, strict):
+    """Draft: legacy free text or {part: option, "legacy": text}. Submission: every part selected."""
+    parts = {p["id"]: p for p in f["parts"]}
+    if isinstance(v, str):
+        if len(v) > f.get("max_length", 200):
+            errors[path] = [f"Maximum {f.get('max_length', 200)} characters (currently {len(v)})."]
+        elif strict:
+            errors[path] = [f'Select the {" and ".join(p["label"].lower() for p in f["parts"])}; the earlier entry "{v}" could not be matched.']
+        return
+    if not isinstance(v, dict) or set(v) - set(parts) - {"legacy"} or not isinstance(v.get("legacy", ""), str):
+        errors[path] = ["Invalid selection."]
+    elif any(v.get(k) not in ("", None, *p["options"]) for k, p in parts.items()):
+        errors[path] = ["Choose one of the listed options."]
+    elif strict and (f.get("required") or any(v.get(k) for k in parts)) and not all(v.get(k) for k in parts):
+        missing = [p["label"] for k, p in parts.items() if not v.get(k)]
+        errors[path] = [f"Select the {' and '.join(m.lower() for m in missing)}."]
 
 
 def _check_rules(rules, obj, path, errors):
@@ -123,6 +144,8 @@ def _check_rules(rules, obj, path, errors):
 
 def _check_field(f, v, path, strict, errors):
     t = f["type"]
+    if f.get("auto"):
+        return  # derived on the server (the Dean's profile name); any client value is discarded
     if t == "multiselect":
         if not isinstance(v, list) or any(x not in f["options"] for x in v) or len(set(v)) != len(v):
             errors[path] = ["Choose from the listed options."]

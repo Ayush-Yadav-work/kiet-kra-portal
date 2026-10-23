@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.auth import IsDeanOrVC
+from apps.reports import capabilities
 from apps.submissions.scope import assignments_for, get_or_404
 
 from .models import KRA, AcademicYear, Department, ReportingPeriod, TemplateVersion
@@ -71,4 +72,5 @@ class TemplateView(APIView):
         tv = get_or_404(TemplateVersion.objects.all(), key=key, version=version)
         if not assignments_for(request.user).filter(template_version=tv).exists():
             return Response({"code": "not_found", "message": "Not found."}, status=404)
-        return Response({"key": tv.key, "version": tv.version, "title": tv.title, "schema": tv.schema})
+        dept = request.user.department.code if request.user.department else None  # year-of-study options (D-079)
+        return Response({"key": tv.key, "version": tv.version, "title": tv.title, "schema": capabilities.apply(tv.schema, dept)})

@@ -10,7 +10,7 @@ from tests import fixtures as fx
 from tests.base import PortalTestCase, frozen, ist
 from tests.test_phase3 import WorkflowMixin
 
-REQUIRED_COMMON = ("year_semester", "faculty_coordinators", "hod", "course_name", "duration_hours", "mode", "resource_agency",
+REQUIRED_COMMON = ("year_semester", "faculty_coordinators", "course_name", "duration_hours", "mode", "resource_agency",
                    "modules", "learning_outcomes", "assessment_method", "min_attendance", "passing_criteria",
                    "certificate_authority", "certificates_issued")
 OPTIONAL_COMMON = ("objectives", "other_objectives", "feedback_score", "suggestions", "impact_indicators",
