@@ -31,7 +31,7 @@ class KRA23Tests(WorkflowMixin, PortalTestCase):
             fe = self.a.post(f"/api/v1/submissions/{sid}/validate/").json()["field_errors"]
         self.assertIn("achievement_text", fe)
         self.assertNotIn("evidence", fe)
-        for k in ("year_semester", "faculty_coordinators", "hod", "programs", "modules", "learning_outcomes",
+        for k in ("year_semester", "faculty_coordinators", "programs", "modules", "learning_outcomes",
                   "assessment_method", "min_attendance", "passing_criteria", "certificate_authority", "certificates_issued"):
             self.assertIn(f"activities.0.{k}", fe, k)
         for k in ("programme_title", "objectives", "other_objectives", "feedback_score", "suggestions", "impact_indicators",

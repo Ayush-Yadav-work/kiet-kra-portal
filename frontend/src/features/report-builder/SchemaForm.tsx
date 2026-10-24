@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useWatch, type Control, type UseFormGetValues, type UseFormRegister, type UseFormSetValue } from 'react-hook-form'
 import type { Field, Payload, Schema } from '../../api/types'
 import { tabKeys } from '../../components/ui'
@@ -6,11 +6,11 @@ import { tabKeys } from '../../components/ui'
 type Errors = Record<string, string[]>
 interface Ctx {
   control: Control<Payload>; register: UseFormRegister<Payload>; setValue: UseFormSetValue<Payload>
-  getValues: UseFormGetValues<Payload>; disabled: boolean; errors: Errors
+  getValues: UseFormGetValues<Payload>; disabled: boolean; errors: Errors; deanName: string
 }
 
 export function emptyValue(f: Field): unknown {
-  return f.type === 'table' || f.type === 'multiselect' || f.type === 'ratings' ? [] : f.type === 'checklist' ? {} : ''
+  return f.type === 'table' || f.type === 'multiselect' || f.type === 'ratings' ? [] : f.type === 'checklist' || f.type === 'term' ? {} : ''
 }
 export function emptyActivity(schema: Schema) {
   return Object.fromEntries(schema.sections.flatMap((s) => s.fields).map((f) => [f.id, emptyValue(f)]))
@@ -38,10 +38,41 @@ export function applies(cond: When | undefined, obj: Record<string, unknown> | u
 }
 
 function Label({ f, htmlFor }: { f: Field; htmlFor?: string }) {
-  return <label className="label" htmlFor={htmlFor}>{f.label}<Req on={f.required} /></label>
+  return <label className="label" htmlFor={htmlFor}>{f.label}<Req on={f.required && !f.auto} /></label>
+}
+
+/** Year of study / semester dropdowns (D-079). An earlier free-text entry that could not be matched stays visible until replaced. */
+function Term({ f, name, ctx, ariaLabel }: { f: Field; name: string; ctx: Ctx; ariaLabel?: string }) {
+  const v = useWatch({ control: ctx.control, name: name as never }) as unknown as Record<string, string> | undefined
+  const legacy = v?.legacy && !f.parts!.every((p) => v[p.id]) ? v.legacy : ''
+  return (
+    <div role="group" aria-label={ariaLabel ?? f.label} aria-describedby={ctx.errors[name] ? `${name}-err` : undefined}>
+      <div className="flex flex-wrap gap-2">
+        {f.parts!.map((p) => (
+          <label key={p.id} className="grid min-w-[9rem] flex-1 gap-0.5 text-xs font-medium text-slate-600">{p.label}
+            <select id={f.parts!.indexOf(p) === 0 ? name : undefined} className="input" disabled={ctx.disabled} aria-invalid={!!ctx.errors[name]}
+              {...ctx.register(`${name}.${p.id}` as never)}>
+              <option value="">Select {p.label.toLowerCase()}…</option>
+              {p.options.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </label>
+        ))}
+      </div>
+      {legacy && <p className="mt-1 rounded bg-amber-50 p-1.5 text-xs text-amber-900">Earlier entry: “{legacy}” — it could not be matched to the options. Select the values above; it is kept until you do.</p>}
+    </div>
+  )
+}
+
+/** The reporting department's Head/Dean: always the signed-in Dean's profile name, snapshotted on submission (D-079). */
+function DeanName({ name, ctx }: { name: string; ctx: Ctx }) {
+  return ctx.deanName
+    ? <input id={name} className="input bg-slate-50" value={ctx.deanName} readOnly aria-readonly />
+    : <p id={name} className="rounded bg-amber-50 p-2 text-sm text-amber-900" role="note">Your account profile has no full name, so this cannot be filled in. Drafts still save; ask the administrator to correct your profile before submitting.</p>
 }
 
 function Scalar({ f, name, ctx, ariaLabel }: { f: Field; name: string; ctx: Ctx; ariaLabel?: string }) {
+  if (f.auto === 'dean_name') return <DeanName name={name} ctx={ctx} />
+  if (f.type === 'term') return <Term f={f} name={name} ctx={ctx} ariaLabel={ariaLabel} />
   const common = { id: name, disabled: ctx.disabled, 'aria-label': ariaLabel, 'aria-invalid': !!ctx.errors[name], 'aria-describedby': ctx.errors[name] ? `${name}-err` : undefined, className: 'input' }
   const reg = (opts = {}) => ctx.register(name as never, opts)
   switch (f.type) {
@@ -201,7 +232,7 @@ function Table({ f, name, ctx }: { f: Field; name: string; ctx: Ctx }) {
           ))}
         </ol>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">{/* relative: contains the sr-only header text */}
           <table className="w-full min-w-[640px] text-sm">
             <thead><tr className="bg-slate-100 text-left"><th className="w-10 p-1">Sl.</th>{cols.map((c) => <th key={c.id} className="p-1">{c.label}<Req on={c.required && !c.when} />{c.required && c.when && <span className="text-xs font-normal text-slate-600"> (required where applicable)</span>}</th>)}<th /></tr></thead>
             <tbody>
@@ -267,6 +298,63 @@ function InactiveNote({ section, act }: { section: Field[]; act: Record<string, 
   )
 }
 
+/** Smooth unless the user asked for reduced motion. */
+export const scrollBehavior = (): ScrollBehavior => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth')
+
+/** Scroll a heading's section into view and move focus to the heading (it is tabIndex -1), without a second jump. */
+export function jumpTo(id: string, focusId = id + '-h') {
+  document.getElementById(id)?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
+  document.getElementById(focusId)?.focus({ preventScroll: true })
+}
+
+/** "Jump to section" for the open event/course: chips from the template (sections with at least one applicable field),
+ * a compact select on phones; the section in view is marked with aria-current, never a completion state. */
+function SectionNav({ items }: { items: { id: string; title: string }[] }) {
+  const [current, setCurrent] = useState(items[0]?.id)
+  const held = useRef(0) // a clicked section stays current while its jump settles (the last sections cannot reach the top)
+  const key = items.map((s) => s.id).join('|')
+  useEffect(() => {
+    const els = items.map((s) => document.getElementById(s.id)).filter((e): e is HTMLElement => !!e)
+    const io = new IntersectionObserver((entries) => {
+      const top = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+      if (top && Date.now() > held.current) setCurrent(top.target.id)
+    }, { rootMargin: '0px 0px -65% 0px' })
+    els.forEach((e) => io.observe(e))
+    return () => io.disconnect()
+  }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!items.length) return null
+  const go = (id: string) => { held.current = Date.now() + 1000; setCurrent(id); jumpTo(id) }
+  return (
+    <nav aria-label="Sections" className="mb-4 rounded-xl border border-line bg-subtle px-3 py-2.5">
+      <label htmlFor={`${items[0].id}-jump`} className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted sm:hidden">Jump to section</label>
+      <p className="mb-1.5 hidden text-xs font-semibold uppercase tracking-wide text-muted sm:block" aria-hidden>Jump to section</p>
+      <select id={`${items[0].id}-jump`} className="input sm:hidden" value={current} onChange={(e) => go(e.target.value)}>
+        {items.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
+      </select>
+      <ul className="hidden flex-wrap gap-1.5 sm:flex">
+        {items.map((s) => (
+          <li key={s.id} className="max-w-full">
+            <a href={`#${s.id}`} aria-current={current === s.id ? 'location' : undefined} onClick={(e) => { e.preventDefault(); go(s.id) }}
+              className={`block rounded-full border px-3 py-1 text-[13px] leading-snug no-underline transition-colors ${current === s.id
+                ? 'border-action bg-info-bg font-semibold text-action' : 'border-[#CBD6E1] bg-white text-heading hover:border-action hover:text-action'}`}>
+              {s.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+function SectionCard({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+  return (
+    <section id={id} aria-labelledby={id + '-h'} className="card mb-3 scroll-mt-4">
+      <h3 id={id + '-h'} tabIndex={-1} className="mb-3 border-b border-line pb-2 text-base font-semibold text-heading">{title}</h3>
+      {children}
+    </section>
+  )
+}
+
 export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }) {
   const { fields, append, remove } = useFieldArray({ control: ctx.control, name: 'activities' })
   const values = useWatch({ control: ctx.control, name: 'activities' })
@@ -281,7 +369,7 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
     <div>
       <FieldError path="activities" errors={ctx.errors} />
       {!single && (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-white p-2.5">
           <div className="flex flex-wrap gap-2" role="tablist" aria-label={`${label}s in this report`} onKeyDown={tabKeys}>
             {fields.map((a, i) => (
               <button key={a.id} id={`act-tab-${i}`} type="button" role="tab" aria-selected={open === i} aria-controls={`act-panel-${i}`}
@@ -296,22 +384,23 @@ export default function SchemaForm({ schema, ctx }: { schema: Schema; ctx: Ctx }
           )}
         </div>
       )}
-      {fields.map((a, i) => (
+      {fields.map((a, i) => {
+        const act = values?.[i] as Record<string, unknown>
+        const sid = (s: { id: string }) => `sec-${a.id}-${s.id}` // field-array key: stable across adds/removals
+        return (
         <div key={a.id} hidden={open !== i} {...(single ? {} : { role: 'tabpanel', id: `act-panel-${i}`, 'aria-labelledby': `act-tab-${i}` })}>
-          <nav className="mb-3 flex flex-wrap gap-2 text-xs" aria-label="Sections">
-            {schema.sections.map((s) => <a key={s.id} className="underline text-blue-800" href={`#sec-${i}-${s.id}`}>{s.title}</a>)}
-          </nav>
+          {open === i && <SectionNav items={schema.sections.filter((s) => s.fields.some((f) => applies(f.when, act))).map((s) => ({ id: sid(s), title: s.title }))} />}
           {schema.sections.map((s) => (
-            <section key={s.id} id={`sec-${i}-${s.id}`} className="card mb-3">
-              <h3 className="mb-2 font-semibold">{s.title}</h3>
+            <SectionCard key={s.id} id={sid(s)} title={s.title}>
               {s.intro && <p className="mb-2 text-sm text-slate-600">{s.intro}</p>}
-              {s.fields.filter((f) => applies(f.when, values?.[i] as Record<string, unknown>)).map((f) => <FieldView key={f.id} f={f} name={`activities.${i}.${f.id}`} ctx={ctx} />)}
-              <InactiveNote section={s.fields} act={values?.[i] as Record<string, unknown>} />
-            </section>
+              {s.fields.filter((f) => applies(f.when, act)).map((f) => <FieldView key={f.id} f={f} name={`activities.${i}.${f.id}`} ctx={ctx} />)}
+              <InactiveNote section={s.fields} act={act} />
+            </SectionCard>
           ))}
           {!single && !ctx.disabled && fields.length > 1 && <button type="button" className="btn-danger" onClick={() => removeActivity(i)}>Remove {label.toLowerCase()} {i + 1}</button>}
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

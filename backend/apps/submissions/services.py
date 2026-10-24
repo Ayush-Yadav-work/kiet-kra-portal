@@ -16,7 +16,7 @@ from apps.audit.errors import ApiError
 from apps.catalogue.allocations import NOT_ASSIGNED, applicability
 from apps.audit.models import record
 from apps.reports.schema import validate_payload
-from apps.reports import artifacts
+from apps.reports import artifacts, capabilities
 
 from .models import ReopenGrant, ReopenRequest, ReviewDecision, Status, Submission, SubmissionRevision
 
@@ -83,10 +83,22 @@ def grant_option_available(submission, at=None):
     return submission.period.closes_at - at < GRANT
 
 
-def snapshot_of(submission):
+def dean_name(user):
+    """The Dean's full name from the account profile; never the username (D-079)."""
+    return user.get_full_name().strip() if user else ""
+
+
+def department_dean(department):
+    from apps.accounts.models import User
+    return User.objects.filter(role=User.Role.DEAN, department=department, is_active=True).first()
+
+
+def snapshot_of(submission, dean=None):
+    """dean: the submitting Dean (revision snapshot); drafts show the department's active Dean (only Deans see drafts)."""
     a = submission.assignment
     tv = a.template_version
     return {
+        "dean": {"name": dean_name(dean or department_dean(a.department))},
         "department": {"code": a.department.code, "name": a.department.name},
         "kra": {"number": a.kra.number, "activity_text": a.kra.activity_text, "nba_ref": a.kra.nba_ref,
                 "naac_ref": a.kra.naac_ref},
@@ -172,10 +184,11 @@ def save_draft(user, submission_id, expected_version, changes, request=None):
         _check_version(sub, expected_version)
         _require_editable(sub, at)
         if "payload" in changes:
-            schema = sub.assignment.template_version.schema
+            schema = capabilities.schema_for(sub)
             errors = validate_payload(schema, changes["payload"], strict=False)
             if errors:
                 raise ApiError(400, "invalid", "Some values are not valid.", errors)
+            changes["payload"] = capabilities.strip_auto(schema, changes["payload"])
         for k in ("achievement_text", "remarks", "nil_reason"):
             if k in changes and not isinstance(changes[k], str):
                 raise ApiError(400, "invalid", "Invalid value.", {k: ["Must be text."]})
@@ -191,14 +204,18 @@ def save_draft(user, submission_id, expected_version, changes, request=None):
         return sub
 
 
-def validation_errors(sub):
-    """Strict submission validation: report fields + achievement + evidence minimum."""
+def validation_errors(sub, user=None):
+    """Strict submission validation: report fields + achievement + evidence minimum + the submitting Dean's name."""
     errors = {}
+    schema = capabilities.schema_for(sub)
+    if user is not None and not dean_name(user) and capabilities.needs_dean_name(schema, sub.is_nil):
+        errors["dean_name"] = ["Your account profile has no full name, so the Head/Dean name cannot be filled in. "
+                               "Ask the administrator to correct your profile, then submit."]
     if sub.is_nil:
         if not sub.nil_reason.strip():
             errors["nil_reason"] = ["A reason is required for a Nil submission."]
     else:
-        errors.update(validate_payload(sub.assignment.template_version.schema, sub.payload, strict=True))
+        errors.update(validate_payload(schema, sub.payload, strict=True))
         if not sub.achievement_text.strip():
             errors["achievement_text"] = ["Enter the achievement for this period."]
         required = sub.assignment.template_version.schema.get("evidence", {}).get("required", [])
@@ -215,7 +232,7 @@ def submit(user, submission_id, expected_version, request=None):
         at = now()
         _check_version(sub, expected_version)
         _require_editable(sub, at)
-        errors = validation_errors(sub)
+        errors = validation_errors(sub, user)
         if errors:
             raise ApiError(400, "validation_failed", "Complete the highlighted items before submitting.", errors)
         manifest = evidence_manifest(sub)
@@ -227,7 +244,7 @@ def submit(user, submission_id, expected_version, request=None):
             nil_reason=sub.nil_reason if sub.is_nil else "",
             achievement_text=sub.achievement_text,
             remarks=sub.remarks,
-            snapshot=snapshot_of(sub),
+            snapshot=snapshot_of(sub, dean=user),  # name and term values frozen with this revision
             evidence_manifest=manifest,
             manifest_hash=hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest(),
             submitted_by=user,

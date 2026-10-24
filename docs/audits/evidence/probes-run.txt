@@ -1,0 +1,263 @@
+Creating test database for alias 'default'...
+Conflict: /api/v1/submissions/318b072c-0637-4e81-8107-3c0b4356cfe3/submit/
+Conflict: /api/v1/submissions/318b072c-0637-4e81-8107-3c0b4356cfe3/review/
+Conflict: /api/v1/submissions/66fb66f5-7f54-4e90-8cb9-ca0d22751865/draft/
+Conflict: /api/v1/submissions/b93ab7e2-84a4-4c6e-b3cd-03475670d2f2/draft/
+Conflict: /api/v1/assignments/d8963917-ec53-45e7-8bce-67adca4bcd40/periods/1/
+Internal Server Error: /api/v1/analytics/
+Traceback (most recent call last):
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 474, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 485, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 523, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 31, in get
+    f, d = run(request)
+           ^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 21, in run
+    return f, analytics.dataset(f, as_of)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 236, in dataset
+    return compute(read_snapshot(lambda: load(f, as_of, between)), f, as_of)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 42, in read_snapshot
+    raise SnapshotError("The analytics reader must own its transaction; call it outside transaction.atomic() "
+apps.submissions.analytics.SnapshotError: The analytics reader must own its transaction; call it outside transaction.atomic() (views are wrapped with transaction.non_atomic_requests).
+EEInternal Server Error: /api/v1/analytics/
+Traceback (most recent call last):
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 474, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 485, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 523, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 31, in get
+    f, d = run(request)
+           ^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 21, in run
+    return f, analytics.dataset(f, as_of)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 236, in dataset
+    return compute(read_snapshot(lambda: load(f, as_of, between)), f, as_of)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 42, in read_snapshot
+    raise SnapshotError("The analytics reader must own its transaction; call it outside transaction.atomic() "
+apps.submissions.analytics.SnapshotError: The analytics reader must own its transaction; call it outside transaction.atomic() (views are wrapped with transaction.non_atomic_requests).
+EBad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Bad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Bad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Bad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Bad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Bad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Bad Request: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/evidence/
+Not Found: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/
+Not Found: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/export/
+Not Found: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/preview/
+Not Found: /api/v1/evidence/b5efc323-62f6-4ff5-946b-823206d49d7a/download/
+Not Found: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/history/
+Not Found: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/draft/
+Not Found: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/submit/
+Not Found: /api/v1/evidence/b5efc323-62f6-4ff5-946b-823206d49d7a/
+Forbidden: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/draft/
+Forbidden: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/submit/
+Forbidden: /api/v1/progress/
+Forbidden: /api/v1/analytics/
+Forbidden: /api/v1/admin/drafts/
+Forbidden: /api/v1/announcements/
+Forbidden: /api/v1/bulk-approvals/
+Bad Request: /api/v1/auth/vc/login/
+Unauthorized: /api/v1/auth/me/
+Forbidden: /api/v1/submissions/61b63a9d-39dc-414d-99fb-6104f2e67962/draft/
+Forbidden: /api/v1/assignments/
+..
+======================================================================
+ERROR: test_invariant_probes (tests.test_zz_audit_probes.AuditProbes.test_invariant_probes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\tests\test_zz_audit_probes.py", line 239, in test_invariant_probes
+    r = self.v.get("/api/v1/analytics/", {"year": "2028-29", "scope": "ytd"})
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 295, in get
+    response = super().get(path, data=data, **extra)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 212, in get
+    return self.generic('GET', path, **r)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 240, in generic
+    return super().generic(
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 292, in request
+    return super().request(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 244, in request
+    request = super().request(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\test\client.py", line 1090, in request
+    self.check_exception(response)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 474, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 485, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 523, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 31, in get
+    f, d = run(request)
+           ^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 21, in run
+    return f, analytics.dataset(f, as_of)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 236, in dataset
+    return compute(read_snapshot(lambda: load(f, as_of, between)), f, as_of)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 42, in read_snapshot
+    raise SnapshotError("The analytics reader must own its transaction; call it outside transaction.atomic() "
+apps.submissions.analytics.SnapshotError: The analytics reader must own its transaction; call it outside transaction.atomic() (views are wrapped with transaction.non_atomic_requests).
+
+======================================================================
+ERROR: test_long_content_page_breaks (tests.test_zz_audit_probes.AuditProbes.test_long_content_page_breaks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\tests\test_zz_audit_probes.py", line 135, in test_long_content_page_breaks
+    doc[i].get_pixmap(dpi=55).save(PNG / f"long-kra{n:02d}-p{i + 1}.png")
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\pymupdf\__init__.py", line 14063, in save
+    return self._writeIMG(filename, idx, jpg_quality)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\pymupdf\__init__.py", line 13742, in _writeIMG
+    if   format_ == 1:  mupdf.fz_save_pixmap_as_png(pm, filename)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\pymupdf\mupdf.py", line 55549, in fz_save_pixmap_as_png
+    return _mupdf.fz_save_pixmap_as_png(pixmap, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pymupdf.mupdf.FzErrorSystem: code=2: cannot open file 'C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\docs\audits\evidence\pdf-pages\long-kra33-p1.png': No such file or directory
+
+======================================================================
+ERROR: test_query_counts (tests.test_zz_audit_probes.AuditProbes.test_query_counts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\tests\test_zz_audit_probes.py", line 273, in test_query_counts
+    out["empty"] = {n: measure(c, u, p) for n, c, u, p in calls}
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\tests\test_zz_audit_probes.py", line 273, in <dictcomp>
+    out["empty"] = {n: measure(c, u, p) for n, c, u, p in calls}
+                       ^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\tests\test_zz_audit_probes.py", line 265, in measure
+    r = client.get(url, params or {})
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 295, in get
+    response = super().get(path, data=data, **extra)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 212, in get
+    return self.generic('GET', path, **r)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 240, in generic
+    return super().generic(
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 292, in request
+    return super().request(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\test.py", line 244, in request
+    request = super().request(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\test\client.py", line 1090, in request
+    self.check_exception(response)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 474, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 485, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 523, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 31, in get
+    f, d = run(request)
+           ^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics_views.py", line 21, in run
+    return f, analytics.dataset(f, as_of)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 236, in dataset
+    return compute(read_snapshot(lambda: load(f, as_of, between)), f, as_of)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\submissions\analytics.py", line 42, in read_snapshot
+    raise SnapshotError("The analytics reader must own its transaction; call it outside transaction.atomic() "
+apps.submissions.analytics.SnapshotError: The analytics reader must own its transaction; call it outside transaction.atomic() (views are wrapped with transaction.non_atomic_requests).
+
+----------------------------------------------------------------------
+Ran 5 tests in 45.490s
+
+FAILED (errors=3)
+Destroying test database for alias 'default'...
+Found 5 test(s).
+System check identified no issues (0 silenced).

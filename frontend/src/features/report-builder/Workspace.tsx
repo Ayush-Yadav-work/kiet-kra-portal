@@ -3,12 +3,13 @@ import { useForm } from 'react-hook-form'
 import { Link, useBlocker, useParams } from 'react-router-dom'
 import { api, ApiError, fmtDateTime } from '../../api/client'
 import type { Applicability, Assignment, Payload, Period, ReopenRequest, Schema, SubmissionDetail } from '../../api/types'
+import { Icon } from '../../components/icons'
 import { ErrorBox, Loading, StatusBadge, tabKeys, timeLeft, useServerClock } from '../../components/ui'
 import AchievementTab from '../achievements/AchievementTab'
 import EvidenceTab from '../evidence/EvidenceTab'
 import Preview from './Preview'
 import { SaveQueue } from './saveQueue'
-import SchemaForm, { emptyActivity } from './SchemaForm'
+import SchemaForm, { emptyActivity, jumpTo } from './SchemaForm'
 
 type Tab = 'report' | 'evidence' | 'achievement'
 
@@ -38,7 +39,7 @@ export function WorkspaceHeader({ d, status }: { d: SubmissionDetail; status?: S
     <div className="card mb-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold">KRA {d.assignment.kra.number} — {d.assignment.department.name}</h1>
+          <h1 id="workspace-heading" tabIndex={-1} className="scroll-mt-4 text-lg font-semibold">KRA {d.assignment.kra.number} — {d.assignment.department.name}</h1>
           <p className="text-sm text-slate-700">{d.assignment.kra.activity_text.replace(/^KRA \d+:\s*/, '')}</p>
           <p className="mt-1 text-sm">Academic year <b>{d.assignment.year}</b> · <b>{d.period.label}</b> · Annual target: <b className="whitespace-pre-wrap">{d.assignment.target_text}</b></p>
           <p className="text-xs text-slate-500">NBA {d.assignment.kra.nba_ref || '—'} · NAAC {d.assignment.kra.naac_ref || '—'}</p>
@@ -70,6 +71,36 @@ function SaveIndicator({ q }: { q: SaveQueue }) {
 function normalize(p: Payload | undefined, schema: Schema, editable: boolean): Payload {
   const acts = p?.activities ?? []
   return { activities: acts.length ? acts.map((a) => ({ ...emptyActivity(schema), ...a })) : editable ? [emptyActivity(schema)] : [] }
+}
+
+/** Submission dates are shown as dates in Asia/Kolkata (D-079), e.g. "24 October 2026". */
+const istDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
+
+/** Floating "Back to top" for the report form (the window scrolls; the preview iframe keeps its own position). Sits in a
+ * zero-height sticky slot at the end of the form column, so it takes no layout space; on wide screens it sits
+ * across the gutter (over the preview page, clear of form inputs). */
+function BackToTop() {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    const check = () => {
+      const h = document.getElementById('workspace-heading')
+      setShow(!!h && h.getBoundingClientRect().bottom < -400)
+    }
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    return () => { window.removeEventListener('scroll', check); window.removeEventListener('resize', check) }
+  }, [])
+  return (
+    <div className="pointer-events-none sticky bottom-4 z-10 h-0">
+      {show && (
+        <button type="button" onClick={() => jumpTo('workspace-heading', 'workspace-heading')}
+          className="btn-secondary pointer-events-auto absolute bottom-0 right-0 lg:left-[calc(100%-0.875rem)] lg:right-auto min-h-11 w-max gap-1.5 whitespace-nowrap px-3 text-sm shadow-[0_4px_14px_rgba(12,45,71,.18)]">
+          <Icon name="arrowUp" size={18} />Back to top
+        </button>
+      )}
+    </div>
+  )
 }
 
 function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; reload: () => void }) {
@@ -159,7 +190,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
     } finally { setBusy(false) }
   }
 
-  const ctx = { control: form.control, register: form.register, setValue: form.setValue, getValues: form.getValues, disabled: !editable, errors }
+  const ctx = { control: form.control, register: form.register, setValue: form.setValue, getValues: form.getValues, disabled: !editable, errors, deanName: d.dean_name }
   return (
     <div>
       {/* C11: first successful save turns "Not submitted" into Draft without a reload */}
@@ -191,6 +222,7 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
         </div>
       </div>
       <ErrorBox error={message} />
+      {errors.dean_name && <p role="alert" className="mb-3 rounded border border-red-300 bg-red-50 p-2 text-sm text-red-900">{errors.dean_name.join(' ')}</p>}
       {!editable && <p className="mb-3 rounded bg-slate-100 p-2 text-sm">Read-only: {d.status === 'SUBMITTED' ? 'submitted and awaiting VC review.' : d.status === 'APPROVED' ? 'approved by the VC.' : 'the reporting window is closed.'}</p>}
       {d.can_request_reopen && <div className="mb-3"><ReopenRequestForm path={`/submissions/${d.id}/reopen-requests/`} onDone={reload} /></div>}
       <ReopenRequests requests={d.reopen_requests} />
@@ -212,11 +244,19 @@ function Editor({ d, schema, reload }: { d: SubmissionDetail; schema: Schema; re
                   <label className="label" htmlFor="nilr">Reason for Nil <span className="text-red-700">*</span></label>
                   <textarea id="nilr" className="input" rows={3} disabled={!editable} value={nil.nil_reason} onChange={(e) => setNilField({ nil_reason: e.target.value })} />
                   {errors.nil_reason && <p className="mt-1 text-xs text-red-700">{errors.nil_reason.join(' ')}</p>}
+                  <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 text-sm">
+                    <dt className="font-medium">Head/Dean:</dt>
+                    <dd>{d.dean_name || <span className="text-amber-900">Not available: your account profile has no full name. Ask the administrator to correct it before submitting.</span>}</dd>
+                    <dt className="font-medium">Date:</dt>
+                    <dd>{!editable && d.current_revision ? istDate(d.current_revision.submitted_at)
+                      : d.current_revision ? `Set on resubmission (previous submission: ${istDate(d.current_revision.submitted_at)})` : 'Set on submission'}</dd>
+                  </dl>
                   <p className="mt-1 text-xs text-slate-500">A Nil report still goes to the VC for review. No event evidence is required. Entered event details are kept but not submitted.</p>
                 </div>
               )}
             </div>
             <div hidden={nil.is_nil}><SchemaForm schema={schema} ctx={ctx} /></div>
+            <BackToTop />
           </div>
           <div className={`min-w-0 lg:sticky lg:top-2 lg:h-[calc(100vh-1rem)] ${view === 'form' ? 'hidden lg:block' : ''}`}>
             <Preview submissionId={d.id} draft={editable ? { payload: draft, ...nil, achievement_text: ach.achievement_text } : undefined} />

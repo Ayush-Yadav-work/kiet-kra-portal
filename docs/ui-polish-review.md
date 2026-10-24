@@ -149,3 +149,29 @@ Kept: original PNG (no JPEG), no CSS filter, local overlays only, 440 px card. M
 on `/dean/login`, `/vc/login` and `/` at 1535×728, 1366×768, 1440×900, 1920×1080, 1024×768, 768×1024 and 375×812
 (also with field errors), 0 filters, no horizontal overflow. Browser suite 31 OK. Screenshots: `.work/ui-login-v5/`.
 Trade-off: filling wide screens crops a little of the photo's top or bottom and scales it above 1672 px on large monitors.
+
+## Report editor — section navigation and Back to top (2026-10-24)
+
+Shared report editor (`SchemaForm.tsx`, `Workspace.tsx`), so every KRA template gets it. Editor UI only: report content,
+live preview document, PDFs and verification stamps are unchanged.
+
+- **Jump to section**: replaces the plain underlined links. A soft panel labelled "Jump to section" with bordered chips
+  (portal navy/blue tokens, hover and focus states, long labels wrap); on phones (< 640 px) a labelled select instead.
+  Items come from the template's sections for the open event/course, skipping sections with no applicable field; the panel
+  is hidden when none apply and in Nil mode. The section in view is marked with `aria-current="location"` (position only,
+  never completion). Anchors are `sec-<field-array key>-<section id>`, stable across adding/removing events. A jump scrolls
+  the section to the top (`scroll-mt-4`; the portal header is not sticky) and focuses its heading.
+- **Back to top**: `type="button"`, upward-arrow icon, 44 px high. The window owns the form's scrolling (the preview iframe
+  scrolls itself and is untouched). It appears once the workspace heading is more than 400 px above the viewport, sits in a
+  zero-height sticky slot at the end of the form column (no layout space) — across the gutter on wide screens so it clears
+  form inputs, bottom-right of the column on phones — and returns to the workspace heading, moving focus there. Smooth
+  unless reduced motion is preferred; listeners are removed on unmount.
+- **Polish**: event/course tabs grouped in a light panel; section headings use the heading colour with a divider.
+- **Fixed while checking**: KRA 1 at 375 px had 63 px page-level horizontal overflow (before this change too): screen-reader
+  text in grid-table headers escaped the non-positioned scroll wrapper. The wrapper is now `relative`.
+
+Validation: new browser test `test_editor_section_navigation_and_back_to_top` (chips match the template titles, each tested
+jump lands its heading in view and focused, course switching, Back to top from the end with input, autosave and the
+preview's scroll position preserved, phone select, no overflow at 375 px, Nil hides the navigator), run with reduced motion.
+Screenshots (KRA 1 and survey KRA 8 at 1440, 768, 375 and 720 px ≈ 200 % zoom; top and mid-scroll; validation errors):
+`.work/ui-shots/editor-nav/before-*.png` and `after-*.png` (git-ignored).

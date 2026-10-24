@@ -1,0 +1,56 @@
+{
+ "empty": {
+  "VC progress P2": {
+   "status": 200,
+   "queries": 6,
+   "ms": 11
+  },
+  "VC analytics ytd": {
+   "status": 200,
+   "queries": 11,
+   "ms": 17
+  },
+  "VC assignments P2": {
+   "status": 200,
+   "queries": 6,
+   "ms": 70
+  },
+  "Dean assignments P2": {
+   "status": 200,
+   "queries": 6,
+   "ms": 13
+  },
+  "VC reopen requests": {
+   "status": 200,
+   "queries": 3,
+   "ms": 10
+  }
+ },
+ "60 submitted": {
+  "VC progress P2": {
+   "status": 200,
+   "queries": 6,
+   "ms": 9
+  },
+  "VC analytics ytd": {
+   "status": 200,
+   "queries": 11,
+   "ms": 16
+  },
+  "VC assignments P2": {
+   "status": 200,
+   "queries": 7,
+   "ms": 72
+  },
+  "Dean assignments P2": {
+   "status": 200,
+   "queries": 7,
+   "ms": 16
+  },
+  "VC reopen requests": {
+   "status": 200,
+   "queries": 3,
+   "ms": 10
+  }
+ }
+}

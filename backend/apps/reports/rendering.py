@@ -4,12 +4,12 @@ Status/verification is always derived here from the database, never from the cli
 Branding is inlined as data: URIs so the renderer needs no network/file access (C12).
 """
 import base64
-import copy
 import datetime
 import hashlib
 import json
 from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -17,11 +17,13 @@ from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
+from apps.reports import capabilities
 from apps.reports.families import PREPARERS
 from apps.submissions.models import ReviewDecision, Status
 from apps.submissions.services import snapshot_of
 
 ASSETS = Path(__file__).resolve().parent / "assets"
+IST = ZoneInfo("Asia/Kolkata")
 PAGES = {
     "Letter": {"width": "8.5in", "height": "11in"},
     "A4": {"width": "210mm", "height": "297mm"},
@@ -90,6 +92,11 @@ def _fmt_date(value):
         return ""
 
 
+def _ist_date(at):
+    d = timezone.localtime(at, IST)
+    return f"{d.day} {d:%B %Y}"  # "24 October 2026"; the submission date, never the approval date
+
+
 def _lines(text):
     return [ln.strip(" \t-•●") for ln in (text or "").splitlines() if ln.strip(" \t-•●")]
 
@@ -131,6 +138,8 @@ def _cell(col, row, snap):
     v = row.get(col["id"])
     if v is None:
         return ""
+    if col["type"] == "term":
+        return capabilities.term_display(v)
     if col["type"] == "date":
         try:
             return datetime.date.fromisoformat(v).strftime("%d %b %Y")
@@ -146,7 +155,11 @@ def _prepare_activity(schema, act, snap):
     out = {k: ("" if v is None else v) for k, v in act.items()}
     for f in (f for s in schema["sections"] for f in s["fields"]):
         v = act.get(f["id"])
-        if f["type"] == "date":
+        if f.get("auto") == "dean_name" and "dean" in snap:  # legacy revisions (no snapshot name) keep their entered text
+            out[f["id"]] = snap["dean"]["name"]
+        elif f["type"] == "term":
+            out[f["id"]] = capabilities.term_display(v)
+        elif f["type"] == "date":
             out[f["id"] + "_display"] = _fmt_date(v)
         elif f["type"] == "multiselect":
             out[f["id"] + "_list"] = [o for o in f["options"] if o in (v or [])]
@@ -174,7 +187,9 @@ def build_context(submission, revision=None, draft=None, verified_as=None):
     """draft = unsaved {payload, is_nil, nil_reason, achievement_text} for preview only. verified_as = frozen
     (label, verified, verified_at) of an approval artifact, so its PDF never reads the live status (D-076)."""
     tv = submission.assignment.template_version
-    schema = copy.deepcopy(tv.schema)  # display-only annotations must never touch the stored schema
+    schema = capabilities.schema_for(submission)  # a copy: display-only annotations never touch the stored schema
+    if revision is None and draft is None and submission.status in (Status.SUBMITTED, Status.APPROVED):
+        revision = submission.current_revision  # not a working copy: show exactly what was submitted, with its date
     if revision is not None:
         src = {"payload": revision.payload, "is_nil": revision.is_nil, "nil_reason": revision.nil_reason,
                "achievement_text": revision.achievement_text}
@@ -213,6 +228,10 @@ def build_context(submission, revision=None, draft=None, verified_as=None):
         "count": count,
         "fields": fields,
         "screen_header": header_html(style, assets()["logo_uri"], for_pdf=False),
+        "dean_name": snap.get("dean", {}).get("name", ""),
+        "submitted_on": _ist_date(revision.submitted_at) if revision is not None else "",
+        "previous_submitted_on": (_ist_date(submission.current_revision.submitted_at)
+                                  if revision is None and submission.current_revision_id else ""),
         "verification_label": label,
         "verified": verified,
         "verified_at": verified_at,

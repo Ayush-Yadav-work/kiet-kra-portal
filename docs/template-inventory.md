@@ -99,6 +99,12 @@ Supplied summary templates referenced by the workbook Instructions sheet but **n
 
 ## Implementation coverage (portal templates)
 
+Shared field capabilities (D-079, `apps/reports/capabilities.py`; full table in `docs/api.md`): year-of-study/semester
+dropdowns on KRA 1, 2, 3, 11, 19 (header and course table), 23, 44 and semester-only on KRA 7; read-only Dean name on
+the HoD fields of KRA 1, 2, 3, 11, 19, 23, 44 and on the Head/Dean sign-off lines of KRA 7–10, 33 and all Nil reports;
+Nil reports also print the IST submission date. All 45 definitions were audited; other "year"/"date" fields keep their
+own meaning.
+
 | KRA | Template | Status | Phase |
 |---|---|---|---|
 | 33 | `kra33_v1` (report style) | Implemented, accepted | 2 |

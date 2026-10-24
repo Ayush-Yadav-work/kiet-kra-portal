@@ -17,6 +17,55 @@ All endpoints are under `/api/v1/`, use the session cookie plus the `X-CSRFToken
 | `GET progress/?year=&period=&department=&kra=&status=&search=&page=&page_size=` | VC only | Phase 5B (D-068): `{filters, counts, assigned, total, page, page_size, results}`; counts cover all filters except status; rows carry `display_status`, `status_label`, exact `target_text`/`achievement_text`, `is_nil`, `achievement_source` (`submitted`/`draft`/`none`), `revision_sequence`, `submitted_at`, `changed_since_submission`. 400 `invalid_filter` (period not in year, unknown status/department/KRA), 400 `too_many_rows` (> 5,000). Page size 10–100 (default 50) |
 | `GET progress/export/?…same filters…` | VC only | PDF of **all** filtered rows (A4 landscape, repeating header, filters, counts, generation time); `attachment`, `Cache-Control: private, no-store`, not stored. 503 `pdf_busy`/`pdf_unavailable`, 502 `pdf_failed` from the renderer |
 
+**Login throttling (audit H1, D-080).** Counters live in PostgreSQL (`accounts_loginthrottle`), so every web worker shares them and they
+survive restarts; no cache backend is involved. The limits are unchanged:
+- 5 failed attempts per portal + username;
+- 20 per client IP;
+- each counted in a fixed 15-minute window from the first attempt.
+
+How it works:
+- Each attempt reserves its slot with one atomic `INSERT … ON CONFLICT … RETURNING` *before* the password is checked, so
+  concurrent requests cannot check more than the limit.
+- A successful sign-in clears the username counter, gives back its IP slot and deletes expired rows.
+- Over the limit the API returns 429 `rate_limited`, without checking the password.
+- If the counter store (the database) is unavailable, sign-in fails closed with 503 `login_unavailable`.
+
+The client IP is `REMOTE_ADDR`. Behind a reverse proxy, the proxy must pass the real client address; otherwise every
+user shares the proxy's IP counter.
+
+## Year/semester fields, Dean name and Nil date (D-079)
+
+Applied to every stored template version at read time by `apps/reports/capabilities.py` (the `templates/<key>/<v>/`
+schema, draft validation, submission validation, preview and PDF all use the same layer).
+
+| Template | Field | Behaviour |
+|---|---|---|
+| KRA 1, 2, 3, 11, 19, 23 | `year_semester` ("Academic Session / Year/ Semester") | `term`: Year of study + Semester dropdowns; printed as `<academic year> / <year> / <semester>` |
+| KRA 19 | `courses.year_semester` column | `term`: Year of study + Semester |
+| KRA 44 | `semester` ("Semester/Year") | `term`: Year of study + Semester |
+| KRA 7 | `semester` | `term`: Semester only (Odd/Even) |
+| KRA 1, 2, 3, 11, 19, 23 | `hod` ("Head of the Department") | `auto: dean_name`, read-only |
+| KRA 44 | `hod_name` ("Head of Department/Dean name") | `auto: dean_name`, read-only (optional) |
+| KRA 7–10, 33 sign-off lines; Nil reports | "Head/Dean:" | printed from the revision's Dean-name snapshot |
+
+- A `term` value is `{"year": "<option>", "semester": "<option>"}` (KRA 7: `{"semester": …}`); options come in the schema
+  `parts`. Year-of-study options follow the Dean's department (KSOM, MCA: 1st–2nd Year; others 1st–4th Year); semesters are
+  "Odd Semester" / "Even Semester". Drafts accept blanks, partial selections and old free text (a string, or
+  `{"legacy": "…"}`); submission needs every part selected.
+- `submissions/<id>/` (Dean) returns `payload` with old free text mapped when it names exactly one year/semester consistent
+  with the options, otherwise as `{"legacy": "<text>"}` (shown for correction, never discarded). The stored draft changes
+  only when the Dean saves. It also returns `dean_name` (profile full name, `""` when missing; always `""` for the VC).
+- `auto` fields are ignored by validation and blanked on save; the printed name comes from the revision snapshot
+  (`snapshot.dean.name`, set from the submitting Dean on submit) or, for drafts, the department's active Dean.
+  `validate/` and `submit/` return `field_errors.dean_name` when the profile has no full name and the report is Nil or has a
+  required Head/Dean field.
+- Nil reports print "Head/Dean: <name>" and "Date: <revision submitted_at as an IST date>", e.g. "2 October 2026". Draft:
+  "Set on submission"; correction draft: "Set on resubmission (previous submission: …)". Saving, previewing, exporting,
+  approving or regenerating never changes it. `history/` shows the snapshot name.
+- Not converted (different meaning): academic-year auto columns, KRA 9 passing years, KRA 14 "Programme / Year", KRA 15
+  batch/year of establishment, KRA 21 year of qualifying, KRA 30 semester (already Odd/Even), KRA 13 "Head of Department /
+  Competent Authority" and chairperson, coordinators, all event/report dates.
+
 ## Draft privacy (D-078)
 
 The Vice Chancellor never sees a Dean's unsubmitted work. Enforced in the backend for every VC-facing route:

@@ -25,7 +25,7 @@ class KRA11Tests(WorkflowMixin, PortalTestCase):
             fe = self.a.post(f"/api/v1/submissions/{sid}/validate/").json()["field_errors"]
         self.assertIn("achievement_text", fe)
         self.assertNotIn("evidence", fe)  # no invented evidence minimum
-        for k in ("year_semester", "faculty_coordinators", "hod", "course_name", "duration_hours", "mode", "resource_person",
+        for k in ("year_semester", "faculty_coordinators", "course_name", "duration_hours", "mode", "resource_person",
                   "students_enrolled", "students_completed", "modules", "learning_outcomes", "assessment_method",
                   "min_attendance", "passing_criteria", "certificate_authority", "certificates_issued"):
             self.assertIn(f"activities.0.{k}", fe, k)

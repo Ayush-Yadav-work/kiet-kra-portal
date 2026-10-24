@@ -40,10 +40,16 @@ class AnalyticsView(APIView):
 SPREADSHEET_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
 
 
+# Leading characters a spreadsheet may skip before reading a formula: ASCII whitespace/control, DEL, Unicode spaces, BOM.
+INVISIBLE_LEAD = "".join(map(chr, range(33))) + "\x7f             ​    　﻿"
+
+
 def cell(v):
-    """Neutralise spreadsheet formulas in user-entered text (CSV injection)."""
+    """Neutralise spreadsheet formulas in user-entered text (CSV injection; audit L2), including a trigger hidden behind
+    leading whitespace or control characters. Only the exported cell gets the ' prefix (stored values are unchanged);
+    csv.writer then quotes commas, quotes and newlines as usual."""
     s = "" if v is None else str(v)
-    return "'" + s if s.startswith(SPREADSHEET_TRIGGERS) else s
+    return "'" + s if s.lstrip(INVISIBLE_LEAD).startswith(SPREADSHEET_TRIGGERS) or s.startswith(SPREADSHEET_TRIGGERS) else s
 
 
 class AnalyticsExportView(APIView):
@@ -63,9 +69,9 @@ class AnalyticsExportView(APIView):
             w = csv.writer(buf)
             w.writerow(["Department", "KRA", "Activity", "Period", "Annual target", "Status", "Achievement", "Achievement source", "Nil", "Reopened"])
             for r in d["details"]:
-                w.writerow([cell(r["department"]), r["kra_number"], cell(r["kra_text"]), cell(r["period"]), cell(r["target_text"]),
-                            r["status_label"], cell(r["achievement_text"]), r["achievement_source"], "Yes" if r["is_nil"] else "",
-                            "Yes" if r["reopened"] else ""])
+                w.writerow([cell(x) for x in (r["department"], r["kra_number"], r["kra_text"], r["period"], r["target_text"],
+                            r["status_label"], r["achievement_text"], r["achievement_source"], "Yes" if r["is_nil"] else "",
+                            "Yes" if r["reopened"] else "")])  # every cell sanitised, user-entered or not
             resp = HttpResponse("﻿" + buf.getvalue(), content_type="text/csv; charset=utf-8")
             resp["Content-Disposition"] = f'attachment; filename="{name}.csv"'
         else:

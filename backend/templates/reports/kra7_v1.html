@@ -52,7 +52,7 @@
 
 <div class="signoff">
   <div>Consolidated by: <span class="val">{% if a.consolidated_by %}{{ a.consolidated_by }}{% else %}____________________{% endif %}</span></div>
-  <div>Head/Dean: <span class="val">____________________</span></div>
+  <div>Head/Dean: <span class="val">{% if dean_name %}{{ dean_name }}{% else %}____________________{% endif %}</span></div>
   <div>Date: <span class="val">{% if a.report_date_display %}{{ a.report_date_display }}{% else %}____________________{% endif %}</span></div>
 </div>
 {% empty %}

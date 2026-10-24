@@ -30,3 +30,11 @@ class User(AbstractUser):
     @property
     def display_name(self):
         return self.get_full_name() or self.username
+
+
+class LoginThrottle(models.Model):
+    """Failed-login counter shared by every web worker and kept across restarts (audit H1). Rows are written only by
+    apps.accounts.throttle with atomic upserts; a row whose window has ended counts as zero."""
+    key = models.CharField(max_length=200, primary_key=True)
+    count = models.PositiveIntegerField()
+    window_ends = models.DateTimeField(db_index=True)

@@ -247,6 +247,14 @@ Section notes below such as "uncommitted" or "pending review" describe the state
 - [x] VC cannot see Dean drafts: never-submitted reports are Not submitted in every VC list, count, filter, analytics view and export; draft endpoints answer 404 for the VC; submitted reports show only the submitted revision; corrections after rejection stay private until resubmission
 - [x] Checks: backend 554 OK (renderer running, 0 skipped; new `tests.test_draft_privacy`); isolated browser suite 31 OK (Phase 5B test rewritten for the rule); `tsc -b` + build OK
 
+## Year/semester dropdowns, Dean name and Nil date (2026-10-24, D-079)
+- [x] Shared capabilities layered onto stored schemas: Year of study + Semester dropdowns (KRA 1, 2, 3, 11, 19, 23, 44; KRA 7 semester only), department-based year options, old free text mapped or kept for correction
+- [x] Head of Department/Dean fields read-only from the Dean's profile full name, snapshotted per revision; Nil reports print the name and the IST submission date ("Set on submission" for drafts)
+- [x] Checks: backend 561 OK (renderer running; new `tests.test_term_and_dean`); isolated browser suite 32 OK (new `test_term_dropdowns_dean_name_and_nil_date_placeholder`); `tsc -b` + build OK; normal (KRA 7, 11, 19, 44) and Nil PDFs inspected
+
+## Report editor navigation (2026-10-24)
+- [x] "Jump to section" chips (select on phones) derived from the template per event/course, current section marked; floating "Back to top" returning to the workspace heading; 375 px overflow from table header text fixed (`docs/ui-polish-review.md`)
+
 ## Not done / deferred
 - C10 evidence ZIP (deferred by plan).
 - Institutional review of all 45 report formats (Phase 4 exit gate).

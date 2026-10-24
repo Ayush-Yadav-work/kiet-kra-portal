@@ -60,7 +60,7 @@ def kra20_payload(rows=5, long_text=False):
 def kra7_payload(long_text=False):
     para = "Synthetic consolidated text for layout testing. " * (40 if long_text else 2)
     return {"activities": [{
-        "semester": "Odd semester", "subjects": "Synthetic Subject A; Synthetic Subject B" + ("; Synthetic Subject C" * 10 if long_text else ""),
+        "semester": {"semester": "Odd Semester"}, "subjects": "Synthetic Subject A; Synthetic Subject B" + ("; Synthetic Subject C" * 10 if long_text else ""),
         "collection_period": "1–15 October 2026", "eligible": 42, "respondents": 38,
         "consolidated_by": "Test Coordinator, IQAC Cell",
         "ratings": ["4.25", "3.80", "4", "4.05", "3.5", "4.71", "2.95", "4.10", "3.33", "1.05"],
@@ -101,8 +101,8 @@ KRA11_DOCS = ["Approval/permission for conducting the course", "Course proposal/
 def kra11_course(i=1, modules=4, long_text=False):
     extra = " covering synthetic worked examples and practice sets" * (4 if long_text else 0)
     return {
-        "year_semester": "1st Year / Odd Semester", "faculty_coordinators": f"Test Coordinator {i}, Zoë Ñúñez",
-        "hod": "Test Head of Department", "additional_objectives": "Synthetic extra objective" if i == 1 else "",
+        "year_semester": {"year": "1st Year", "semester": "Odd Semester"}, "faculty_coordinators": f"Test Coordinator {i}, Zoë Ñúñez",
+        "hod": "", "additional_objectives": "Synthetic extra objective" if i == 1 else "",
         "course_name": f"Synthetic Bridge Course {i}: Mathematics Foundations", "duration_hours": "30",
         "mode": ["Offline", "Online", "Hybrid"][i % 3], "resource_person": "Test Resource Person",
         "students_enrolled": 120, "students_completed": 112,
@@ -134,8 +134,8 @@ KRA23_DOCS = ["Approval/permission for conducting the course", "Proposal/concept
 def kra23_programme(i=1, programs=2, modules=4, long_text=False):
     extra = " with synthetic case studies and pitch practice" * (4 if long_text else 0)
     return {
-        "programme_title": f"Synthetic Entrepreneurship Bootcamp {i}", "year_semester": "3rd Year / Odd Semester",
-        "faculty_coordinators": f"Test Coordinator {i}, Śarmā Łukasz", "hod": "Test Head of Department",
+        "programme_title": f"Synthetic Entrepreneurship Bootcamp {i}", "year_semester": {"year": "3rd Year", "semester": "Odd Semester"},
+        "faculty_coordinators": f"Test Coordinator {i}, Śarmā Łukasz", "hod": "",
         "objectives": ["To develop an entrepreneurial mind-set among students.",
                        "To enhance entrepreneurial and employability skills."],
         "other_objectives": "Synthetic additional objective" if i == 1 else "",
@@ -162,8 +162,8 @@ def kra23_payload(programmes=1, programs=2, modules=4, long_text=False):
 def kra13_course(kra, i=1, modules=4, long_text=False):
     extra = " with synthetic lab exercises and reading" * (4 if long_text else 0)
     c = {
-        "year_semester": "2nd Year / Even Semester", "faculty_coordinators": f"Test Coordinator {i}, Zoë Łukasz",
-        "hod": "Test Head of Department",
+        "year_semester": {"year": "2nd Year", "semester": "Even Semester"}, "faculty_coordinators": f"Test Coordinator {i}, Zoë Łukasz",
+        "hod": "",
         "objectives": ["To supplement the knowledge acquired through the regular curriculum."],
         "other_objectives": "Synthetic extra objective" if i == 1 else "",
         "course_name": f"Synthetic KRA{kra} Course {i}", "duration_hours": "30", "mode": ["Offline", "Online", "Hybrid"][i % 3],
@@ -262,8 +262,8 @@ def kra19_visit(i=1, matrix_rows=4, long_text=False, sparse_matrix=False):
         row["pso1_a"], row["pso1_b"] = ("2", "") if r % 2 else ("", "3")
         matrix.append(row)
     return {
-        "visit_date": f"2026-09-{10 + i:02d}", "year_semester": "3rd Year / Odd Semester",
-        "faculty_coordinators": f"Test Coordinator {i}, Zoë Łukasz", "hod": "Test Head of Department",
+        "visit_date": f"2026-09-{10 + i:02d}", "year_semester": {"year": "3rd Year", "semester": "Odd Semester"},
+        "faculty_coordinators": f"Test Coordinator {i}, Zoë Łukasz", "hod": "",
         "industry_name": f"Example Manufacturing Plant {i} (synthetic)", "students_participated": 58, "students_eligible": 64,
         "industry_profile": "Synthetic profile of the industry.\n" + para,
         "experts": [{"name": f"Test Expert {e + 1}", "designation": "Plant Engineer", "topics": "Industrial automation, Career opportunities"}
@@ -276,7 +276,7 @@ def kra19_visit(i=1, matrix_rows=4, long_text=False, sparse_matrix=False):
         "equipment": "Synthetic equipment list", "quality_safety": "Synthetic PPE and inspection practices observed",
         "environmental": "Not observed",
         "learning_outcomes": "Synthetic learning outcome 1\nSynthetic learning outcome 2",
-        "courses": [{"course_name": "Synthetic Manufacturing Processes", "course_code": "TST301", "year_semester": "3rd / V"}],
+        "courses": [{"course_name": "Synthetic Manufacturing Processes", "course_code": "TST301", "year_semester": {"year": "3rd Year", "semester": "Odd Semester"}}],
         "lo_matrix": matrix,
         "gaps": [{"gap": "Theory-Practice Gap (synthetic)", "solution": "Observed live production line (synthetic)"}],
         "suggestions": "Synthetic suggestion", "conclusion": "Synthetic conclusion. " + para,
@@ -541,7 +541,7 @@ def kra44_activity(i=1, long_text=False):
             "mentors": "Test Mentor A", "introduction": "Synthetic introduction written by the department." + para,
             "objectives": ["To promote experiential and hands-on learning.", "To encourage peer-to-peer knowledge sharing."],
             "other_objectives": "", "time": "10:00 AM – 4:00 PM", "target_group": "Second-year students", "programme": "B.Tech ECE",
-            "semester": "III", "registered": 60, "participated": 54, "student_mentors": 6, "faculty_mentors": 2, "sessions": 6,
+            "semester": {"year": "2nd Year", "semester": "Odd Semester"}, "registered": 60, "participated": 54, "student_mentors": 6, "faculty_mentors": 2, "sessions": 6,
             "phase_1": "Synthetic orientation held." + para, "phase_2": "Synthetic teams of five formed.", "phase_3": "Synthetic hands-on work." + para,
             "phase_4": "" if i % 2 == 0 else "Synthetic peer sessions.", "phase_5": "Synthetic demos.", "phase_6": "Synthetic feedback collected.",
             "doc_checklist": {"Activity Approval": "Yes", "Attendance Sheet": "Yes", "Certificates, if issued": "No"},
