@@ -1,0 +1,452 @@
+{
+ "1": {
+  "template": "kra1 v1 (reports/course_family_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 7p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "2": {
+  "template": "kra2 v1 (reports/course_family_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 7p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "3": {
+  "template": "kra3 v1 (reports/course_family_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 7p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "4": {
+  "template": "kra4 v1 (reports/field_projects_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "5": {
+  "template": "kra5 v1 (reports/field_projects_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "6": {
+  "template": "kra6 v1 (reports/field_projects_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "7": {
+  "template": "kra7 v1 (reports/kra7_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "8": {
+  "template": "kra8 v1 (reports/survey_family_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "9": {
+  "template": "kra9 v1 (reports/survey_family_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 6p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "10": {
+  "template": "kra10 v1 (reports/survey_family_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "11": {
+  "template": "kra11 v1 (reports/kra11_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 8p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "12": {
+  "template": "kra12 v1 (reports/kra12_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 2p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "13": {
+  "template": "kra13 v1 (reports/kra13_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 6p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "14": {
+  "template": "kra14 v1 (reports/kra14_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "15": {
+  "template": "kra15 v1 (reports/records_sheet_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "16": {
+  "template": "kra16 v1 (reports/kra16_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "17": {
+  "template": "kra17 v1 (reports/kra17_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "18": {
+  "template": "kra18 v1 (reports/kra18_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 9p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "19": {
+  "template": "kra19 v1 (reports/kra19_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 8p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "20": {
+  "template": "kra20 v1 (reports/kra20_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "21": {
+  "template": "kra21 v1 (reports/kra21_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "22": {
+  "template": "kra22 v1 (reports/records_sheet_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "23": {
+  "template": "kra23 v1 (reports/kra23_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 7p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "24": {
+  "template": "kra24 v1 (reports/kra24_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "25": {
+  "template": "kra25 v1 (reports/records_sheet_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "26": {
+  "template": "kra26 v1 (reports/records_sheet_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "27": {
+  "template": "kra27 v1 (reports/event_family_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "28": {
+  "template": "kra28 v1 (reports/event_family_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "29": {
+  "template": "kra29 v1 (reports/event_family_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "30": {
+  "template": "kra30 v1 (reports/event_family_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "31": {
+  "template": "kra31 v1 (reports/records_sheet_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "32": {
+  "template": "kra32 v1 (reports/kra32_v1.html, A4 landscape)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "33": {
+  "template": "kra33 v1 (reports/kra33_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 6p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "34": {
+  "template": "kra34 v1 (reports/faculty_support_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "35": {
+  "template": "kra35 v1 (reports/faculty_support_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "36": {
+  "template": "kra36 v1 (reports/fdp_stp_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 7p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "37": {
+  "template": "kra37 v1 (reports/fdp_stp_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 7p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "38": {
+  "template": "kra38 v1 (reports/records_sheet_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 1p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "39": {
+  "template": "kra39 v1 (reports/kra39_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 3p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "40": {
+  "template": "kra40 v1 (reports/kra40_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "41": {
+  "template": "kra41 v1 (reports/event_family_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "42": {
+  "template": "kra42 v1 (reports/event_family_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "43": {
+  "template": "kra43 v1 (reports/kra43_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "44": {
+  "template": "kra44 v1 (reports/kra44_v1.html, Letter)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 6p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ },
+ "45": {
+  "template": "kra45 v1 (reports/kra45_v1.html, A4)",
+  "normal_submit": "PASS",
+  "vc_preview": "PASS",
+  "pdf": "PASS 4p",
+  "pdf_has_verification": true,
+  "pdf_has_page_numbers": true,
+  "nil_submit": "PASS",
+  "nil_pdf": "PASS"
+ }
+}

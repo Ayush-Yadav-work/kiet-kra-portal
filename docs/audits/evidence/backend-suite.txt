@@ -1,0 +1,433 @@
+Creating test database for alias 'default'...
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/draft/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/preview/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/export/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/submit/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/evidence/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/evidence/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/history/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/reopen-requests/
+Not Found: /api/v1/evidence/b7d44c37-361a-44a3-b3aa-323c12768d5a/
+Not Found: /api/v1/evidence/b7d44c37-361a-44a3-b3aa-323c12768d5a/download/
+Not Found: /api/v1/assignments/a0d3bf83-6c76-4447-be5f-fb2263641ba1/periods/2/
+Not Found: /api/v1/assignments/a0d3bf83-6c76-4447-be5f-fb2263641ba1/periods/2/
+Not Found: /api/v1/submissions/c045ce77-a9c7-400e-a3b5-aba972c92dac/
+.Not Found: /api/v1/submissions/not-a-uuid/
+Not Found: /api/v1/submissions/00000000-0000-0000-0000-000000000000/
+.Forbidden: /api/v1/submissions/9f185c3e-e763-4b65-b057-dde28e1abad5/draft/
+Forbidden: /api/v1/assignments/070bc7c2-e18c-47d8-a014-1e22e6a68036/periods/2/
+..Forbidden: /api/v1/progress/
+Forbidden: /api/v1/reopen-grants/active/
+Unauthorized: /api/v1/assignments/
+.Forbidden (CSRF token missing.): /api/v1/auth/dean/login/
+.Conflict: /api/v1/auth/vc/login/
+.Bad Request: /api/v1/auth/dean/login/
+Bad Request: /api/v1/auth/dean/login/
+.Bad Request: /api/v1/auth/dean/login/
+.Unauthorized: /api/v1/auth/me/
+.Forbidden: /api/v1/assignments/
+Bad Request: /api/v1/auth/change-password/
+.Bad Request: /api/v1/auth/vc/login/
+Unauthorized: /api/v1/auth/me/
+Bad Request: /api/v1/auth/dean/login/
+.Bad Request: /api/v1/auth/dean/login/
+Bad Request: /api/v1/auth/dean/login/
+Bad Request: /api/v1/auth/dean/login/
+Bad Request: /api/v1/auth/dean/login/
+Bad Request: /api/v1/auth/dean/login/
+Too Many Requests: /api/v1/auth/dean/login/
+......Bad Request: /api/v1/reopen-requests/3990cae3-2093-4c57-8568-2b43661adaee/decision/
+..Not Found: /api/v1/submissions/bbc70c84-2bc4-419e-a342-dc5830082939/
+.Not Found: /api/v1/evidence/89adfcbc-550a-4f8b-a826-51cd2add0472/download/
+.Conflict: /api/v1/bulk-approvals/
+Not Found: /api/v1/submissions/84c30922-e63c-48ad-a2d5-50aa16db1672/
+.Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/
+Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/history/
+Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/export/
+Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/evidence/
+Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/preview/
+Not Found: /api/v1/evidence/739962ab-33fd-422e-99b4-b180aa9298cc/download/
+Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/review/
+Not Found: /api/v1/submissions/fb258ae4-e217-435b-b8d2-0fc603d8a628/
+..Bad Request: /api/v1/submissions/bf6223c3-ce01-4d28-acfd-ccc909833e17/draft/
+....Bad Request: /api/v1/submissions/c01b5f3a-098d-4f76-b250-f49e03abcb47/draft/
+......Bad Request: /api/v1/submissions/4bb8aa37-ae8b-496f-a25c-4630e5db918b/draft/
+.........................................Bad Request: /api/v1/submissions/7ac83160-4748-421a-9d48-361a3c5c43a1/draft/
+............Bad Request: /api/v1/submissions/e555a469-0a05-453e-b800-9bf5fbac926c/draft/
+.................Bad Request: /api/v1/submissions/21b86338-0743-400d-8110-88b79fb307d0/draft/
+........Bad Request: /api/v1/submissions/c76d32dc-a509-4201-823c-63632eb24905/draft/
+.................................Bad Request: /api/v1/submissions/8c4f5862-c9c4-481b-a9c9-b8462b8ab93d/draft/
+............Bad Request: /api/v1/submissions/393254d4-de3a-443f-9152-5ee0108ae5bb/draft/
+....Bad Request: /api/v1/submissions/cd6e06e4-82eb-4515-a5bb-37b316743796/draft/
+...Conflict: /api/v1/submissions/2f0cdfb0-41c6-4379-990f-ef11832c3289/draft/
+................Bad Request: /api/v1/submissions/f93d693a-3bc1-4c76-b8ea-f193b59ce590/draft/
+.........Bad Request: /api/v1/submissions/26ab5379-c84c-483a-ab83-01f9e124765b/draft/
+.....Bad Request: /api/v1/submissions/fbd53b0d-b9c6-4477-aabc-4e67689d9d00/draft/
+...Bad Request: /api/v1/submissions/13e3b19b-16c8-48b1-9846-e519189f5ac7/draft/
+.......Bad Request: /api/v1/submissions/e28f80e4-46a1-4673-a679-075b27abd656/draft/
+...Bad Request: /api/v1/submissions/d9c97b07-4167-4ef6-a643-5040fe15f30c/draft/
+.......Bad Request: /api/v1/submissions/93bcc4e2-50bc-4384-ac4e-3f0bfdff326e/draft/
+...Bad Request: /api/v1/submissions/df5504ec-5f4b-42ab-ad0a-9525e115ff94/draft/
+.......Bad Request: /api/v1/submissions/419b40eb-6138-4df8-8e59-b107e2cece58/draft/
+...Bad Request: /api/v1/submissions/604c82b0-f6d0-4803-8391-0af733e2844d/draft/
+........Bad Request: /api/v1/submissions/20dd31ac-315c-458a-8314-0cf4fc18a35c/draft/
+.........Bad Request: /api/v1/submissions/e3c2b4ff-03d1-41ee-a921-d71fe85367aa/draft/
+.........Bad Request: /api/v1/submissions/8c267ac3-f21d-4ed2-ace0-4276c809ec0c/draft/
+.........Bad Request: /api/v1/submissions/95405ecf-10cf-445b-a681-4638453d4afb/draft/
+.................Bad Request: /api/v1/submissions/e66dbcb2-7cb7-462f-84b8-040f5c7f2dd5/submit/
+.............Bad Request: /api/v1/submissions/882aeb50-bc62-4fa4-a083-e065fad9bbfe/draft/
+......Conflict: /api/v1/submissions/01eada80-5910-4031-b6c8-8843df693043/draft/
+...Conflict: /api/v1/submissions/2a0d0e7b-0599-4729-a01d-660263e75dd5/draft/
+..Bad Request: /api/v1/submissions/10de5f32-38f6-4c99-b6ef-43ade1985491/draft/
+............Bad Request: /api/v1/submissions/ae76b8d0-d4cd-401c-b5f6-ec9765e7df65/draft/
+..Bad Request: /api/v1/submissions/b635d8ba-537f-443e-b08e-18027526a5a7/draft/
+......Bad Request: /api/v1/submissions/ee3584e6-eb6e-46d8-bc85-55247d7ca2a5/draft/
+..Bad Request: /api/v1/submissions/0b43b481-2700-44b4-bac8-b8b3ef67e447/draft/
+...Conflict: /api/v1/submissions/e9f72017-4d2d-40b8-bc93-2d56eefdece9/draft/
+.......................Bad Request: /api/v1/submissions/38ba57a8-6b93-4ed4-a7db-5d2848cd725f/draft/
+........Conflict: /api/v1/submissions/2c0739ef-c5af-47f5-a583-779379c45e51/draft/
+.........Conflict: /api/v1/submissions/3e2ee341-6dd8-44e6-9169-bcf4f68321a2/draft/
+.........Conflict: /api/v1/submissions/3ae736d2-8d13-44d6-87a9-1b4fd4bfd514/draft/
+............Bad Request: /api/v1/submissions/a7b471a6-1f66-4e2f-948b-8e95038f416b/draft/
+....................Bad Request: /api/v1/submissions/9fc73a54-c6e4-4c1f-8517-836927770f7f/draft/
+......Bad Request: /api/v1/submissions/54318db9-b683-4db0-ae70-21b33d185c44/draft/
+.Bad Request: /api/v1/submissions/16b96b5b-aa4c-4108-a62a-39b5d4dd4bb5/draft/
+Bad Request: /api/v1/submissions/16b96b5b-aa4c-4108-a62a-39b5d4dd4bb5/draft/
+...Bad Request: /api/v1/submissions/3b7b0857-1a67-4a1d-9dcf-e6cd41604127/draft/
+..........Bad Request: /api/v1/submissions/d865fb9c-8c79-4735-bd17-7bdbc96cd8f5/draft/
+.....Bad Request: /api/v1/submissions/5eabca34-42ee-4b26-a284-e120115529de/draft/
+....Bad Request: /api/v1/admin/years/2026-27/copy/
+Bad Request: /api/v1/admin/years/2027-28/copy/
+..Forbidden: /api/v1/admin/templates/
+Forbidden: /api/v1/admin/kras/
+Forbidden: /api/v1/admin/kras/
+Forbidden: /api/v1/admin/years/
+Forbidden: /api/v1/admin/allocations/
+Forbidden: /api/v1/admin/years/2027-28/copy/
+Forbidden: /api/v1/admin/years/2027-28/finalise/preview/
+Forbidden: /api/v1/admin/years/2027-28/finalise/
+Forbidden: /api/v1/admin/drafts/
+Forbidden: /api/v1/admin/drafts/9a84ce56-49cc-4855-8365-f9b78e8e636d/
+Forbidden: /api/v1/admin/drafts/remove/
+Forbidden: /api/v1/admin/drafts/restore/
+Forbidden: /api/v1/admin/drafts/bulk-target/
+Unauthorized: /api/v1/admin/templates/
+Unauthorized: /api/v1/admin/kras/
+Unauthorized: /api/v1/admin/kras/
+Unauthorized: /api/v1/admin/years/
+Unauthorized: /api/v1/admin/allocations/
+Unauthorized: /api/v1/admin/years/2027-28/copy/
+Unauthorized: /api/v1/admin/years/2027-28/finalise/preview/
+Unauthorized: /api/v1/admin/years/2027-28/finalise/
+Unauthorized: /api/v1/admin/drafts/
+Unauthorized: /api/v1/admin/drafts/9a84ce56-49cc-4855-8365-f9b78e8e636d/
+Unauthorized: /api/v1/admin/drafts/remove/
+Unauthorized: /api/v1/admin/drafts/restore/
+Unauthorized: /api/v1/admin/drafts/bulk-target/
+..Conflict: /api/v1/admin/drafts/206a7af5-3ead-4d6e-8090-066d70740e72/
+Conflict: /api/v1/admin/years/2027-28/finalise/preview/
+Conflict: /api/v1/admin/drafts/206a7af5-3ead-4d6e-8090-066d70740e72/
+Conflict: /api/v1/admin/drafts/remove/
+.Conflict: /api/v1/admin/drafts/
+Conflict: /api/v1/admin/drafts/21c19c5f-5877-4d6b-9411-baeec860cdcf/
+Conflict: /api/v1/admin/years/2027-28/finalise/preview/
+..Conflict: /api/v1/admin/years/2028-29/finalise/preview/
+.Conflict: /api/v1/assignments/c60476a3-eca6-44d6-9ea3-c80b5aa7c254/periods/1027/
+Conflict: /api/v1/assignments/c60476a3-eca6-44d6-9ea3-c80b5aa7c254/periods/1027/reopen-requests/
+..Method Not Allowed: /api/v1/admin/kras/
+Conflict: /api/v1/admin/drafts/
+...Unauthorized: /api/v1/progress/export/
+Forbidden: /api/v1/progress/export/
+Forbidden: /api/v1/progress/
+.Service Unavailable: /api/v1/progress/export/
+Bad Request: /api/v1/progress/export/
+.Bad Request: /api/v1/progress/
+Bad Request: /api/v1/progress/
+Bad Request: /api/v1/progress/
+Bad Request: /api/v1/progress/
+Bad Request: /api/v1/progress/
+Bad Request: /api/v1/progress/
+.....Not Found: /api/v1/submissions/dae6ac9e-6dde-42cd-b160-46ed001de3d8/preview/
+Not Found: /api/v1/submissions/dae6ac9e-6dde-42cd-b160-46ed001de3d8/export/
+Not Found: /api/v1/assignments/379a2447-e283-48fc-96bb-1bfde16b3840/periods/1069/
+Not Found: /api/v1/assignments/379a2447-e283-48fc-96bb-1bfde16b3840/periods/1069/
+Not Found: /api/v1/assignments/a05558f5-c179-40bd-89aa-423c439d9a37/periods/1064/reopen-requests/
+.Not Found: /evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /media/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /media/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /static/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /static/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /private/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /private/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /.work/private/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /.work/private/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /api/v1/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+Not Found: /api/v1/evidence/de2d2edb437f4f439d696ae272fb1be1.pdf
+..Unauthorized: /api/v1/auth/me/
+Unauthorized: /api/v1/auth/change-password/
+Unauthorized: /api/v1/years/
+Unauthorized: /api/v1/periods/
+Unauthorized: /api/v1/departments/
+Unauthorized: /api/v1/kras/
+Unauthorized: /api/v1/templates/2026-27/1/
+Unauthorized: /api/v1/assignments/
+Unauthorized: /api/v1/assignments/f5e69c9f-b19e-42e2-8ded-9b2e0fba4762/periods/1/
+Unauthorized: /api/v1/assignments/1a79d8a7-e861-4365-9bfa-de4a499500ee/periods/1/
+Unauthorized: /api/v1/assignments/552a3ed6-aab3-4584-a852-4fda8e16c19f/periods/1/reopen-requests/
+Unauthorized: /api/v1/submissions/cff44c57-4d1c-4b56-9617-6def196698db/
+Unauthorized: /api/v1/submissions/12ff5338-400a-4bed-9e9a-72e827fa2a49/draft/
+Unauthorized: /api/v1/submissions/36583471-aa31-43d0-b9db-e62f0b9b458b/validate/
+Unauthorized: /api/v1/submissions/36155d7c-ee70-4047-85ce-f866348994dc/preview/
+Unauthorized: /api/v1/submissions/33867ef0-ccf9-4479-b8ce-0e4f617f198a/export/
+Unauthorized: /api/v1/submissions/fc263767-d990-42ab-8270-fb6477f3c7d9/submit/
+Unauthorized: /api/v1/submissions/150d9483-4655-43ad-8147-7d0744119a40/review/
+Unauthorized: /api/v1/submissions/88da9b7c-7db1-4bb4-8b89-20b3145fc66c/history/
+Unauthorized: /api/v1/submissions/62da9ee7-caa9-46ba-ab46-4f3e4e23880a/reopen-requests/
+Unauthorized: /api/v1/submissions/87464c28-8827-41ea-9316-2bc7f9478810/evidence/
+Unauthorized: /api/v1/submissions/c8371af2-9f5e-415f-97ad-dd3f5fa9304e/evidence/
+Unauthorized: /api/v1/evidence/e8a0ed9d-1869-4890-8c4b-c4279bc2b4f6/
+Unauthorized: /api/v1/evidence/28d1a24d-7d2a-4762-8b25-2a58f865e235/download/
+Unauthorized: /api/v1/reopen-requests/
+Unauthorized: /api/v1/reopen-requests/6f87ffb7-d46a-47ab-b7ea-3ba92bf0584c/decision/
+Unauthorized: /api/v1/reopen-grants/active/
+Unauthorized: /api/v1/progress/
+Unauthorized: /api/v1/progress/export/
+Unauthorized: /api/v1/admin/templates/
+Unauthorized: /api/v1/admin/kras/
+Unauthorized: /api/v1/admin/years/
+Unauthorized: /api/v1/admin/allocations/
+Unauthorized: /api/v1/admin/years/2026-27/copy/
+Unauthorized: /api/v1/admin/years/2026-27/finalise/preview/
+Unauthorized: /api/v1/admin/years/2026-27/finalise/
+Unauthorized: /api/v1/admin/drafts/
+Unauthorized: /api/v1/admin/drafts/bulk-target/
+Unauthorized: /api/v1/admin/drafts/remove/
+Unauthorized: /api/v1/admin/drafts/restore/
+Unauthorized: /api/v1/admin/drafts/98d76ad0-0f23-4f14-a1b7-7d2011efc834/
+Unauthorized: /api/v1/analytics/
+Unauthorized: /api/v1/analytics/export/
+Unauthorized: /api/v1/bulk-approvals/
+Unauthorized: /api/v1/bulk-approvals/
+Unauthorized: /api/v1/bulk-approvals/7fa29ff2-450d-4b3f-8f08-67e66061f0e0/
+Unauthorized: /api/v1/bulk-approvals/922ebd01-afad-4e9a-bd55-0876d402b1bf/confirm/
+Unauthorized: /api/v1/bulk-approvals/e7564632-1a08-4c65-b10d-be741a4714de/process/
+Unauthorized: /api/v1/bulk-approvals/b7ce0185-6a7f-4996-b20b-d9d13d38a94e/retry/
+Unauthorized: /api/v1/announcements/
+Unauthorized: /api/v1/announcements/
+Unauthorized: /api/v1/announcements/unread-count/
+Unauthorized: /api/v1/announcements/recipients-preview/
+Unauthorized: /api/v1/announcements/pending-draft/
+Unauthorized: /api/v1/announcements/3a600516-2094-4034-a42e-60ef9b39b854/
+Unauthorized: /api/v1/announcements/41aed084-06ab-4e40-84ac-37d640d5816c/
+Unauthorized: /api/v1/announcements/1cda5724-6599-4efd-a3a8-7728bab20174/
+Unauthorized: /api/v1/announcements/7fbda11f-e355-403a-aa10-e307661ec62d/publish/
+Unauthorized: /api/v1/announcements/8d090c94-b917-46f8-ac53-a92991f9549e/withdraw/
+Unauthorized: /api/v1/announcements/5926def9-d4b9-47c4-9ddf-54473817f15a/read/
+Unauthorized: /api/v1/announcements/9fabc609-8375-4d93-8185-257aa03858fd/revisions/
+.Forbidden: /api/v1/submissions/7826f9ca-2919-48f5-bd67-232d39b9eebf/review/
+Forbidden: /api/v1/reopen-requests/7826f9ca-2919-48f5-bd67-232d39b9eebf/decision/
+Forbidden: /api/v1/progress/
+Forbidden: /api/v1/progress/export/
+Forbidden: /api/v1/admin/templates/
+Forbidden: /api/v1/admin/kras/
+Forbidden: /api/v1/admin/years/
+Forbidden: /api/v1/admin/allocations/
+Forbidden: /api/v1/admin/years/2026-27/copy/
+Forbidden: /api/v1/admin/years/2026-27/finalise/preview/
+Forbidden: /api/v1/admin/years/2026-27/finalise/
+Forbidden: /api/v1/admin/drafts/
+Forbidden: /api/v1/admin/drafts/bulk-target/
+Forbidden: /api/v1/admin/drafts/remove/
+Forbidden: /api/v1/admin/drafts/restore/
+Forbidden: /api/v1/admin/drafts/7826f9ca-2919-48f5-bd67-232d39b9eebf/
+Forbidden: /api/v1/analytics/
+Forbidden: /api/v1/analytics/export/
+Forbidden: /api/v1/bulk-approvals/
+Forbidden: /api/v1/bulk-approvals/
+Forbidden: /api/v1/bulk-approvals/7826f9ca-2919-48f5-bd67-232d39b9eebf/
+Forbidden: /api/v1/bulk-approvals/7826f9ca-2919-48f5-bd67-232d39b9eebf/confirm/
+Forbidden: /api/v1/bulk-approvals/7826f9ca-2919-48f5-bd67-232d39b9eebf/process/
+Forbidden: /api/v1/bulk-approvals/7826f9ca-2919-48f5-bd67-232d39b9eebf/retry/
+Forbidden: /api/v1/announcements/recipients-preview/
+Forbidden: /api/v1/announcements/pending-draft/
+Forbidden: /api/v1/announcements/7826f9ca-2919-48f5-bd67-232d39b9eebf/publish/
+Forbidden: /api/v1/announcements/7826f9ca-2919-48f5-bd67-232d39b9eebf/withdraw/
+.Forbidden: /api/v1/submissions/17ac15aa-3745-4775-a33a-71e8b386389d/draft/
+Forbidden: /api/v1/submissions/17ac15aa-3745-4775-a33a-71e8b386389d/validate/
+Forbidden: /api/v1/submissions/17ac15aa-3745-4775-a33a-71e8b386389d/submit/
+Forbidden: /api/v1/submissions/17ac15aa-3745-4775-a33a-71e8b386389d/reopen-requests/
+Forbidden: /api/v1/submissions/17ac15aa-3745-4775-a33a-71e8b386389d/evidence/
+Forbidden: /api/v1/evidence/6bde777c-5b9d-454c-b064-bd6cd29b9e6e/
+Forbidden: /api/v1/reopen-grants/active/
+Forbidden: /api/v1/assignments/005b075e-87da-4df6-bdd9-f47fa775318a/periods/1082/
+Forbidden: /api/v1/assignments/005b075e-87da-4df6-bdd9-f47fa775318a/periods/1082/reopen-requests/
+.Conflict: /api/v1/submissions/2f349874-2337-4fc5-acd7-76c0a69a4dd7/review/
+.Conflict: /api/v1/submissions/3addf1ce-84db-43fc-9edd-cd8e78330280/draft/
+Conflict: /api/v1/submissions/3addf1ce-84db-43fc-9edd-cd8e78330280/submit/
+Conflict: /api/v1/evidence/813d140c-a32f-40ae-8045-0c6748ec633b/
+Conflict: /api/v1/submissions/3addf1ce-84db-43fc-9edd-cd8e78330280/evidence/
+Conflict: /api/v1/submissions/3addf1ce-84db-43fc-9edd-cd8e78330280/draft/
+Conflict: /api/v1/submissions/3addf1ce-84db-43fc-9edd-cd8e78330280/submit/
+Conflict: /api/v1/evidence/813d140c-a32f-40ae-8045-0c6748ec633b/
+Conflict: /api/v1/submissions/3addf1ce-84db-43fc-9edd-cd8e78330280/evidence/
+.Conflict: /api/v1/assignments/f00ccdb6-ecf9-4b79-9c41-8d1c7e4b6e77/periods/1103/reopen-requests/
+.Conflict: /api/v1/submissions/7760e23e-22da-4fac-bc4b-83d0ddd0d4a5/draft/
+Conflict: /api/v1/submissions/f3004e5c-6d15-449e-9b1d-57b2f12e1561/draft/
+Not Found: /api/v1/submissions/41b4dc4c-3fc6-47bb-b1d3-9f498f9b7e3e/draft/
+Conflict: /api/v1/submissions/41b4dc4c-3fc6-47bb-b1d3-9f498f9b7e3e/draft/
+Conflict: /api/v1/submissions/41b4dc4c-3fc6-47bb-b1d3-9f498f9b7e3e/evidence/
+.Conflict: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+Bad Request: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+Bad Request: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+Conflict: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+Conflict: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+Bad Request: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+Conflict: /api/v1/submissions/22a50a6c-859e-4d61-9621-bb0afe2f0182/review/
+.Conflict: /api/v1/submissions/78f22561-8fce-402f-99ef-3f2f6b3d3cbe/submit/
+Conflict: /api/v1/submissions/78f22561-8fce-402f-99ef-3f2f6b3d3cbe/submit/
+.Internal Server Error: /api/v1/submissions/60f7130d-5fdf-4e71-a05d-a70b5493ac57/evidence/
+Traceback (most recent call last):
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 474, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 485, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\.venv\Lib\site-packages\rest_framework\views.py", line 523, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\evidence\views.py", line 56, in post
+    ev = services.add_file(request.user, sub.pk, request.FILES.get("file"), d.get("category"), d.get("label"),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\Desktop\Kier Kra Project\kiet-kra-portal\backend\apps\evidence\services.py", line 76, in add_file
+    ev = Evidence.objects.create(
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\AppData\Local\Python\pythoncore-3.11-64\Lib\unittest\mock.py", line 1124, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\AppData\Local\Python\pythoncore-3.11-64\Lib\unittest\mock.py", line 1128, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\works\AppData\Local\Python\pythoncore-3.11-64\Lib\unittest\mock.py", line 1183, in _execute_mock_call
+    raise effect
+django.db.utils.DatabaseError: synthetic failure
+.Bad Gateway: /api/v1/submissions/719f21ed-c45d-457d-b71d-80d0e48d0eed/export/
+Service Unavailable: /api/v1/submissions/719f21ed-c45d-457d-b71d-80d0e48d0eed/export/
+Service Unavailable: /api/v1/submissions/719f21ed-c45d-457d-b71d-80d0e48d0eed/export/
+..Bad Gateway: /api/v1/submissions/226ea3ef-9797-4803-86eb-d7ba9010c2c0/export/
+Bad Gateway: /api/v1/submissions/226ea3ef-9797-4803-86eb-d7ba9010c2c0/export/
+Bad Gateway: /api/v1/submissions/226ea3ef-9797-4803-86eb-d7ba9010c2c0/export/
+.Bad Gateway: /api/v1/progress/export/
+.......Bad Request: /api/v1/submissions/032bcbc9-2fee-4d00-87be-eaf8e9e29202/draft/
+.Bad Request: /api/v1/submissions/ff58fd63-bd08-45ca-9dd0-e3d26cc99343/submit/
+Bad Request: /api/v1/submissions/064711cd-0582-48d4-8324-b8d1cf1e5bd3/submit/
+.Not Found: /api/v1/submissions/0aac7139-2b23-4a2a-b239-c85df683d75c/
+....Not Found: /api/v1/announcements/a4a187bc-6d6b-434d-9f5b-f906319ccd8f/
+Not Found: /api/v1/announcements/a4a187bc-6d6b-434d-9f5b-f906319ccd8f/
+Not Found: /api/v1/announcements/a4a187bc-6d6b-434d-9f5b-f906319ccd8f/revisions/
+Not Found: /api/v1/announcements/a4a187bc-6d6b-434d-9f5b-f906319ccd8f/read/
+Forbidden: /api/v1/announcements/
+Forbidden: /api/v1/announcements/a4a187bc-6d6b-434d-9f5b-f906319ccd8f/publish/
+.Conflict: /api/v1/announcements/87ff5e05-c11f-4e58-a1ca-4cdabe092559/
+Not Found: /api/v1/announcements/0319626b-1016-4506-9fb3-173fa5d469f4/
+Not Found: /api/v1/announcements/87ff5e05-c11f-4e58-a1ca-4cdabe092559/read/
+Conflict: /api/v1/announcements/87ff5e05-c11f-4e58-a1ca-4cdabe092559/
+Conflict: /api/v1/announcements/87ff5e05-c11f-4e58-a1ca-4cdabe092559/
+.Bad Request: /api/v1/announcements/
+Bad Request: /api/v1/announcements/
+Bad Request: /api/v1/announcements/
+Bad Request: /api/v1/announcements/
+Bad Request: /api/v1/announcements/
+Bad Request: /api/v1/announcements/
+.Conflict: /api/v1/announcements/e94e2b77-d575-4140-aa32-e9bbc8ef2acc/read/
+Not Found: /api/v1/announcements/e94e2b77-d575-4140-aa32-e9bbc8ef2acc/
+Not Found: /api/v1/announcements/e94e2b77-d575-4140-aa32-e9bbc8ef2acc/revisions/
+...artifact 6f07ac1f-5042-42bf-a781-a1502a0747d6: lease lost, discarding this attempt
+...artifact bbd443a4-b3f1-4a17-b565-f0410d85c4f0 attempt 1 failed (pdf_unavailable: down); retry in 10s
+artifact bbd443a4-b3f1-4a17-b565-f0410d85c4f0 attempt 2 failed (pdf_unavailable: down); retry in 20s
+artifact bbd443a4-b3f1-4a17-b565-f0410d85c4f0 failed permanently after 3 attempts: pdf_unavailable: down
+Service Unavailable: /api/v1/submissions/6de5deab-9bd3-40a7-9906-2adb657516e6/export/
+.Service Unavailable: /health/artifacts/
+worker Ayush:26208:b939a3a0 started (renderer http://127.0.0.1:9, lease 60s, max attempts 3)
+artifact 6f20ad94-9d5a-4d27-9793-9191d9f357f5 -> READY (attempt 1)
+worker Ayush:26208:b939a3a0 stopped after 1 job(s)
+.Conflict: /api/v1/admin/drafts/bulk-target/
+Conflict: /api/v1/admin/drafts/bulk-target/
+.Conflict: /api/v1/assignments/31ebbed2-82f4-4058-a917-e39365a567f1/periods/1298/
+...Conflict: /api/v1/admin/years/2027-28/finalise/
+Bad Request: /api/v1/admin/years/2027-28/finalise/
+...Conflict: /api/v1/admin/drafts/restore/
+.Conflict: /api/v1/admin/years/2026-27/finalise/
+Conflict: /api/v1/admin/years/2026-27/finalise/preview/
+Conflict: /api/v1/admin/years/2026-27/finalise/preview/
+Conflict: /api/v1/admin/years/2026-27/finalise/preview/
+.Conflict: /api/v1/bulk-approvals/f3f6809d-c6f5-4367-a8f9-42cb807860f8/process/
+.Bad Request: /api/v1/bulk-approvals/
+.Forbidden: /api/v1/bulk-approvals/70ab2df6-9e17-425b-866e-ba6f2fcba120/process/
+Forbidden: /api/v1/bulk-approvals/
+Not Found: /api/v1/bulk-approvals/32d95f1d-342c-40f7-8b7a-c29d9fabad75/
+Conflict: /api/v1/bulk-approvals/3e544931-0374-4875-a6b4-83aa829f5642/confirm/
+..Conflict: /api/v1/assignments/9e0ba91e-4c56-4a0a-99bc-0e0bef3e64f8/periods/1334/
+Conflict: /api/v1/assignments/9e0ba91e-4c56-4a0a-99bc-0e0bef3e64f8/periods/1334/
+.....Bad Request: /api/v1/submissions/268417e8-4206-4d83-b07e-be763c361391/submit/
+.Bad Request: /api/v1/submissions/824807d4-f995-493f-bdb3-3b2f7372124e/submit/
+.Bad Request: /api/v1/submissions/fc4e360a-2f6c-4013-8ae1-fc1050e2840c/draft/
+Bad Request: /api/v1/submissions/fc4e360a-2f6c-4013-8ae1-fc1050e2840c/draft/
+.Conflict: /api/v1/submissions/73701fc6-54b9-478b-900d-a80173cfc973/draft/
+Conflict: /api/v1/submissions/73701fc6-54b9-478b-900d-a80173cfc973/submit/
+Conflict: /api/v1/submissions/73701fc6-54b9-478b-900d-a80173cfc973/evidence/
+.Conflict: /api/v1/submissions/f0e09330-e134-4036-a99f-e41dfef1f9b2/draft/
+..Bad Request: /api/v1/submissions/53a5db90-0c79-4ce8-aa5d-0a2c53e05135/evidence/
+.Request Entity Too Large: /api/v1/submissions/0860800f-24d2-4e92-b2fb-a9eaa9feaf74/evidence/
+Request Entity Too Large: /api/v1/submissions/0860800f-24d2-4e92-b2fb-a9eaa9feaf74/evidence/
+.Not Found: /api/v1/evidence/6038c096-ded2-4031-bd9a-b97407999e0f/download/
+.Bad Request: /api/v1/submissions/9e500b39-ab08-4e80-83e1-7f0efa52c24c/evidence/
+Bad Request: /api/v1/submissions/9e500b39-ab08-4e80-83e1-7f0efa52c24c/evidence/
+Bad Request: /api/v1/submissions/9e500b39-ab08-4e80-83e1-7f0efa52c24c/evidence/
+.Bad Request: /api/v1/assignments/73b76583-9e98-4540-942e-b4e71eec0128/periods/1387/reopen-requests/
+Conflict: /api/v1/assignments/73b76583-9e98-4540-942e-b4e71eec0128/periods/1387/reopen-requests/
+Bad Request: /api/v1/reopen-requests/c393cffa-c10f-438a-8b8b-1a20727678f1/decision/
+Conflict: /api/v1/reopen-requests/67d5de0d-46ae-4cce-8c26-dc703345cddc/decision/
+Conflict: /api/v1/submissions/e5a3189c-5771-4e49-982e-679534952de2/reopen-requests/
+.Conflict: /api/v1/assignments/73b76583-9e98-4540-942e-b4e71eec0128/periods/1388/reopen-requests/
+.Conflict: /api/v1/submissions/68d211d3-9639-41ab-9c2e-4c6563a6ffae/draft/
+.....Bad Request: /api/v1/submissions/00d97a34-585f-4ff2-9bfd-7466b02c9c0b/review/
+Conflict: /api/v1/submissions/00d97a34-585f-4ff2-9bfd-7466b02c9c0b/review/
+Conflict: /api/v1/submissions/00d97a34-585f-4ff2-9bfd-7466b02c9c0b/review/
+Conflict: /api/v1/submissions/00d97a34-585f-4ff2-9bfd-7466b02c9c0b/review/
+.....Conflict: /api/v1/submissions/97cced46-00e6-45e5-b4c6-76add13abd9d/submit/
+.Conflict: /api/v1/submissions/c054fa1d-2503-4b98-8d63-72d877848e26/review/
+.Conflict: /api/v1/assignments/0a1e5114-172d-4da6-81b8-e2b7a109e671/periods/1478/reopen-requests/
+Conflict: /api/v1/reopen-requests/7fcbe8fc-f4d4-4ff0-9867-4554177b5ccb/decision/
+.Conflict: /api/v1/submissions/0cf960c1-48db-41cb-b30d-7082a2ae62b4/submit/
+Conflict: /api/v1/submissions/0cf960c1-48db-41cb-b30d-7082a2ae62b4/submit/
+.........Bad Request: /api/v1/announcements/pending-draft/
+Conflict: /api/v1/announcements/6769660a-4760-49d5-91f3-9b168c7ae625/publish/
+....Bad Request: /api/v1/analytics/export/
+Forbidden: /api/v1/analytics/
+Unauthorized: /api/v1/analytics/
+Forbidden: /api/v1/analytics/export/
+Unauthorized: /api/v1/analytics/export/
+......
+----------------------------------------------------------------------
+Ran 561 tests in 372.912s
+
+OK
+Destroying test database for alias 'default'...
+Found 561 test(s).
+System check identified no issues (0 silenced).

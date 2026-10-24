@@ -1,0 +1,66 @@
+test_c3_evidence_upload_during_autosave_no_conflict (test_browser.BrowserTests.test_c3_evidence_upload_during_autosave_no_conflict) ... ok
+test_c7_preview_keeps_scroll_while_editing_50_row_table (test_browser.BrowserTests.test_c7_preview_keeps_scroll_while_editing_50_row_table) ... ok
+test_dean_status_cards_filter_and_reopen_denial_feedback (test_browser.BrowserTests.test_dean_status_cards_filter_and_reopen_denial_feedback)
+Dean dashboard: every status card filters the report list (counts unchanged, toggle/Assigned clears, keyboard, ... ok
+test_editor_section_navigation_and_back_to_top (test_browser.BrowserTests.test_editor_section_navigation_and_back_to_top)
+Section chips (template-derived, per course) reach their headings and mark the current one; the phone layout uses a ... ok
+test_kra11_23_save_reload_preview_export (test_browser.BrowserTests.test_kra11_23_save_reload_preview_export)
+KRAs 11 and 23 (previously checked by hand only): a field of course/programme 2 edited, saved, reloaded, previewed ... ok
+test_kra12_25_26_awards (test_browser.BrowserTests.test_kra12_25_26_awards)
+Awards batch: KRA 12 award title edited in its card; KRAs 25/26 a team award's member list edited (one record, several ... ok
+test_kra14_16_34_35_project_formats (test_browser.BrowserTests.test_kra14_16_34_35_project_formats)
+KRAs 14, 16, 34, 35: one field edited per KRA in the form (34/35: a payment amount, stored exactly as typed); saved, ... ok
+test_kra15_22_31_38_table_reports_save_reload_preview_export (test_browser.BrowserTests.test_kra15_22_31_38_table_reports_save_reload_preview_export)
+Table batch: for KRAs 15, 22, 31 and 38 a complete synthetic draft is stored, one card cell edited in the form, saved, ... ok
+test_kra18_17_13_save_reload_preview_export (test_browser.BrowserTests.test_kra18_17_13_save_reload_preview_export)
+Industry-collaboration batch: for KRAs 18, 17 and 13 a complete synthetic draft is stored, one field edited in the UI, ... ok
+test_kra19_save_reload_preview_export_and_vc_review (test_browser.BrowserTests.test_kra19_save_reload_preview_export_and_vc_review)
+KRA 19: two visits in one submission; Dean save/reload/preview/export; UI submit; VC approves on the review page. ... ok
+test_kra1_2_3_save_reload_preview_export (test_browser.BrowserTests.test_kra1_2_3_save_reload_preview_export)
+Course family: each KRA keeps its own draft; save, reload, preview and export work for all three. ... ok
+test_kra20_card_editor_saves_record (test_browser.BrowserTests.test_kra20_card_editor_saves_record) ... ok
+test_kra21_39_adapted_reports (test_browser.BrowserTests.test_kra21_39_adapted_reports)
+KRA 21: programme title edited and an optional qualifier row's exam edited; KRA 39: a receipt amount edited (kept ... ok
+test_kra27_28_29_30_events (test_browser.BrowserTests.test_kra27_28_29_30_events)
+Events batch: for KRAs 27–30 two synthetic events are stored, the second event's KRA-specific field edited in the form, ... ok
+test_kra32_conditional_payment_fields (test_browser.BrowserTests.test_kra32_conditional_payment_fields) ... ok
+test_kra36_37_save_reload_preview_export_and_vc_review (test_browser.BrowserTests.test_kra36_37_save_reload_preview_export_and_vc_review)
+FDP/STP family: Dean save/reload/preview/export for KRAs 36 and 37; KRA 37 submitted from the UI and approved ... ok
+test_kra40_41_42_project_formats (test_browser.BrowserTests.test_kra40_41_42_project_formats)
+KRA 40: a follow-up action's progress edited; an action pointing to a missing finding is refused at validation. ... ok
+test_kra43_44_45_reports (test_browser.BrowserTests.test_kra43_44_45_reports)
+KRAs 43–45: two synthetic events stored; on event 2 a field is edited in the form (43 conference name, 44 theme, ... ok
+test_kra4_5_6_and_24_forms (test_browser.BrowserTests.test_kra4_5_6_and_24_forms)
+KRAs 4–6: programme field edited, saved, reloaded, previewed and exported per KRA. KRA 24: switching a record to ... ok
+test_kra7_decimal_kept_exactly_through_autosave_and_reload (test_browser.BrowserTests.test_kra7_decimal_kept_exactly_through_autosave_and_reload) ... ok
+test_kra8_9_10_surveys_save_reload_preview_export (test_browser.BrowserTests.test_kra8_9_10_surveys_save_reload_preview_export)
+Survey family: KRAs 8 and 10 save/reload/preview/export; KRA 9 variant ticking in the UI keeps 9b data ... ok
+test_login_pages_required_fields_keyboard_and_roles (test_browser.BrowserTests.test_login_pages_required_fields_keyboard_and_roles)
+Login (reference/ui/redesign-v2/login-reference.png): both role pages render their own role; empty fields are ... ok
+test_phase2_bulk_approval_preview_artifacts_and_announcements (test_browser.BrowserTests.test_phase2_bulk_approval_preview_artifacts_and_announcements)
+VC Phase 2: quick previews of exact revisions never request a PDF; selected and all-filtered bulk approval ... ok
+test_phase5a_vc_assignment_workflow (test_browser.BrowserTests.test_phase5a_vc_assignment_workflow)
+VC Phase 1 (supersedes the Phase 5A flow): Dean denied; VC copies 2026-27 into 2027-28 drafts through the copy review, ... ok
+test_phase5b_progress_filters_review_and_export (test_browser.BrowserTests.test_phase5b_progress_filters_review_and_export)
+Phase 5B + draft privacy (D-078): an ECE Dean's saved draft is plain "Not submitted" for the VC — no Draft filter, ... ok
+test_phase6b_failed_autosave_and_upload_recover (test_browser.BrowserTests.test_phase6b_failed_autosave_and_upload_recover)
+Phase 6B: a failed autosave keeps typed values and says so; the next change saves everything; a failed upload is ... ok
+test_phase6c_measured_contrast_of_shared_controls (test_browser.BrowserTests.test_phase6c_measured_contrast_of_shared_controls)
+Phase 6C follow-up: computed colours (alpha composited over the real background) for input borders (3:1), ... ok
+test_phase6c_tabs_names_markers_inactive_fields_and_phone_width (test_browser.BrowserTests.test_phase6c_tabs_names_markers_inactive_fields_and_phone_width)
+Phase 6C: keyboard tabs with panels; named table cells; required markers follow applicability (KRA 32); ... ok
+test_portals_reject_wrong_role (test_browser.BrowserTests.test_portals_reject_wrong_role) ... ok
+test_term_dropdowns_dean_name_and_nil_date_placeholder (test_browser.BrowserTests.test_term_dropdowns_dean_name_and_nil_date_placeholder)
+D-079: an unmatched old year/semester entry stays visible; dropdowns replace it; the Head of the Department is the ... ok
+test_ui2_dashboards_counts_attention_filters (test_browser.BrowserTests.test_ui2_dashboards_counts_attention_filters)
+UI-2: Dean cards reconcile with the list; a rejected Nil report and an approved P1 reopening appear once each in ... ok
+test_ui_polish_table_cells_contain_text_and_department_list_is_on_top (test_browser.BrowserTests.test_ui_polish_table_cells_contain_text_and_department_list_is_on_top)
+UI polish (reference/ui/bugs): announcement rows with long text and long audiences keep every cell's content inside ... ok
+test_workspace_keeps_event_selection_and_input_across_loads (test_browser.BrowserTests.test_workspace_keeps_event_selection_and_input_across_loads)
+Regression: a second load of the submission (React StrictMode runs the load effect twice in development; any ... ok
+test_zz_ui_audit (test_browser.BrowserTests.test_zz_ui_audit) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 336.992s
+
+OK

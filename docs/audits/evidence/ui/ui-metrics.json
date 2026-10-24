@@ -1,0 +1,928 @@
+{
+ "login-dean@375": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-vc@375": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-dashboard@375": {
+  "overflow": 0,
+  "clipped": [
+   "P2 reports by status",
+   "\u2014 KRA 42 \u00b7 P2",
+   "\u2014 KRA 41 \u00b7 P1",
+   "\u2014 KRA 1",
+   "\u2014 KRA 2",
+   "\u2014 KRA 3"
+  ],
+  "small": [
+   "View all"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-workspace-kra1@375": {
+  "overflow": 0,
+  "clipped": [
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)"
+  ],
+  "small": [
+   "checkbox",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators"
+  ],
+  "unlabeled": [],
+  "offscreen": [
+   "activities.0.modules.0.hours",
+   "\u2715",
+   "activities.0.modules.1.hours",
+   "\u2715",
+   "activities.0.modules.2.hours",
+   "\u2715"
+  ]
+ },
+ "dean-announcements@375": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-dashboard@375": {
+  "overflow": 0,
+  "clipped": [
+   "Report counts",
+   "of CSE KRA 1",
+   "of CSE KRA 2",
+   "of CSE KRA 3"
+  ],
+  "small": [
+   "Select CSE KRA 1 for approval"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-assignments@375": {
+  "overflow": 0,
+  "clipped": [
+   "New target for ASH KRA 1",
+   "New target for CS KRA 1",
+   "New target for CSE KRA 1",
+   "New target for CSE (AI) KRA 1",
+   "New target for CSE (AIML) KRA 1",
+   "New target for CSIT KRA 1"
+  ],
+  "small": [
+   "Select ASH KRA 1 draft",
+   "Select CS KRA 1 draft",
+   "Select CSE KRA 1 draft",
+   "Select CSE (AI) KRA 1 draft",
+   "Select CSE (AIML) KRA 1 draft",
+   "Select CSIT KRA 1 draft",
+   "Select ECE KRA 1 draft",
+   "Select EEE KRA 1 draft"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-analytics@375": {
+  "overflow": 0,
+  "clipped": [
+   "Computer Science & Engineering (Artifici",
+   "Computer Science & Engineering (AI & ML)",
+   "Computer Science & Information Technolog"
+  ],
+  "small": [
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-announcements@375": {
+  "overflow": 0,
+  "clipped": [
+   "Announcements",
+   "Audit notice with a deliberately long ti",
+   "Reports pending for 2026-27 (2)",
+   "Reports pending for 2026-27 (1)",
+   "Reports pending for 2026-27 (0)",
+   "Reports pending for 2026-27"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": [
+   "Open Audit notice with a delib",
+   "Open Reports pending for 2026-",
+   "Open Reports pending for 2026-",
+   "Open Reports pending for 2026-",
+   "Open Reports pending for 2026-",
+   "Open Synthetic notice 17927964"
+  ]
+ },
+ "vc-announcement-new@375": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "\u2190 All announcements",
+   "aud",
+   "aud",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-reopen@375": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-kras@375": {
+  "overflow": 0,
+  "clipped": [
+   "Search KRAs",
+   "Installed KRAs (45 shown)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-review@375": {
+  "overflow": 0,
+  "clipped": [
+   "(opens in a new tab)"
+  ],
+  "small": [
+   "Preview zoom",
+   "radio",
+   "radio"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-dean@768": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-vc@768": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-dashboard@768": {
+  "overflow": 0,
+  "clipped": [
+   "P2 reports by status",
+   "\u2014 KRA 42 \u00b7 P2",
+   "\u2014 KRA 41 \u00b7 P1",
+   "\u2014 KRA 1",
+   "\u2014 KRA 2",
+   "\u2014 KRA 3"
+  ],
+  "small": [
+   "View all"
+  ],
+  "unlabeled": [],
+  "offscreen": [
+   "Continue draft \u2014 KRA 1",
+   "Continue draft \u2014 KRA 2",
+   "Continue draft \u2014 KRA 3",
+   "Continue draft \u2014 KRA 4",
+   "Continue draft \u2014 KRA 5",
+   "Continue draft \u2014 KRA 6"
+  ]
+ },
+ "dean-workspace-kra1@768": {
+  "overflow": 0,
+  "clipped": [
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)"
+  ],
+  "small": [
+   "checkbox",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-announcements@768": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-dashboard@768": {
+  "overflow": 0,
+  "clipped": [
+   "Report counts",
+   "of CSE KRA 1",
+   "of CSE KRA 2",
+   "of CSE KRA 3"
+  ],
+  "small": [
+   "Select this page (reports awai",
+   "Select CSE KRA 1 for approval"
+  ],
+  "unlabeled": [],
+  "offscreen": [
+   "Review",
+   "Quick preview of CSE KRA 1",
+   "View & history",
+   "Quick preview of CSE KRA 2",
+   "View & history",
+   "Quick preview of CSE KRA 3"
+  ]
+ },
+ "vc-assignments@768": {
+  "overflow": 0,
+  "clipped": [
+   "Select",
+   "New target for ASH KRA 1",
+   "New target for CS KRA 1",
+   "New target for CSE KRA 1",
+   "New target for CSE (AI) KRA 1",
+   "New target for CSE (AIML) KRA 1"
+  ],
+  "small": [
+   "Select ASH KRA 1 draft",
+   "Select CS KRA 1 draft",
+   "Select CSE KRA 1 draft",
+   "Select CSE (AI) KRA 1 draft",
+   "Select CSE (AIML) KRA 1 draft",
+   "Select CSIT KRA 1 draft",
+   "Select ECE KRA 1 draft",
+   "Select EEE KRA 1 draft"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-analytics@768": {
+  "overflow": 0,
+  "clipped": [
+   "Computer Science & Engineering (Artifici",
+   "Computer Science & Engineering (AI & ML)",
+   "Computer Science & Information Technolog",
+   "Electronics & Communication Engineering"
+  ],
+  "small": [
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-announcements@768": {
+  "overflow": 0,
+  "clipped": [
+   "Announcements",
+   "Audit notice with a deliberately long ti",
+   "Reports pending for 2026-27 (2)",
+   "Reports pending for 2026-27 (1)",
+   "Reports pending for 2026-27 (0)",
+   "Reports pending for 2026-27"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": [
+   "Open Audit notice with a delib",
+   "Open Reports pending for 2026-",
+   "Open Reports pending for 2026-",
+   "Open Reports pending for 2026-",
+   "Open Reports pending for 2026-",
+   "Open Synthetic notice 17927964"
+  ]
+ },
+ "vc-announcement-new@768": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "\u2190 All announcements",
+   "aud",
+   "aud",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-reopen@768": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-kras@768": {
+  "overflow": 0,
+  "clipped": [
+   "Search KRAs",
+   "Installed KRAs (45 shown)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-review@768": {
+  "overflow": 0,
+  "clipped": [
+   "(opens in a new tab)"
+  ],
+  "small": [
+   "Preview zoom",
+   "radio",
+   "radio"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-dean@1024": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-vc@1024": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-dashboard@1024": {
+  "overflow": 0,
+  "clipped": [
+   "P2 reports by status",
+   "\u2014 KRA 42 \u00b7 P2",
+   "\u2014 KRA 41 \u00b7 P1",
+   "\u2014 KRA 1",
+   "\u2014 KRA 2",
+   "\u2014 KRA 3"
+  ],
+  "small": [
+   "View all"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-workspace-kra1@1024": {
+  "overflow": 0,
+  "clipped": [
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)"
+  ],
+  "small": [
+   "checkbox",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-announcements@1024": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-dashboard@1024": {
+  "overflow": 0,
+  "clipped": [
+   "Report counts",
+   "of CSE KRA 1",
+   "of CSE KRA 2",
+   "of CSE KRA 3"
+  ],
+  "small": [
+   "Select this page (reports awai",
+   "Select CSE KRA 1 for approval"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-assignments@1024": {
+  "overflow": 0,
+  "clipped": [
+   "Select",
+   "New target for ASH KRA 1",
+   "New target for CS KRA 1",
+   "New target for CSE KRA 1",
+   "New target for CSE (AI) KRA 1",
+   "New target for CSE (AIML) KRA 1"
+  ],
+  "small": [
+   "Select ASH KRA 1 draft",
+   "Select CS KRA 1 draft",
+   "Select CSE KRA 1 draft",
+   "Select CSE (AI) KRA 1 draft",
+   "Select CSE (AIML) KRA 1 draft",
+   "Select CSIT KRA 1 draft",
+   "Select ECE KRA 1 draft",
+   "Select EEE KRA 1 draft"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-analytics@1024": {
+  "overflow": 0,
+  "clipped": [
+   "Computer Science & Engineering (Artifici",
+   "Computer Science & Engineering (AI & ML)",
+   "Computer Science & Information Technolog",
+   "Electronics & Communication Engineering"
+  ],
+  "small": [
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-announcements@1024": {
+  "overflow": 0,
+  "clipped": [
+   "Announcements",
+   "Audit notice with a deliberately long ti",
+   "Reports pending for 2026-27 (2)",
+   "Reports pending for 2026-27 (1)",
+   "Reports pending for 2026-27 (0)",
+   "Reports pending for 2026-27"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-announcement-new@1024": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "\u2190 All announcements",
+   "aud",
+   "aud",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-reopen@1024": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-kras@1024": {
+  "overflow": 0,
+  "clipped": [
+   "Search KRAs",
+   "Installed KRAs (45 shown)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-review@1024": {
+  "overflow": 0,
+  "clipped": [
+   "(opens in a new tab)"
+  ],
+  "small": [
+   "Preview zoom",
+   "radio",
+   "radio"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-dean@1440": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "login-vc@1440": {
+  "overflow": 0,
+  "clipped": [
+   "(Vice Chancellor)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-dashboard@1440": {
+  "overflow": 0,
+  "clipped": [
+   "P2 reports by status",
+   "\u2014 KRA 42 \u00b7 P2",
+   "\u2014 KRA 41 \u00b7 P1",
+   "\u2014 KRA 1",
+   "\u2014 KRA 2",
+   "\u2014 KRA 3"
+  ],
+  "small": [
+   "View all"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-workspace-kra1@1440": {
+  "overflow": 0,
+  "clipped": [
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)"
+  ],
+  "small": [
+   "checkbox",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-announcements@1440": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-dashboard@1440": {
+  "overflow": 0,
+  "clipped": [
+   "Report counts",
+   "of CSE KRA 1",
+   "of CSE KRA 2",
+   "of CSE KRA 3"
+  ],
+  "small": [
+   "Select this page (reports awai",
+   "Select CSE KRA 1 for approval"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-assignments@1440": {
+  "overflow": 0,
+  "clipped": [
+   "Select",
+   "New target for ASH KRA 1",
+   "New target for CS KRA 1",
+   "New target for CSE KRA 1",
+   "New target for CSE (AI) KRA 1",
+   "New target for CSE (AIML) KRA 1"
+  ],
+  "small": [
+   "Select ASH KRA 1 draft",
+   "Select CS KRA 1 draft",
+   "Select CSE KRA 1 draft",
+   "Select CSE (AI) KRA 1 draft",
+   "Select CSE (AIML) KRA 1 draft",
+   "Select CSIT KRA 1 draft",
+   "Select ECE KRA 1 draft",
+   "Select EEE KRA 1 draft"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-analytics@1440": {
+  "overflow": 0,
+  "clipped": [
+   "Computer Science & Engineering (Artifici",
+   "Computer Science & Engineering (AI & ML)",
+   "Computer Science & Information Technolog",
+   "Electronics & Communication Engineering"
+  ],
+  "small": [
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-announcements@1440": {
+  "overflow": 0,
+  "clipped": [
+   "Announcements",
+   "Audit notice with a deliberately long ti",
+   "Reports pending for 2026-27 (2)",
+   "Reports pending for 2026-27 (1)",
+   "Reports pending for 2026-27 (0)",
+   "Reports pending for 2026-27"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-announcement-new@1440": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [
+   "\u2190 All announcements",
+   "aud",
+   "aud",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-reopen@1440": {
+  "overflow": 0,
+  "clipped": [],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-kras@1440": {
+  "overflow": 0,
+  "clipped": [
+   "Search KRAs",
+   "Installed KRAs (45 shown)"
+  ],
+  "small": [],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-review@1440": {
+  "overflow": 0,
+  "clipped": [
+   "(opens in a new tab)"
+  ],
+  "small": [
+   "Preview zoom",
+   "radio",
+   "radio"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "dean-workspace keyboard tab stops": [
+  [
+   "KIET KRA Reporting Portal \u2014 ",
+   true
+  ],
+  [
+   "Sign out",
+   true
+  ],
+  [
+   "Dashboard",
+   true
+  ],
+  [
+   "Announcements 1 unread",
+   true
+  ],
+  [
+   "Change password",
+   true
+  ],
+  [
+   "Report",
+   true
+  ],
+  [
+   "Save draft",
+   true
+  ],
+  [
+   "Final PDF preview",
+   true
+  ],
+  [
+   "Submit",
+   true
+  ],
+  [
+   "INPUT",
+   true
+  ],
+  [
+   "Course 1",
+   true
+  ],
+  [
+   "+ Add course",
+   true
+  ],
+  [
+   "Course header",
+   true
+  ],
+  [
+   "Objectives of New Courses",
+   true
+  ],
+  [
+   "Detail of New Courses",
+   true
+  ],
+  [
+   "Course Content/Syllabus",
+   true
+  ],
+  [
+   "Learning Outcomes",
+   true
+  ],
+  [
+   "Assessment and Certification",
+   true
+  ],
+  [
+   "OUTCOME AND IMPACT",
+   true
+  ],
+  [
+   "Prepared By / Approved By",
+   true
+  ],
+  [
+   "List of Supporting Documents",
+   true
+  ],
+  [
+   "Select year of study\u20261st Yea",
+   true
+  ],
+  [
+   "Select semester\u2026Odd Semester",
+   true
+  ],
+  [
+   "activities.0.faculty_coordin",
+   true
+  ],
+  [
+   "INPUT",
+   true
+  ]
+ ],
+ "dean-workspace-kra1@zoom200": {
+  "overflow": 0,
+  "clipped": [
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)",
+   "(required for submission)"
+  ],
+  "small": [
+   "checkbox",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.objectives",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators",
+   "activities.0.impact_indicators"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-analytics@zoom200": {
+  "overflow": 0,
+  "clipped": [
+   "Computer Science & Engineering (Artifici",
+   "Computer Science & Engineering (AI & ML)",
+   "Computer Science & Information Technolog",
+   "Electronics & Communication Engineering"
+  ],
+  "small": [
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox",
+   "checkbox"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ },
+ "vc-assignments@zoom200": {
+  "overflow": 0,
+  "clipped": [
+   "New target for ASH KRA 1",
+   "New target for CS KRA 1",
+   "New target for CSE KRA 1",
+   "New target for CSE (AI) KRA 1",
+   "New target for CSE (AIML) KRA 1",
+   "New target for CSIT KRA 1"
+  ],
+  "small": [
+   "Select ASH KRA 1 draft",
+   "Select CS KRA 1 draft",
+   "Select CSE KRA 1 draft",
+   "Select CSE (AI) KRA 1 draft",
+   "Select CSE (AIML) KRA 1 draft",
+   "Select CSIT KRA 1 draft",
+   "Select ECE KRA 1 draft",
+   "Select EEE KRA 1 draft"
+  ],
+  "unlabeled": [],
+  "offscreen": []
+ }
+}

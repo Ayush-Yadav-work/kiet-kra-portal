@@ -1,0 +1,14 @@
+Creating test database for alias 'default'...
+Conflict: /api/v1/submissions/2b2dc020-30e8-4c14-a88b-d5b371fae420/submit/
+Conflict: /api/v1/submissions/2b2dc020-30e8-4c14-a88b-d5b371fae420/review/
+Conflict: /api/v1/submissions/d0e95f7e-f074-40d2-a3ae-154fcf908ec3/draft/
+Conflict: /api/v1/submissions/d177b03e-7867-4aed-8e8c-91b9d2515c75/draft/
+Conflict: /api/v1/assignments/db946db6-8d87-47f8-8b18-fff241c6164b/periods/1/
+....
+----------------------------------------------------------------------
+Ran 4 tests in 12.201s
+
+OK
+Destroying test database for alias 'default'...
+Found 4 test(s).
+System check identified no issues (0 silenced).

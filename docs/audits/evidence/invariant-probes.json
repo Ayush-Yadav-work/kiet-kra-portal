@@ -1,0 +1,15 @@
+{
+ "double submit (second click)": 409,
+ "revisions after double submit": 1,
+ "approve #1": 200,
+ "approve #2 (repeat)": 409,
+ "stale draft save": 409,
+ "reopen request from unstarted report": true,
+ "approve reopen": 200,
+ "grant length (h)": 72.0,
+ "editable 1s before expiry": true,
+ "save 1s before expiry": 200,
+ "editable at expiry": false,
+ "save at expiry": 409,
+ "other KRA same period during grant (open draft)": 409
+}
